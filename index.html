@@ -21,7 +21,6 @@
   --code-bg: #f3f2ee;
   --code-border: rgba(0,0,0,0.12);
   --nav-bg: rgba(255,255,255,0.94);
-  --card-bg: #ffffff;
   --danger: #9b2c2c;
   --danger-bg: #fdf0f0;
   --win-bg: #f0f8f0;
@@ -44,144 +43,176 @@
   --code-bg: #272726;
   --code-border: rgba(255,255,255,0.12);
   --nav-bg: rgba(25,25,24,0.94);
-  --card-bg: #212120;
   --danger: #e88080;
   --danger-bg: #3a1010;
   --win-bg: #0e2a0e;
   --win-text: #7ac87a;
   --win-border: rgba(0,180,0,0.15);
 }
+
 *{box-sizing:border-box;margin:0;padding:0}
 body{
   font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Apple SD Gothic Neo','Noto Sans KR',sans-serif;
   background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;
-  transition:background .2s,color .2s;
+  transition:background .25s,color .25s;
+  overflow-x:hidden;
 }
 
-/* TOP NAV */
+/* ── TOP NAV ── */
 nav{
-  position:sticky;top:0;z-index:100;
+  position:sticky;top:0;z-index:200;
   background:var(--nav-bg);border-bottom:1px solid var(--border);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   display:flex;align-items:center;justify-content:space-between;
-  padding:0 20px;height:48px;
+  padding:0 20px;height:52px;
 }
-.nav-left{display:flex;align-items:center;gap:8px}
-.nav-avatar{width:24px;height:24px;border-radius:50%;object-fit:cover}
-.nav-title{font-size:14px;font-weight:600;color:var(--text);cursor:pointer}
-.nav-title:hover{opacity:.7}
+.nav-left{display:flex;align-items:center;gap:8px;min-width:0}
+.nav-avatar{width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.nav-title{font-size:14px;font-weight:600;color:var(--text);cursor:pointer;transition:opacity .15s;white-space:nowrap}
+.nav-title:hover{opacity:.6}
+
+/* Back button */
+.back-btn{
+  display:flex;align-items:center;gap:5px;
+  background:none;border:none;cursor:pointer;
+  color:var(--text2);font-size:13px;font-weight:500;
+  padding:5px 9px 5px 5px;border-radius:8px;
+  transition:background .15s,color .15s,opacity .2s,transform .2s;
+  opacity:0;pointer-events:none;transform:translateX(-6px);
+  white-space:nowrap;flex-shrink:0;
+}
+.back-btn svg{flex-shrink:0}
+.back-btn.visible{opacity:1;pointer-events:auto;transform:translateX(0)}
+.back-btn:hover{background:var(--bg3);color:var(--text)}
+
+.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
 .theme-btn{
-  width:32px;height:32px;border-radius:6px;border:1px solid var(--border2);
+  width:34px;height:34px;border-radius:8px;border:1px solid var(--border2);
   background:transparent;cursor:pointer;display:flex;align-items:center;
-  justify-content:center;color:var(--text3);transition:background .15s;
+  justify-content:center;color:var(--text3);transition:background .15s,color .15s;
 }
-.theme-btn:hover{background:var(--bg3)}
+.theme-btn:hover{background:var(--bg3);color:var(--text)}
 
-/* LAYOUT — no sidebar */
-main{width:100%}
-.page{display:none}
-.page.active{display:block}
+/* ── PAGE CONTAINER ── */
+#app{position:relative;overflow:hidden;min-height:calc(100vh - 52px)}
 
-/* ── YOUTUBE-STYLE CHANNEL HEADER ── */
+.page{
+  position:absolute;inset:0;
+  opacity:0;pointer-events:none;
+  transform:translateY(20px);
+  transition:opacity .35s cubic-bezier(.4,0,.2,1),transform .35s cubic-bezier(.4,0,.2,1);
+  will-change:opacity,transform;
+}
+.page.active{
+  position:relative;inset:auto;
+  opacity:1;pointer-events:auto;
+  transform:none;
+}
+.page.exit-down{
+  opacity:0 !important;
+  transform:translateY(14px) !important;
+  transition:opacity .22s ease,transform .22s ease !important;
+  pointer-events:none;
+}
+.page.exit-up{
+  opacity:0 !important;
+  transform:translateY(-14px) !important;
+  transition:opacity .22s ease,transform .22s ease !important;
+  pointer-events:none;
+}
+
+/* ── CHANNEL HEADER ── */
+.channel-banner-wrap{
+  width:100%;
+  padding-top:28px;
+  background:var(--bg);
+}
 .channel-banner{
-  width:100%;height:200px;
+  width:100%;height:216px;
   object-fit:cover;object-position:center;
   display:block;
 }
 .channel-header{
   max-width:1100px;margin:0 auto;
-  padding:0 32px;
+  padding:0 36px;
 }
 .channel-profile-row{
   display:flex;align-items:flex-end;gap:20px;
-  margin-top:-44px;margin-bottom:16px;
+  margin-top:-46px;margin-bottom:14px;
 }
 .channel-avatar{
-  width:88px;height:88px;border-radius:50%;
+  width:92px;height:92px;border-radius:50%;
   border:4px solid var(--bg);
   object-fit:cover;flex-shrink:0;
   background:var(--bg2);
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s;
 }
+.channel-avatar:hover{transform:scale(1.06);box-shadow:0 6px 24px rgba(0,0,0,.14)}
 .channel-info{padding-bottom:6px}
 .channel-name{font-size:22px;font-weight:700;letter-spacing:-.4px}
-.channel-handle{font-size:13px;color:var(--text3);margin-top:2px}
+.channel-handle{font-size:13px;color:var(--text3);margin-top:3px}
+.channel-divider{height:1px;background:var(--border);max-width:1100px;margin:0 auto}
 
-/* TABS */
-.channel-tabs{
-  border-bottom:1px solid var(--border);
-  display:flex;gap:0;
-  max-width:1100px;margin:0 auto;padding:0 32px;
-}
-.tab-btn{
-  padding:12px 18px;font-size:14px;font-weight:500;color:var(--text3);
-  border:none;background:transparent;cursor:pointer;
-  border-bottom:2px solid transparent;transition:color .15s,border-color .15s;
-  white-space:nowrap;
-}
-.tab-btn:hover{color:var(--text)}
-.tab-btn.active{color:var(--text);border-bottom-color:var(--text)}
-
-/* HOME PAGE CONTENT */
-.home-body{
-  max-width:720px;margin:0 auto;
-  padding:32px 32px 56px;
-}
+/* ── HOME CONTENT ── */
+.home-body{max-width:720px;margin:0 auto;padding:32px 36px 64px}
 .home-notice{
   display:flex;align-items:flex-start;gap:10px;
-  background:var(--accent-bg);border:1px solid rgba(212,121,58,.2);border-radius:8px;
-  padding:12px 16px;font-size:13.5px;color:var(--accent-text);margin-bottom:36px;
+  background:var(--accent-bg);border:1px solid rgba(212,121,58,.22);border-radius:10px;
+  padding:13px 16px;font-size:13.5px;color:var(--accent-text);margin-bottom:36px;
 }
-.home-section{margin-bottom:32px}
-.home-section-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:10px}
+.home-section{margin-bottom:34px}
+.home-section-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text3);margin-bottom:10px}
 .nav-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .nav-btn{
-  display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:8px;
+  display:flex;align-items:center;gap:13px;padding:15px 16px;border-radius:10px;
   border:1px solid var(--border);background:var(--bg);
-  cursor:pointer;color:var(--text);transition:border-color .15s,background .15s;
+  cursor:pointer;color:var(--text);
+  transition:border-color .15s,background .15s,transform .15s cubic-bezier(.34,1.56,.64,1),box-shadow .15s;
 }
-.nav-btn:hover{border-color:var(--border2);background:var(--bg2)}
-.btn-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-btn:hover{border-color:var(--border2);background:var(--bg2);transform:translateY(-2px);box-shadow:0 5px 16px rgba(0,0,0,.07)}
+.nav-btn:active{transform:translateY(0);box-shadow:none}
+.btn-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .btn-icon svg{width:18px;height:18px}
-.btn-label{font-size:14px;font-weight:500}
+.btn-label{font-size:14px;font-weight:600}
 .btn-sub{font-size:12px;color:var(--text3);margin-top:1px}
-.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+
+.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
 .game-btn{
-  display:flex;align-items:center;gap:12px;padding:12px 15px;border-radius:8px;
+  display:flex;align-items:center;gap:12px;padding:13px 15px;border-radius:10px;
   border:1px solid var(--border);background:var(--bg);
-  cursor:pointer;color:var(--text);transition:border-color .15s,background .15s;
+  cursor:pointer;color:var(--text);
+  transition:border-color .15s,background .15s,transform .15s cubic-bezier(.34,1.56,.64,1),box-shadow .15s;
 }
-.game-btn:hover{border-color:var(--border2);background:var(--bg2)}
-.game-icon{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.game-btn:hover{border-color:var(--border2);background:var(--bg2);transform:translateY(-2px);box-shadow:0 5px 16px rgba(0,0,0,.07)}
+.game-btn:active{transform:translateY(0);box-shadow:none}
+.game-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .game-icon svg{width:16px;height:16px}
-.game-label{font-size:13.5px;font-weight:500}
+.game-label{font-size:13.5px;font-weight:600}
 .game-sub{font-size:11.5px;color:var(--text3);margin-top:1px}
 
-/* INNER PAGES */
-.page-inner{max-width:720px;margin:0 auto;padding:40px 32px 56px}
+/* ── INNER PAGES ── */
+.page-inner{max-width:720px;margin:0 auto;padding:40px 36px 64px}
 .page-hero{display:flex;align-items:center;gap:14px;margin-bottom:28px}
-.page-icon{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.page-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .page-icon svg{width:24px;height:24px}
-.page-title{font-size:27px;font-weight:700;letter-spacing:-.3px}
-.breadcrumb{font-size:13px;color:var(--text3);margin-bottom:20px;display:flex;align-items:center;gap:6px}
-.breadcrumb span{cursor:pointer;transition:color .12s}
-.breadcrumb span:hover{color:var(--link)}
-.section{margin-bottom:28px}
-.section-title{font-size:16px;font-weight:600;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
-.sub-title{font-size:14px;font-weight:600;margin:16px 0 6px;color:var(--text)}
+.page-title{font-size:28px;font-weight:700;letter-spacing:-.4px}
+.section{margin-bottom:30px}
+.section-title{font-size:15px;font-weight:600;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.sub-title{font-size:14px;font-weight:600;margin:16px 0 6px}
 .rule-list{list-style:none;padding:0}
-.rule-list li{display:flex;align-items:flex-start;gap:10px;padding:7px 10px;border-radius:6px;font-size:14px;color:var(--text2);transition:background .1s}
+.rule-list li{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:7px;font-size:14px;color:var(--text2);transition:background .12s}
 .rule-list li:hover{background:var(--bg2)}
 .rx{width:18px;height:18px;border-radius:4px;background:var(--danger-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
 .rx svg{width:10px;height:10px;stroke:var(--danger)}
-.code-wrap{display:flex;align-items:stretch;background:var(--code-bg);border:1px solid var(--code-border);border-radius:7px;overflow:hidden;margin:6px 0}
+.code-wrap{display:flex;align-items:stretch;background:var(--code-bg);border:1px solid var(--code-border);border-radius:8px;overflow:hidden;margin:6px 0}
 .code-line{flex:1;padding:10px 14px;font-family:'SF Mono','Fira Code','Consolas',monospace;font-size:13px;color:var(--text)}
 .copy-btn{padding:0 14px;background:transparent;border:none;border-left:1px solid var(--code-border);font-size:11.5px;color:var(--text3);cursor:pointer;transition:background .12s,color .12s;white-space:nowrap}
 .copy-btn:hover{background:var(--bg3);color:var(--text)}
 .copy-btn.ok{color:#2e7d32}
 .cmd-desc{font-size:12.5px;color:var(--text3);margin:2px 0 12px 4px}
-.notice-box{display:flex;align-items:flex-start;gap:10px;background:var(--accent-bg);border:1px solid rgba(212,121,58,.2);border-radius:8px;padding:13px 16px;font-size:13.5px;color:var(--accent-text);margin-bottom:20px}
-.danger-box{background:var(--danger-bg);border:1px solid rgba(155,44,44,.15);border-radius:8px;padding:13px 16px;font-size:13.5px;color:var(--danger)}
-.win-box{background:var(--win-bg);border:1px solid var(--win-border);border-radius:8px;padding:11px 16px;font-size:14px;color:var(--win-text);font-weight:500;margin:16px 0;display:flex;flex-direction:column;gap:4px}
+.notice-box{display:flex;align-items:flex-start;gap:10px;background:var(--accent-bg);border:1px solid rgba(212,121,58,.2);border-radius:10px;padding:13px 16px;font-size:13.5px;color:var(--accent-text);margin-bottom:20px}
+.danger-box{background:var(--danger-bg);border:1px solid rgba(155,44,44,.15);border-radius:10px;padding:13px 16px;font-size:13.5px;color:var(--danger)}
+.win-box{background:var(--win-bg);border:1px solid var(--win-border);border-radius:10px;padding:12px 16px;font-size:14px;color:var(--win-text);font-weight:500;margin:16px 0;display:flex;flex-direction:column;gap:4px}
 .step{display:flex;gap:14px;margin-bottom:18px}
 .step-num{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px}
 .step-body h4{font-size:14px;font-weight:600;margin-bottom:4px}
@@ -193,33 +224,31 @@ main{width:100%}
 .de-link:hover{text-decoration:underline}
 .mode-p{font-size:14px;color:var(--text2);margin-bottom:8px;padding-left:2px}
 
-/* icon color sets */
-.ic-blue{background:#e8f0fe} [data-theme="dark"] .ic-blue{background:#0d2040}
-.ic-blue svg{stroke:#1a56c8}
-.ic-red{background:#fdecea} [data-theme="dark"] .ic-red{background:#3a0a0a}
-.ic-red svg{stroke:#c83030}
-.ic-green{background:#e8f5e9} [data-theme="dark"] .ic-green{background:#0a2a0a}
-.ic-green svg{stroke:#2e7d32}
-.ic-purple{background:#f3e8fd} [data-theme="dark"] .ic-purple{background:#1e0a38}
-.ic-purple svg{stroke:#7c3ac8}
-.ic-orange{background:#fff4e6} [data-theme="dark"] .ic-orange{background:#3a2000}
-.ic-orange svg{stroke:#c87020}
-.ic-gray{background:var(--bg3)}
-.ic-gray svg{stroke:var(--text2)}
-.ic-teal{background:#e0f7f4} [data-theme="dark"] .ic-teal{background:#062220}
-.ic-teal svg{stroke:#0a8070}
-.ic-gold{background:#fef8e0} [data-theme="dark"] .ic-gold{background:#2a2000}
-.ic-gold svg{stroke:#a07800}
+/* ── ICON COLOUR SETS ── */
+.ic-blue{background:#e8f0fe}[data-theme="dark"] .ic-blue{background:#0d2040}.ic-blue svg{stroke:#1a56c8}
+.ic-red{background:#fdecea}[data-theme="dark"] .ic-red{background:#3a0a0a}.ic-red svg{stroke:#c83030}
+.ic-green{background:#e8f5e9}[data-theme="dark"] .ic-green{background:#0a2a0a}.ic-green svg{stroke:#2e7d32}
+.ic-purple{background:#f3e8fd}[data-theme="dark"] .ic-purple{background:#1e0a38}.ic-purple svg{stroke:#7c3ac8}
+.ic-orange{background:#fff4e6}[data-theme="dark"] .ic-orange{background:#3a2000}.ic-orange svg{stroke:#c87020}
+.ic-gray{background:var(--bg3)}.ic-gray svg{stroke:var(--text2)}
+.ic-teal{background:#e0f7f4}[data-theme="dark"] .ic-teal{background:#062220}.ic-teal svg{stroke:#0a8070}
+.ic-gold{background:#fef8e0}[data-theme="dark"] .ic-gold{background:#2a2000}.ic-gold svg{stroke:#a07800}
 
+/* ── RESPONSIVE ── */
 @media(max-width:640px){
-  .channel-banner{height:120px}
-  .channel-header,.channel-tabs{padding:0 16px}
-  .channel-avatar{width:68px;height:68px}
-  .channel-profile-row{margin-top:-34px}
+  .channel-banner{height:130px}
+  .channel-banner-wrap{padding-top:16px}
+  .channel-header{padding:0 18px}
+  .channel-divider{margin:0 18px;max-width:none}
+  .channel-avatar{width:70px;height:70px}
+  .channel-profile-row{margin-top:-35px}
   .channel-name{font-size:18px}
-  .tab-btn{padding:10px 12px;font-size:13px}
-  .home-body,.page-inner{padding:24px 16px 48px}
-  .nav-grid,.game-grid{grid-template-columns:1fr}
+  .home-body,.page-inner{padding:24px 18px 52px}
+  .nav-grid{grid-template-columns:1fr}
+  .game-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:400px){
+  .game-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -228,48 +257,45 @@ main{width:100%}
 <!-- TOP NAV -->
 <nav>
   <div class="nav-left">
+    <button class="back-btn" id="backBtn" onclick="go('home')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      홈으로
+    </button>
     <img class="nav-avatar" src="https://file.notion.so/f/f/584e2286-0a7a-8153-b191-0003916f36db/60abf019-d18d-479f-875a-75e9a4bba5e5/7e87df444e9593af.gif?table=block&id=27be2286-0a7a-802d-827a-e3852852a9d2&spaceId=584e2286-0a7a-8153-b191-0003916f36db&expirationTimestamp=1776024000000&signature=DPEpajqUBgQ9EAS3j9voTlNnHlg5KR1xk7Jj17YzVoY" alt="">
     <span class="nav-title" onclick="go('home')">조밈 시참 설명서</span>
   </div>
-  <button class="theme-btn" onclick="toggleTheme()">
-    <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-    </svg>
-  </button>
+  <div class="nav-right">
+    <button class="theme-btn" onclick="toggleTheme()">
+      <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </div>
 </nav>
 
-<main>
+<!-- PAGE CONTAINER -->
+<div id="app">
 
-<!-- HOME -->
-<div class="page active" id="pg-home">
-  <!-- YouTube-style banner -->
-  <img class="channel-banner" src="https://yt3.googleusercontent.com/iRxRpoSE9bFfXZOMhJwfmGfXRhEGDyVTjsanJN33qsnfjP94GVrYk4rZwj6gnfOWYJApvTg-FQ=w1138-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj" alt="" onerror="this.style.display='none'">
-
-  <!-- Channel profile row -->
+<!-- ══════════════ HOME ══════════════ -->
+<div class="page" id="pg-home">
+  <div class="channel-banner-wrap">
+    <img class="channel-banner"
+      src="https://yt3.googleusercontent.com/iRxRpoSE9bFfXZOMhJwfmGfXRhEGDyVTjsanJN33qsnfjP94GVrYk4rZwj6gnfOWYJApvTg-FQ=w1138-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj"
+      alt="" onerror="this.style.display='none'">
+  </div>
   <div class="channel-header">
     <div class="channel-profile-row">
-      <img class="channel-avatar" src="https://file.notion.so/f/f/584e2286-0a7a-8153-b191-0003916f36db/60abf019-d18d-479f-875a-75e9a4bba5e5/7e87df444e9593af.gif?table=block&id=27be2286-0a7a-802d-827a-e3852852a9d2&spaceId=584e2286-0a7a-8153-b191-0003916f36db&expirationTimestamp=1776024000000&signature=DPEpajqUBgQ9EAS3j9voTlNnHlg5KR1xk7Jj17YzVoY" alt="조밈">
+      <img class="channel-avatar"
+        src="https://file.notion.so/f/f/584e2286-0a7a-8153-b191-0003916f36db/60abf019-d18d-479f-875a-75e9a4bba5e5/7e87df444e9593af.gif?table=block&id=27be2286-0a7a-802d-827a-e3852852a9d2&spaceId=584e2286-0a7a-8153-b191-0003916f36db&expirationTimestamp=1776024000000&signature=DPEpajqUBgQ9EAS3j9voTlNnHlg5KR1xk7Jj17YzVoY"
+        alt="조밈">
       <div class="channel-info">
         <div class="channel-name">조밈 시참 설명서</div>
         <div class="channel-handle">컨텐츠 참여 전 아래 항목을 선택해 규칙을 확인하세요.</div>
       </div>
     </div>
   </div>
+  <div class="channel-divider"></div>
 
-  <!-- Tab navigation -->
-  <div class="channel-tabs">
-    <button class="tab-btn active" onclick="switchTab('홈')">홈</button>
-    <button class="tab-btn" onclick="go('chat')">채팅 규칙</button>
-    <button class="tab-btn" onclick="go('part')">참여 규칙</button>
-    <button class="tab-btn" onclick="go('howto')">참여 방법</button>
-    <button class="tab-btn" onclick="go('battle')">야생 배틀로얄</button>
-    <button class="tab-btn" onclick="go('school')">학교 술래잡기</button>
-    <button class="tab-btn" onclick="go('city')">도시능력자</button>
-    <button class="tab-btn" onclick="go('catch')">조밈을 잡아라!</button>
-    <button class="tab-btn" onclick="go('mind')">캐치마인드</button>
-  </div>
-
-  <!-- Home content -->
   <div class="home-body">
     <div class="home-notice">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -324,12 +350,11 @@ main{width:100%}
       </div>
     </div>
   </div>
-</div>
+</div><!-- /pg-home -->
 
-<!-- CHAT RULES -->
+<!-- ══════════════ CHAT RULES ══════════════ -->
 <div class="page" id="pg-chat">
   <div class="page-inner">
-    <div class="breadcrumb"><span onclick="go('home')">홈</span><span style="color:var(--border2)">/</span><span>채팅 규칙</span></div>
     <div class="page-hero">
       <span class="page-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
       <h1 class="page-title">채팅 규칙</h1>
@@ -378,10 +403,9 @@ main{width:100%}
   </div>
 </div>
 
-<!-- PART RULES -->
+<!-- ══════════════ PART RULES ══════════════ -->
 <div class="page" id="pg-part">
   <div class="page-inner">
-    <div class="breadcrumb"><span onclick="go('home')">홈</span><span style="color:var(--border2)">/</span><span>참여 규칙</span></div>
     <div class="page-hero">
       <span class="page-icon ic-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
       <h1 class="page-title">참여 규칙</h1>
@@ -424,10 +448,9 @@ main{width:100%}
   </div>
 </div>
 
-<!-- HOW TO -->
+<!-- ══════════════ HOW TO ══════════════ -->
 <div class="page" id="pg-howto">
   <div class="page-inner">
-    <div class="breadcrumb"><span onclick="go('home')">홈</span><span style="color:var(--border2)">/</span><span>참여 안내서</span></div>
     <div class="page-hero">
       <span class="page-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
       <h1 class="page-title">참여 안내서</h1>
@@ -465,20 +488,19 @@ main{width:100%}
       <span>규칙을 반드시 필독 후에 참여 해주세요!!</span>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-      <div onclick="go('chat')" style="display:flex;align-items:center;gap:7px;padding:8px 14px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;font-size:13.5px;color:var(--text);cursor:pointer">
+      <div onclick="go('chat')" style="display:flex;align-items:center;gap:7px;padding:8px 14px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;font-size:13.5px;color:var(--text);cursor:pointer;transition:background .12s,transform .12s">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>채팅 규칙
       </div>
-      <div onclick="go('part')" style="display:flex;align-items:center;gap:7px;padding:8px 14px;background:var(--bg2);border:1px solid var(--border2);border-radius:7px;font-size:13.5px;color:var(--text);cursor:pointer">
+      <div onclick="go('part')" style="display:flex;align-items:center;gap:7px;padding:8px 14px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;font-size:13.5px;color:var(--text);cursor:pointer;transition:background .12s,transform .12s">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>참여 규칙
       </div>
     </div>
   </div>
 </div>
 
-<!-- BATTLE -->
+<!-- ══════════════ BATTLE ══════════════ -->
 <div class="page" id="pg-battle">
   <div class="page-inner">
-    <div class="breadcrumb"><span onclick="go('home')">홈</span><span style="color:var(--border2)">/</span><span>야생 배틀로얄</span></div>
     <div class="page-hero">
       <span class="page-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
       <h1 class="page-title">야생 배틀로얄</h1>
@@ -500,10 +522,9 @@ main{width:100%}
   </div>
 </div>
 
-<!-- SCHOOL -->
+<!-- ══════════════ SCHOOL ══════════════ -->
 <div class="page" id="pg-school">
   <div class="page-inner">
-    <div class="breadcrumb"><span onclick="go('home')">홈</span><span style="color:var(--border2)">/</span><span>학교 술래잡기</span></div>
     <div class="page-hero">
       <span class="page-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
       <h1 class="page-title">학교 술래잡기</h1>
@@ -531,10 +552,9 @@ main{width:100%}
   </div>
 </div>
 
-<!-- CITY -->
+<!-- ══════════════ CITY ══════════════ -->
 <div class="page" id="pg-city">
   <div class="page-inner">
-    <div class="breadcrumb"><span onclick="go('home')">홈</span><span style="color:var(--border2)">/</span><span>도시능력자</span></div>
     <div class="page-hero">
       <span class="page-icon ic-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="12" x2="2" y2="12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span>
       <h1 class="page-title">도시능력자</h1>
@@ -567,10 +587,9 @@ main{width:100%}
   </div>
 </div>
 
-<!-- CATCH -->
+<!-- ══════════════ CATCH ══════════════ -->
 <div class="page" id="pg-catch">
   <div class="page-inner">
-    <div class="breadcrumb"><span onclick="go('home')">홈</span><span style="color:var(--border2)">/</span><span>조밈을 잡아라!</span></div>
     <div class="page-hero">
       <span class="page-icon ic-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
       <h1 class="page-title">조밈을 잡아라!</h1>
@@ -585,10 +604,9 @@ main{width:100%}
   </div>
 </div>
 
-<!-- MIND -->
+<!-- ══════════════ MIND ══════════════ -->
 <div class="page" id="pg-mind">
   <div class="page-inner">
-    <div class="breadcrumb"><span onclick="go('home')">홈</span><span style="color:var(--border2)">/</span><span>캐치마인드</span></div>
     <div class="page-hero">
       <span class="page-icon ic-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></span>
       <h1 class="page-title">캐치마인드</h1>
@@ -605,45 +623,100 @@ main{width:100%}
   </div>
 </div>
 
-</main>
+</div><!-- /app -->
 
 <script>
-const PAGES={home:'pg-home',chat:'pg-chat',part:'pg-part',howto:'pg-howto',battle:'pg-battle',school:'pg-school',city:'pg-city',catch:'pg-catch',mind:'pg-mind'};
-function go(id){
-  Object.values(PAGES).forEach(p=>{const e=document.getElementById(p);if(e)e.classList.remove('active')});
-  const pg=document.getElementById(PAGES[id]);if(pg)pg.classList.add('active');
-  window.scrollTo({top:0,behavior:'smooth'});
+const PAGES = {
+  home:'pg-home', chat:'pg-chat', part:'pg-part',
+  howto:'pg-howto', battle:'pg-battle', school:'pg-school',
+  city:'pg-city', catch:'pg-catch', mind:'pg-mind'
+};
+
+let currentPage = 'home';
+let animating = false;
+
+function go(id) {
+  if (id === currentPage || animating) return;
+  animating = true;
+
+  const fromEl = document.getElementById(PAGES[currentPage]);
+  const toEl   = document.getElementById(PAGES[id]);
+  const goingHome = (id === 'home');
+
+  /* Lock container height so it doesn't collapse during absolute positioning */
+  const app = document.getElementById('app');
+  const fromH = fromEl.scrollHeight;
+  app.style.minHeight = fromH + 'px';
+
+  /* ① Exit current page */
+  fromEl.classList.remove('active');
+  fromEl.classList.add(goingHome ? 'exit-down' : 'exit-up');
+
+  /* ② Prep incoming page off-screen */
+  toEl.style.cssText =
+    'position:absolute;top:0;left:0;right:0;' +
+    'opacity:0;pointer-events:none;' +
+    'transform:translateY(' + (goingHome ? '-22px' : '22px') + ');' +
+    'transition:none;';
+
+  /* force reflow */
+  toEl.offsetHeight;
+
+  /* ③ Animate in */
+  toEl.style.transition = 'opacity .36s cubic-bezier(.4,0,.2,1), transform .36s cubic-bezier(.4,0,.2,1)';
+  toEl.style.opacity = '1';
+  toEl.style.transform = 'translateY(0)';
+
+  setTimeout(() => {
+    /* Clean up outgoing page */
+    fromEl.classList.remove('exit-down', 'exit-up');
+
+    /* Promote incoming */
+    toEl.style.cssText = '';
+    toEl.classList.add('active');
+
+    app.style.minHeight = '';
+    currentPage = id;
+    animating = false;
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    /* Toggle back button */
+    const bb = document.getElementById('backBtn');
+    bb.classList.toggle('visible', id !== 'home');
+  }, 380);
 }
-function switchTab(name){
-  // just scrolls to top when home tab clicked (already on home)
-  go('home');
-}
-function cp(btn,text){
-  navigator.clipboard.writeText(text).then(()=>{
-    btn.textContent='복사됨';btn.classList.add('ok');
-    setTimeout(()=>{btn.textContent='복사';btn.classList.remove('ok')},1500);
+
+function cp(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '복사됨';
+    btn.classList.add('ok');
+    setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('ok'); }, 1500);
   });
 }
-function toggleTheme(){
-  const dark=document.documentElement.getAttribute('data-theme')==='dark';
-  const t=dark?'light':'dark';
-  document.documentElement.setAttribute('data-theme',t);
-  localStorage.setItem('jomim-theme',t);
+
+function toggleTheme() {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const t = dark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('jomim-theme', t);
   updateIcon(t);
 }
-function updateIcon(t){
-  const i=document.getElementById('themeIcon');
-  i.innerHTML=t==='dark'
-    ?'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
-    :'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+
+function updateIcon(t) {
+  document.getElementById('themeIcon').innerHTML = t === 'dark'
+    ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
+    : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
 }
-(function(){
-  const saved=localStorage.getItem('jomim-theme');
-  const pref=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
-  const t=saved||pref;
-  document.documentElement.setAttribute('data-theme',t);
+
+(function () {
+  const saved = localStorage.getItem('jomim-theme');
+  const pref  = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  const t = saved || pref;
+  document.documentElement.setAttribute('data-theme', t);
   updateIcon(t);
-  go('home');
+  /* Activate home without animation */
+  document.getElementById('pg-home').classList.add('active');
 })();
 </script>
 </body>
