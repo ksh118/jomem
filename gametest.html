@@ -336,7 +336,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
       <div class="gd-page" id="gd-p3">
         <div class="gd-icon">⬇️</div>
         <div class="gd-title">숙이기</div>
-        <div class="gd-desc">새���럼 낮은 장애물을 피하려면 숙이세요!<br><br>
+        <div class="gd-desc">새처럼 낮은 장애물을 피하려면 숙이세요!<br><br>
           <span class="gd-key">↓ 아래쪽 화살표</span><br><br>
           <span style="font-size:12px;color:var(--text3);">📱 모바일: ↓ 버튼</span>
         </div>
@@ -406,7 +406,7 @@ function checkMobileAccess(){
 }
 
 function openMobileRank(){
-  openRank();
+  document.getElementById('rank-modal').classList.add('show');
 }
 
 function loadRankingForMobile(){
@@ -422,7 +422,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
   checkMobileAccess();
   
   const saved=localStorage.getItem('jogame_user');
-  if(saved){
+  if(saved&&!isMobile()){
     try{
       const{nick,pw}=JSON.parse(saved);
       const snap=await db.ref('game_users/'+nick).once('value');
@@ -510,9 +510,8 @@ function renderRanking(){
 }
 function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
 function getRankPos(score){
-  if(!rankingData.length)return 1;
   let r=1;
-  for(const item of rankingData){if(item.nick!==currentUser?.nick&&item.score>score)r++;}
+  for(const item of rankingData){if(item.score>score)r++;}
   return Math.min(r,100);
 }
 function getMyStoredBest(){
