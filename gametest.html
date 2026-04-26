@@ -51,12 +51,12 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .user-chip{font-size:11px;font-weight:600;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2px 8px;white-space:nowrap;}
 .logout-btn{font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;font-family:inherit;}
 .logout-btn:hover{color:var(--danger);}
-.game-body{flex:1;display:flex;align-items:center;justify-content:center;padding:12px;overflow:hidden;min-height:0;background:var(--surface);}
-.canvas-card{width:100%;max-width:860px;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);display:flex;flex-direction:column;background:var(--bg);}
-.hud{display:flex;align-items:center;padding:6px 10px;border-bottom:1px solid var(--border);background:var(--bg);gap:10px;flex-shrink:0;}
+.game-body{flex:1;display:flex;align-items:center;justify-content:center;padding:8px;overflow:hidden;min-height:0;background:var(--surface);}
+.canvas-card{width:100%;max-width:860px;border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.05);display:flex;flex-direction:column;background:var(--bg);height:100%;}
+.hud{display:flex;align-items:center;padding:6px 10px;border-bottom:1px solid var(--border);background:var(--bg);gap:10px;flex-shrink:0;font-size:13px;}
 .hstat{display:flex;align-items:baseline;gap:4px;}
 .hlabel{font-size:10px;color:var(--text3);font-weight:500;white-space:nowrap;}
-.hval{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);}
+.hval{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text);}
 .hval.gold{color:var(--gold);}
 .hval.blue{color:var(--accent);}
 .hsep{width:1px;height:12px;background:var(--border);flex-shrink:0;}
@@ -65,14 +65,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .rank-btn:hover{background:var(--surface);}
 .canvas-wrap{position:relative;width:100%;padding-bottom:33.75%;background:#87CEEB;overflow:hidden;flex-shrink:0;}
 .canvas-wrap canvas{position:absolute;top:0;left:0;}
-.overlay{position:absolute;inset:0;background:rgba(20,14,6,0.84);display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;z-index:10;}
+.overlay{position:absolute;inset:0;background:rgba(20,14,6,0.84);display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;z-index:10;padding:20px;overflow-y:auto;}
 .overlay.show{display:flex;}
 .ov-tag{font-size:9px;font-weight:700;letter-spacing:3px;color:#a0a0a0;font-family:var(--mono);text-transform:uppercase;}
 .ov-score{font-family:var(--mono);font-size:38px;font-weight:700;color:#fff;letter-spacing:-2px;line-height:1;text-shadow:3px 3px 0 rgba(0,0,0,0.5);}
 .ov-sub{font-size:11px;color:#bbb;font-family:var(--mono);}
 .ov-rank{font-size:12px;font-weight:700;color:#6abf44;font-family:var(--mono);}
 .new-rec-badge{display:none;background:#f6c90e;color:#1a1200;border-radius:4px;padding:3px 12px;font-size:11px;font-weight:700;font-family:var(--mono);letter-spacing:1px;}
-.ov-btns{display:flex;gap:8px;margin-top:6px;}
+.ov-btns{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;justify-content:center;}
 .mc-btn{padding:8px 16px;border-radius:3px;font-size:12px;font-weight:700;font-family:var(--mono);cursor:pointer;border:none;letter-spacing:0.5px;}
 .mc-btn-p{background:#5a8f3c;color:#fff;border-bottom:3px solid #3d6028;}
 .mc-btn-p:hover{background:#6abf44;}
@@ -80,15 +80,21 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .mc-btn-g:hover{background:#666;}
 #start-ov .ov-logo{font-family:var(--mono);font-size:20px;font-weight:700;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.5);letter-spacing:2px;}
 #start-ov .ov-dino{width:48px;height:48px;object-fit:contain;}
-.canvas-hint{padding:4px 10px;border-top:1px solid var(--border);background:var(--bg);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
-.canvas-hint span{font-size:10px;color:var(--text3);}
-.mobile-controls{display:none;gap:16px;padding:8px 12px;background:var(--bg);border-top:1px solid var(--border);justify-content:center;flex-shrink:0;}
-.ctrl-btn{width:70px;height:54px;border:2px solid var(--border2);border-radius:10px;background:var(--surface);color:var(--text);font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;border-bottom:4px solid var(--border2);touch-action:none;}
+.canvas-hint{padding:4px 10px;border-top:1px solid var(--border);background:var(--bg);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;font-size:9px;}
+.canvas-hint span{font-size:9px;color:var(--text3);}
+.mobile-controls{display:none;gap:12px;padding:8px 12px;background:var(--bg);border-top:1px solid var(--border);justify-content:center;flex-shrink:0;}
+.ctrl-btn{width:60px;height:48px;border:2px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--text);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;border-bottom:4px solid var(--border2);touch-action:none;}
 .ctrl-btn:active{background:var(--border);transform:scale(0.95);}
 @media(max-width:680px){
   .mobile-controls{display:flex;}
   .kb-hint{display:none;}
-  .game-body{padding:6px;}
+  .game-body{padding:4px;}
+  .hud{padding:4px 8px;gap:6px;}
+  .hstat{gap:2px;}
+  .hlabel{font-size:9px;}
+  .hval{font-size:11px;}
+  .canvas-hint{font-size:8px;}
+  .canvas-hint span{font-size:8px;}
 }
 #rank-modal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);padding:20px;}
 #rank-modal.show{display:flex;}
@@ -174,7 +180,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <span class="tb-logo">Codet</span>
     <div class="tb-sep"></div>
     <span class="tb-title">조밈 게임</span>
-    <button class="guide-btn" onclick="openGuide(true)">📖 게임 가이드</button>
+    <button class="guide-btn" onclick="openGuide(true)">📖 가이드</button>
     <div class="tb-right">
       <span class="user-chip" id="tb-nick">-</span>
       <button class="logout-btn" onclick="doLogout()">로그아웃</button>
@@ -185,7 +191,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
       <div class="hud">
         <div class="hstat"><span class="hlabel">점수</span><span class="hval" id="hud-score">0</span></div>
         <div class="hsep"></div>
-        <div class="hstat"><span class="hlabel">최고기록</span><span class="hval gold" id="hud-best">0</span></div>
+        <div class="hstat"><span class="hlabel">최고</span><span class="hval gold" id="hud-best">0</span></div>
         <div class="hsep"></div>
         <div class="hstat"><span class="hlabel">등수</span><span class="hval blue" id="hud-rank">—</span></div>
         <div class="hud-right"><button class="rank-btn" onclick="openRank()">🏆 랭킹</button></div>
@@ -196,25 +202,25 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
           <img class="ov-dino" src="https://i.ibb.co/VpNG3CG5/5.gif" alt="">
           <div class="ov-logo">조밈 게임</div>
           <div class="ov-btns" style="margin-top:6px;">
-            <button class="mc-btn mc-btn-p" onclick="beginGame()">▶ 시작하기</button>
+            <button class="mc-btn mc-btn-p" onclick="beginGame()">▶ 시작</button>
             <button class="mc-btn mc-btn-g" onclick="openRank()">🏆 랭킹</button>
           </div>
         </div>
         <div class="overlay" id="go-ov">
           <div class="ov-tag">GAME OVER</div>
           <div class="ov-score" id="go-score">0</div>
-          <div class="ov-sub" id="go-best-txt">최고 기록: 0</div>
-          <div class="new-rec-badge" id="new-rec">🏆 NEW RECORD!</div>
+          <div class="ov-sub" id="go-best-txt">최고: 0</div>
+          <div class="new-rec-badge" id="new-rec">🏆 NEW!</div>
           <div class="ov-rank" id="go-rank-txt">—</div>
           <div class="ov-btns">
-            <button class="mc-btn mc-btn-p" onclick="restartGame()">다시 시작</button>
+            <button class="mc-btn mc-btn-p" onclick="restartGame()">다시</button>
             <button class="mc-btn mc-btn-g" onclick="openRank()">🏆 랭킹</button>
           </div>
         </div>
       </div>
       <div class="canvas-hint">
-        <span class="kb-hint">스페이스 / ↑: 점프 &nbsp;|&nbsp; ↓: 숙이기</span>
-        <span id="speed-disp" style="font-family:var(--mono);color:var(--text3);font-size:10px;"></span>
+        <span class="kb-hint">스페이스/↑: 점프 | ↓: 숙이기</span>
+        <span id="speed-disp" style="font-family:var(--mono);color:var(--text3);"></span>
       </div>
       <div class="mobile-controls">
         <button class="ctrl-btn" id="btn-duck" aria-label="숙이기">↓</button>
@@ -226,7 +232,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 <div id="rank-modal">
   <div class="rank-panel">
     <div class="rp-head">
-      <span class="rp-title">🏆 TOP 100 랭킹</span>
+      <span class="rp-title">🏆 TOP 100</span>
       <button class="rp-close" onclick="closeRank()">✕</button>
     </div>
     <div class="rp-list" id="rank-list"><div class="rp-empty">로딩 중…</div></div>
@@ -239,21 +245,20 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
         <div class="gd-icon">🎮</div>
         <div class="gd-title">조밈 게임에 오신 것을 환영합니다!</div>
         <div class="gd-desc">게임 방법을 설명드리겠습니다.<br>다음 버튼을 눌러 가이드를 확인해보세요.</div>
-        <div style="font-size:11px;color:var(--text3);font-weight:500;">게임 가이드</div>
       </div>
       <div class="gd-page" id="gd-p2">
         <div class="gd-icon">⬆️</div>
         <div class="gd-title">점프</div>
         <div class="gd-desc">장애물을 넘으려면 점프하세요!<br><br>
-          <span class="gd-key">스페이스</span> &nbsp;또는&nbsp; <span class="gd-key">↑ 위쪽 화살표</span><br><br>
+          <span class="gd-key">스페이스</span> 또는 <span class="gd-key">↑</span><br><br>
           <span style="font-size:12px;color:var(--text3);">📱 모바일: ↑ 버튼</span>
         </div>
       </div>
       <div class="gd-page" id="gd-p3">
         <div class="gd-icon">⬇️</div>
         <div class="gd-title">숙이기</div>
-        <div class="gd-desc">새처럼 낮은 장애물을 피하려면 숙이세���!<br><br>
-          <span class="gd-key">↓ 아래쪽 화살표</span><br><br>
+        <div class="gd-desc">새 같은 장애물을 피하려면 숙이세요!<br><br>
+          <span class="gd-key">↓</span><br><br>
           <span style="font-size:12px;color:var(--text3);">📱 모바일: ↓ 버튼</span>
         </div>
       </div>
@@ -272,15 +277,15 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
       <div class="gd-page" id="gd-p5">
         <img src="https://i.ibb.co/Q3z3Wn4N/6.gif" width="88" height="66" alt="팬텀" style="object-fit:contain;">
         <div class="gd-title">팬텀 (새)</div>
-        <div class="gd-desc">하늘을 나는 팬텀도 있습니다!<br><strong>점프(↑)</strong>하거나 <strong>숙이기(↓)</strong>로 피하세요!</div>
+        <div class="gd-desc">하늘을 나는 팬텀도 있습니다!<br><strong>점프(↑)</strong> 또는 <strong>숙이기(↓)</strong>로 피하세요!</div>
       </div>
       <div class="gd-page firework-page" id="gd-p6">
         <canvas id="firework-canvas"></canvas>
         <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:14px;">
           <div class="gd-icon">🎉</div>
           <div class="gd-title">이제 게임을 시작해보세요!</div>
-          <div class="gd-desc">열심히 달려서 랭킹 1위를 노려보세요! 🏆</div>
-          <button class="gd-btn gd-btn-start" onclick="guideStartGame()">▶ 시작하기</button>
+          <div class="gd-desc">랭킹 1위를 노려보세요! ����</div>
+          <button class="gd-btn gd-btn-start" onclick="guideStartGame()">▶ 시작</button>
         </div>
       </div>
     </div>
@@ -393,7 +398,7 @@ function esc(t){const d=document.createElement('div');d.textContent=t;return d.i
 function getRankPos(score){
   if(!rankingData.length)return 1;
   let r=1;
-  for(const item of rankingData){if(item.nick!==currentUser?.nick&&item.score>score)r++;}
+  for(const item of rankingData){if(item.score>score)r++;}
   return Math.min(r,100);
 }
 function getMyStoredBest(){
@@ -482,12 +487,12 @@ function resizeCanvas(){
   const ww=wrap.clientWidth;
   const wh=wrap.clientHeight;
   if(!ww||!wh)return;
-  dpr=Math.min(window.devicePixelRatio||1,1.5);
-  canvas.width=Math.round(ww*dpr);
-  canvas.height=Math.round(wh*dpr);
+  dpr=1;
+  canvas.width=Math.round(ww);
+  canvas.height=Math.round(wh);
   canvas.style.width=ww+'px';
   canvas.style.height=wh+'px';
-  ctx.setTransform((ww/LW)*dpr,0,0,(wh/LH)*dpr,0,0);
+  ctx.setTransform(ww/LW,0,0,wh/LH,0,0);
   if(!gameRunning)drawFrame();
 }
 const GY=228;
@@ -657,8 +662,8 @@ async function gameOver(){
   await new Promise(r=>setTimeout(r,500));
   const rank=getRankPos(score);
   document.getElementById('go-score').textContent=score.toLocaleString();
-  document.getElementById('go-best-txt').textContent='최고 기록: '+(currentUser?.bestScore||score);
-  document.getElementById('go-rank-txt').textContent='현재 등수 '+rank+'위';
+  document.getElementById('go-best-txt').textContent='최고: '+(currentUser?.bestScore||score);
+  document.getElementById('go-rank-txt').textContent='등수: '+rank+'위';
   document.getElementById('new-rec').style.display=isNew?'block':'none';
   document.getElementById('go-ov').classList.add('show');
 }
