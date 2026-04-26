@@ -547,7 +547,7 @@ function renderRooms(data){
     return;
   }
   list.innerHTML=entries.map(r=>{
-    const cur=r.playerCount||0, max=r.maxPlayers||30;
+    const cur=Math.max(0, r.playerCount||0), max=r.maxPlayers||30;
     const lock=r.hasPassword?'🔒':'';
     const st=r.status==='playing'?'진행중':(r.status==='countdown'?'카운트다운':'대기중');
     return `<div class="room-row" onclick="joinRoomPrompt('${r.id}')">
@@ -666,7 +666,9 @@ async function joinRoom(roomId, pw){
   updatesOnDisc['team_roomChat/'+roomId+'/'+currentUser.nick+'_typing']=null;
   const disc=db.ref();
   disc.onDisconnect().update(updatesOnDisc);
-  countRef.onDisconnect().transaction(cur=>Math.max((cur||1)-1,0));
+  // onDisconnect() doesn't support transaction(); use atomic increment instead.
+  // (May go negative in rare double-decrement cases; UI clamps and periodic activity will correct.)
+  countRef.onDisconnect().set(firebase.database.ServerValue.increment(-1));
 
   await meRef.set(member);
 
@@ -736,7 +738,7 @@ function subscribeRoom(roomId){
 
 function updateRoomHeader(){
   document.getElementById('room-name').textContent=roomState?.name||'-';
-  const cur=roomState?.playerCount||Object.keys(currentMembers||{}).length||0;
+  const cur=Math.max(0, roomState?.playerCount||Object.keys(currentMembers||{}).length||0);
   const max=roomState?.maxPlayers||30;
   const st=roomState?.status||'lobby';
   document.getElementById('room-meta').textContent=`방장: ${roomState?.hostNick||'-'} · 인원: ${cur}/${max} · 상태: ${st}`;
