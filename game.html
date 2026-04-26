@@ -67,7 +67,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .rank-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;font-family:inherit;transition:all .15s;white-space:nowrap;}
 .rank-btn:hover{background:var(--surface);color:var(--text);}
 
-/* canvas wrapper: 비율 유지 */
 .canvas-wrap{position:relative;width:100%;overflow:hidden;background:#87CEEB;}
 .canvas-wrap canvas{display:block;width:100%;height:auto;}
 
@@ -230,7 +229,6 @@ const db = firebase.database();
 
 let currentUser=null, rankingData=[], currentScore=0;
 
-// ── 자동 로그인 (localStorage) ──
 window.addEventListener('DOMContentLoaded', async ()=>{
   const saved = localStorage.getItem('jogame_user');
   if(saved){
@@ -324,8 +322,24 @@ function renderRanking(){
   }).join('');
 }
 function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
-function getRankPos(score){if(!rankingData.length)return 1;let r=1;for(const item of rankingData){if(item.nick!==currentUser?.nick&&item.score>score)r++;}return Math.min(r,100);}
-function updateHudRank(score){document.getElementById('hud-rank').textContent=(rankingData.length||score>0)?getRankPos(score)+'위':'—';}
+function getRankPos(score){
+  if(!rankingData.length)return 1;
+  // 본인을 제외한 다른 사람 중 현재 점수보다 높은 사람 수 + 1
+  let r=1;
+  for(const item of rankingData){
+    if(item.nick!==currentUser?.nick && item.score>score) r++;
+  }
+  return Math.min(r,100);
+}
+function getMyBestInRanking(){
+  if(!currentUser)return 0;
+  const me=rankingData.find(item=>item.nick===currentUser.nick);
+  return me?me.score:0;
+}
+function updateHudRank(score){
+  const effectiveScore=Math.max(score, getMyBestInRanking());
+  document.getElementById('hud-rank').textContent=(rankingData.length||score>0)?getRankPos(effectiveScore)+'위':'—';
+}
 async function saveScore(score){
   if(!currentUser||score<=(currentUser.bestScore||0))return false;
   currentUser.bestScore=score;
@@ -414,7 +428,8 @@ function drawDino(){
 }
 
 function makeCactus(x,v){
-  const s={sm:{w:40,h:50},md:{w:50,h:62},lg:{w:58,h:76}}[v]||{w:50,h:62};
+  // sm: 작은 선인장, md: 중간, lg: 큰 — 크기를 점프로 넘을 수 있도록 제한
+  const s={sm:{w:36,h:46},md:{w:44,h:58},lg:{w:52,h:68}}[v]||{w:44,h:58};
   return{type:'cactus',x,w:s.w,h:s.h};
 }
 function makeTree(x){return{type:'tree',x,w:16,trunkH:28+Math.floor(Math.random()*16),leafW:40,leafH:32};}
@@ -423,28 +438,49 @@ function makeBird(x){
   return{type:'bird',x,w:90,h:70,y:ys[Math.floor(Math.random()*ys.length)]};
 }
 
+// ── 핵심 수정: 장애물 그룹은 최대 2개까지만, 너무 크지 않게 ──
 function spawnObsGroup(){
-  if(speed>7&&Math.random()<0.22){obstacles.push(makeBird(820));return;}
+  // 새는 단독으로만 등장
+  if(speed>7&&Math.random()<0.22){
+    obstacles.push(makeBird(820));
+    return;
+  }
+
   const roll=Math.random();
-  if(roll<0.18){
-    obstacles.push(Math.random()<0.5?makeCactus(820,'sm'):makeTree(820));
-  }else if(roll<0.36){
-    obstacles.push(makeCactus(820,Math.random()<0.5?'md':'lg'));
-  }else if(roll<0.54){
-    const vs=['sm','md','lg'];
-    const o1=makeCactus(820,vs[Math.floor(Math.random()*3)]);
-    obstacles.push(o1,makeCactus(820+o1.w+6+Math.floor(Math.random()*14),vs[Math.floor(Math.random()*3)]));
-  }else if(roll<0.68){
-    let cx=820;
-    ['sm','md','sm'].forEach(v=>{const o=makeCactus(cx,v);obstacles.push(o);cx+=o.w+4+Math.floor(Math.random()*8);});
-  }else if(roll<0.80){
-    const c=makeCactus(820,'md');
-    obstacles.push(c,makeTree(820+c.w+8+Math.floor(Math.random()*16)));
-  }else if(roll<0.90){
+
+  if(roll<0.25){
+    // 단독 선인장 (소~중)
+    const v=Math.random()<0.5?'sm':'md';
+    obstacles.push(makeCactus(820,v));
+
+  }else if(roll<0.45){
+    // 단독 나무
     obstacles.push(makeTree(820));
-  }else{
+
+  }else if(roll<0.65){
+    // 선인장 2개 (sm+sm 또는 sm+md) — 합쳐도 점프 가능한 조합만
+    const v1='sm';
+    const v2=Math.random()<0.6?'sm':'md';
+    const o1=makeCactus(820,v1);
+    // 간격 충분히 확보 (18~28px)
+    const gap=18+Math.floor(Math.random()*10);
+    obstacles.push(o1, makeCactus(820+o1.w+gap,v2));
+
+  }else if(roll<0.80){
+    // 나무 + 선인장(소) 조합 — 2개
+    const tree=makeTree(820);
+    const gap=20+Math.floor(Math.random()*14);
+    obstacles.push(tree, makeCactus(820+tree.w+gap,'sm'));
+
+  }else if(roll<0.90){
+    // 선인장(소) + 새 조합 — 2개, 충분한 간격
     const c=makeCactus(820,'sm');
-    obstacles.push(c,makeBird(820+c.w+60+Math.floor(Math.random()*40)));
+    obstacles.push(c, makeBird(820+c.w+80+Math.floor(Math.random()*40)));
+
+  }else{
+    // 단독 중간~큰 선인장
+    const v=Math.random()<0.5?'md':'lg';
+    obstacles.push(makeCactus(820,v));
   }
 }
 
@@ -495,7 +531,8 @@ function drawFrame(){
 function loop(){
   if(!gameRunning)return;
   frame++;
-  speed=Math.min(5+Math.floor(frame/400)*0.55,17);
+  // 연속적으로 점점 빨라짐: 초반 완만 → 후반 가파르게
+  speed=Math.min(5 + (frame/300) + Math.pow(frame/1200,2), 22);
   currentScore=score=Math.floor(frame/6);
   document.getElementById('hud-score').textContent=score;
   document.getElementById('speed-disp').textContent='x'+speed.toFixed(1);
@@ -509,7 +546,7 @@ function loop(){
   cooldown--;
   if(cooldown<=0){
     spawnObsGroup();
-    cooldown=Math.max(50,110-Math.floor(speed*5))+Math.floor(Math.random()*60);
+    cooldown=Math.max(55,120-Math.floor(speed*5))+Math.floor(Math.random()*60);
   }
   obstacles=obstacles.filter(o=>o.x>-200);
   for(const o of obstacles){
