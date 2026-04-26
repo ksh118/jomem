@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>조밈 팀게임</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+<style>
+:root{
+  --bg:#fff;--surface:#f7f7f5;--border:#e8e8e4;--border2:#d4d4ce;
+  --text:#37352f;--text2:#787774;--text3:#b3b0aa;
+  --accent:#2383e2;--danger:#e03e3e;
+  --gold:#d97706;--silver:#71717a;--bronze:#92400e;
+  --mono:'Courier New',monospace;--r:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+button,input{font-family:inherit;}
+
+/* ── AUTH (copied from gametest-fixed.html) ── */
+#auth-screen{position:fixed;inset:0;overflow-y:auto;display:flex;align-items:center;justify-content:center;padding:20px;}
+.auth-wrap{width:100%;max-width:340px;}
+.auth-logo{text-align:center;margin-bottom:28px;}
+.auth-logo img{width:56px;height:56px;display:block;margin:0 auto 12px;object-fit:contain;}
+.auth-logo h1{font-size:21px;font-weight:700;}
+.auth-logo p{font-size:13px;color:var(--text2);margin-top:3px;}
+.auth-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:24px 22px;box-shadow:0 1px 2px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.05);}
+.card-title{font-size:15px;font-weight:600;margin-bottom:18px;}
+.field{margin-bottom:11px;}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px;}
+.field input{width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-size:14px;color:var(--text);background:var(--bg);outline:none;transition:border-color .15s,box-shadow .15s;}
+.field input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(35,131,226,.15);}
+.field input::placeholder{color:var(--text3);}
+.field-hint{font-size:11px;color:var(--text3);margin-top:3px;}
+.notice{background:#fffbeb;border:1px solid #fde68a;border-radius:var(--r);padding:9px 12px;font-size:12px;color:#78350f;margin-bottom:12px;line-height:1.6;}
+.btn-main{display:block;width:100%;padding:10px;background:var(--text);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:600;cursor:pointer;margin-top:6px;transition:background .15s;}
+.btn-main:hover{background:#1a1a18;}
+.btn-main:active{transform:scale(.98);}
+.err{background:#fff5f5;border:1px solid #fecaca;border-radius:var(--r);padding:8px 11px;font-size:12px;color:var(--danger);margin-top:8px;display:none;}
+.auth-switch{text-align:center;margin-top:14px;font-size:12px;color:var(--text2);}
+.auth-switch button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:12px;font-weight:500;}
+
+/* ── APP LAYOUT ── */
+#app{position:fixed;inset:0;display:none;flex-direction:column;background:var(--surface);}
+#app.on{display:flex;}
+.topbar{height:44px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 10px;gap:7px;flex-shrink:0;background:var(--bg);z-index:50;}
+.tb-logo{font-size:14px;font-weight:800;white-space:nowrap;}
+.tb-title{font-size:12px;color:var(--text2);white-space:nowrap;}
+.tb-sep{width:1px;height:14px;background:var(--border2);flex-shrink:0;}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.user-chip{font-size:11px;font-weight:700;color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2px 8px;white-space:nowrap;}
+.link-btn{font-size:11px;color:var(--accent);background:none;border:1px solid var(--accent);border-radius:6px;padding:3px 10px;cursor:pointer;font-weight:700;}
+.danger-btn{font-size:11px;color:var(--danger);background:none;border:1px solid #fecaca;border-radius:6px;padding:3px 10px;cursor:pointer;font-weight:700;}
+
+.main{flex:1;min-height:0;display:flex;justify-content:center;align-items:stretch;padding:12px;}
+.panel{width:100%;max-width:980px;border:1px solid var(--border);border-radius:12px;background:var(--bg);box-shadow:0 1px 4px rgba(0,0,0,.05);display:flex;min-height:0;overflow:hidden;}
+
+/* ── LOBBY ── */
+#lobby{flex:1;display:none;flex-direction:column;min-height:0;}
+#lobby.on{display:flex;}
+.p-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.p-title{font-size:14px;font-weight:800;}
+.p-sub{font-size:12px;color:var(--text2);}
+.p-head .grow{flex:1;}
+.p-body{flex:1;min-height:0;display:flex;gap:12px;padding:12px;}
+.card{border:1px solid var(--border);border-radius:12px;background:var(--bg);min-height:0;overflow:hidden;}
+.rooms{flex:1;display:flex;flex-direction:column;}
+.rooms-list{flex:1;min-height:0;overflow:auto;}
+.rooms-list::-webkit-scrollbar{width:6px;}
+.rooms-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+.room-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer;}
+.room-row:hover{background:var(--surface);}
+.room-name{font-weight:800;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.room-meta{font-size:11px;color:var(--text2);display:flex;gap:10px;flex-shrink:0;}
+.pill{font-size:10px;border:1px solid var(--border2);border-radius:999px;padding:1px 7px;color:var(--text2);background:var(--surface);font-weight:700;}
+.rooms-empty{padding:24px;text-align:center;color:var(--text3);font-size:13px;line-height:1.8;}
+
+.create{width:320px;display:flex;flex-direction:column;}
+.create .p{padding:12px 14px;border-bottom:1px solid var(--border);font-weight:800;}
+.create .c{padding:12px 14px;display:flex;flex-direction:column;gap:10px;}
+.row{display:flex;gap:8px;}
+.row > *{flex:1;}
+.mini{font-size:11px;color:var(--text3);line-height:1.5;}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--surface);}
+.toggle label{font-size:12px;color:var(--text2);font-weight:700;}
+.toggle input{width:18px;height:18px;}
+.btn{padding:10px 12px;border:none;border-radius:10px;background:var(--text);color:#fff;font-weight:800;cursor:pointer;}
+.btn:hover{background:#1a1a18;}
+
+/* ── ROOM ── */
+#room{flex:1;display:none;min-height:0;}
+#room.on{display:flex;}
+.room-layout{flex:1;display:flex;min-height:0;}
+.side{width:280px;border-right:1px solid var(--border);display:flex;flex-direction:column;min-height:0;}
+.side-head{padding:12px 14px;border-bottom:1px solid var(--border);}
+.side-head .n{font-size:13px;font-weight:900;}
+.side-head .m{font-size:11px;color:var(--text2);margin-top:4px;line-height:1.5;}
+.members{flex:1;min-height:0;overflow:auto;}
+.members::-webkit-scrollbar{width:6px;}
+.members::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+.mem{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);}
+.mem.me{background:#eff6ff;}
+.mem .nick{flex:1;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mem .st{font-size:10px;color:var(--text2);font-weight:800;font-family:var(--mono);}
+.mem .bad{color:var(--danger);}
+.mem .ok{color:#2563eb;}
+
+.center{flex:1;min-width:0;display:flex;flex-direction:column;min-height:0;background:var(--surface);}
+.room-actions{padding:10px 12px;border-bottom:1px solid var(--border);background:var(--bg);display:flex;align-items:center;gap:8px;}
+.room-actions .grow{flex:1;}
+.small-btn{padding:7px 10px;border-radius:9px;border:1px solid var(--border2);background:var(--bg);font-size:12px;font-weight:900;cursor:pointer;color:var(--text2);}
+.small-btn:hover{background:var(--surface);}
+.small-btn.primary{border-color:var(--accent);color:var(--accent);}
+.small-btn.disabled{opacity:.45;cursor:not-allowed;}
+
+.canvas-card{margin:12px;flex:1;min-height:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column;}
+.hud{display:flex;align-items:center;padding:6px 10px;border-bottom:1px solid var(--border);background:var(--bg);gap:10px;flex-shrink:0;}
+.hstat{display:flex;align-items:baseline;gap:4px;}
+.hlabel{font-size:10px;color:var(--text3);font-weight:700;white-space:nowrap;}
+.hval{font-family:var(--mono);font-size:13px;font-weight:900;color:var(--text);}
+.hval.gold{color:var(--gold);}
+.hval.blue{color:var(--accent);}
+.hsep{width:1px;height:12px;background:var(--border);flex-shrink:0;}
+.hud-right{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.tag{font-size:10px;font-weight:900;border:1px solid var(--border2);border-radius:999px;padding:1px 8px;background:var(--surface);color:var(--text2);}
+.tag.host{border-color:#bbf7d0;background:#f0fdf4;color:#166534;}
+.tag.dead{border-color:#fecaca;background:#fff5f5;color:#991b1b;}
+
+.canvas-wrap{position:relative;width:100%;padding-bottom:33.75%;background:#87CEEB;overflow:hidden;flex-shrink:0;}
+.canvas-wrap canvas{position:absolute;top:0;left:0;}
+.spectate-banner{
+  position:absolute;
+  top:10px;left:10px;
+  z-index:11;
+  display:none;
+  padding:8px 10px;
+  border-radius:10px;
+  background:rgba(0,0,0,0.55);
+  color:#fff;
+  border:1px solid rgba(255,255,255,0.15);
+  backdrop-filter:blur(4px);
+  font-family:var(--mono);
+  font-size:11px;
+  line-height:1.6;
+  white-space:pre-line;
+}
+.spectate-banner.on{display:block;}
+.overlay{position:absolute;inset:0;background:rgba(20,14,6,0.84);display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;z-index:10;}
+.overlay.show{display:flex;}
+.ov-tag{font-size:9px;font-weight:900;letter-spacing:3px;color:#a0a0a0;font-family:var(--mono);text-transform:uppercase;}
+.ov-big{font-family:var(--mono);font-size:32px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1;text-shadow:3px 3px 0 rgba(0,0,0,0.5);}
+.ov-sub{font-size:11px;color:#bbb;font-family:var(--mono);line-height:1.6;text-align:center;max-width:360px;}
+.ov-btns{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;justify-content:center;}
+.mc-btn{padding:8px 16px;border-radius:6px;font-size:12px;font-weight:900;font-family:var(--mono);cursor:pointer;border:none;letter-spacing:0.5px;}
+.mc-btn-p{background:#5a8f3c;color:#fff;border-bottom:3px solid #3d6028;}
+.mc-btn-p:hover{background:#6abf44;}
+.mc-btn-g{background:#555;color:#ddd;border-bottom:3px solid #333;}
+.mc-btn-g:hover{background:#666;}
+
+.canvas-foot{padding:6px 10px;border-top:1px solid var(--border);background:var(--bg);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.canvas-foot span{font-size:10px;color:var(--text3);}
+.spectate{display:none;align-items:center;gap:10px;}
+.spectate.on{display:flex;}
+.arrow{width:26px;height:26px;border-radius:8px;border:1px solid var(--border2);background:var(--surface);cursor:pointer;font-weight:900;}
+.arrow:hover{background:var(--border);}
+
+.chat{width:320px;border-left:1px solid var(--border);display:flex;flex-direction:column;min-height:0;background:var(--bg);}
+.chat-head{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.chat-head .t{font-weight:900;}
+.chat-list{flex:1;min-height:0;overflow:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
+.chat-list::-webkit-scrollbar{width:6px;}
+.chat-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+.msg{padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--surface);}
+.msg .a{font-size:10px;color:var(--text3);font-weight:900;}
+.msg .b{font-size:12px;color:var(--text2);margin-top:2px;line-height:1.5;word-break:break-word;}
+.chat-input{padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.chat-input input{flex:1;border:1px solid var(--border2);border-radius:10px;padding:9px 11px;outline:none;}
+.chat-input input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(35,131,226,.15);}
+.chat-input button{padding:9px 12px;border-radius:10px;border:none;background:var(--text);color:#fff;font-weight:900;cursor:pointer;}
+.chat-input button:disabled{opacity:.45;cursor:not-allowed;}
+
+@media(max-width:980px){
+  .create{display:none;}
+  .chat{display:none;}
+  .side{width:260px;}
+}
+@media(max-width:760px){
+  .main{padding:6px;}
+  .side{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-wrap">
+    <div class="auth-logo">
+      <img src="https://i.ibb.co/VpNG3CG5/5.gif" alt="캐릭터">
+      <h1>조밈 팀게임</h1>
+      <p>방을 만들고 같이 달려요</p>
+    </div>
+    <div class="auth-card" id="signup-card">
+      <div class="card-title">새 계정 만들기</div>
+      <div class="field"><label>닉네임</label><input type="text" id="reg-nick" placeholder="닉네임" maxlength="12" autocomplete="off"></div>
+      <div class="field">
+        <label>비밀번호</label>
+        <input type="password" id="reg-pw" placeholder="숫자 2~8자리" maxlength="8" inputmode="numeric" pattern="[0-9]*">
+        <div class="field-hint">숫자만 가능합니다</div>
+      </div>
+      <div class="notice">⚠️ 닉네임은 한 번 설정하면 변경이 불가능합니다.</div>
+      <div class="err" id="reg-err"></div>
+      <button class="btn-main" onclick="doRegister()">계정 만들고 시작하기</button>
+      <div class="auth-switch">이미 계정이 있나요? <button onclick="showLogin()">로그인</button></div>
+    </div>
+    <div class="auth-card" id="login-card" style="display:none;">
+      <div class="card-title">로그인</div>
+      <div class="field"><label>닉네임</label><input type="text" id="log-nick" placeholder="닉네임" autocomplete="off"></div>
+      <div class="field"><label>비밀번호</label><input type="password" id="log-pw" placeholder="비밀번호" maxlength="8" inputmode="numeric" pattern="[0-9]*"></div>
+      <div class="err" id="log-err"></div>
+      <button class="btn-main" onclick="doLogin()">로그인</button>
+      <div class="auth-switch">계정이 없으신가요? <button onclick="showSignup()">회원가입</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <span class="tb-logo">Codet</span>
+    <div class="tb-sep"></div>
+    <span class="tb-title">조밈 팀게임</span>
+    <div class="tb-right">
+      <span class="user-chip" id="tb-nick">-</span>
+      <button class="link-btn" onclick="goLobby()">로비</button>
+      <button class="danger-btn" onclick="doLogout()">로그아웃</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="panel">
+      <!-- LOBBY -->
+      <div id="lobby">
+        <div class="p-head">
+          <div>
+            <div class="p-title">방 목록</div>
+            <div class="p-sub">새로고침 없이 실시간 업데이트됩니다.</div>
+          </div>
+          <div class="grow"></div>
+          <button class="small-btn" onclick="refreshLobby()">새로고침</button>
+        </div>
+        <div class="p-body">
+          <div class="card rooms">
+            <div class="p-head" style="border-bottom:1px solid var(--border);">
+              <div class="p-title">접속 중인 방</div>
+              <div class="grow"></div>
+              <span class="pill" id="rooms-count">0</span>
+            </div>
+            <div class="rooms-list" id="rooms-list">
+              <div class="rooms-empty">로딩 중…</div>
+            </div>
+          </div>
+
+          <div class="card create">
+            <div class="p">방 만들기</div>
+            <div class="c">
+              <div class="field" style="margin-bottom:0;">
+                <label>방 이름</label>
+                <input id="new-room-name" type="text" placeholder="예) 조밈방" maxlength="18" autocomplete="off">
+              </div>
+              <div class="row">
+                <div class="field" style="margin-bottom:0;">
+                  <label>최대 인원 (2~30)</label>
+                  <input id="new-room-max" type="number" min="2" max="30" value="10">
+                </div>
+              </div>
+              <div class="toggle">
+                <label for="new-room-pw-on">비밀번호 사용</label>
+                <input id="new-room-pw-on" type="checkbox">
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label>비밀번호(선택)</label>
+                <input id="new-room-pw" type="password" placeholder="숫자 2~8자리" maxlength="8" inputmode="numeric" pattern="[0-9]*" disabled>
+                <div class="mini">비밀번호를 켜면 입장 시 필요합니다.</div>
+              </div>
+              <div class="err" id="room-create-err"></div>
+              <button class="btn" onclick="createRoom()">방 만들기</button>
+              <div class="mini">팁: 방장은 5초 카운트다운으로 모두를 동시에 시작시킬 수 있어요.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROOM -->
+      <div id="room">
+        <div class="room-layout">
+          <div class="side">
+            <div class="side-head">
+              <div class="n" id="room-name">-</div>
+              <div class="m" id="room-meta">-</div>
+            </div>
+            <div class="members" id="members"></div>
+          </div>
+
+          <div class="center">
+            <div class="room-actions">
+              <span class="tag" id="room-status">대기중</span>
+              <span class="tag host" id="host-tag" style="display:none;">방장</span>
+              <span class="tag dead" id="dead-tag" style="display:none;">탈락</span>
+              <div class="grow"></div>
+              <button class="small-btn primary" id="btn-start" onclick="hostStart()">시작</button>
+              <button class="small-btn" onclick="leaveRoom()">나가기</button>
+              <button class="small-btn" id="btn-chat-toggle" onclick="toggleChat()">채팅: ON</button>
+            </div>
+
+            <div class="canvas-card">
+              <div class="hud">
+                <div class="hstat"><span class="hlabel">점수</span><span class="hval" id="hud-score">0</span></div>
+                <div class="hsep"></div>
+                <div class="hstat"><span class="hlabel">최고기록</span><span class="hval gold" id="hud-best">0</span></div>
+                <div class="hsep"></div>
+                <div class="hstat"><span class="hlabel">방 등수</span><span class="hval blue" id="hud-room-rank">—</span></div>
+                <div class="hsep"></div>
+                <div class="hstat"><span class="hlabel">랭킹</span><span class="hval blue" id="hud-global-rank">—</span></div>
+                <div class="hud-right">
+                  <span class="tag" id="alive-count">-</span>
+                </div>
+              </div>
+
+              <div class="canvas-wrap" id="canvas-wrap">
+                <canvas id="game-canvas"></canvas>
+                <div class="spectate-banner" id="spectate-banner">관전중</div>
+                <div class="overlay show" id="ov-wait">
+                  <div class="ov-tag">ROOM</div>
+                  <div class="ov-big" id="ov-wait-title">대기방</div>
+                  <div class="ov-sub" id="ov-wait-sub">방장이 시작을 누르면 5초 후 모두 동시에 시작합니다.</div>
+                  <div class="ov-btns">
+                    <button class="mc-btn mc-btn-g" onclick="leaveRoom()">나가기</button>
+                  </div>
+                </div>
+                <div class="overlay" id="ov-countdown">
+                  <div class="ov-tag">COUNTDOWN</div>
+                  <div class="ov-big" id="cd-num">5</div>
+                  <div class="ov-sub">잠시 후 시작합니다…</div>
+                </div>
+                <div class="overlay" id="ov-ended">
+                  <div class="ov-tag">RESULT</div>
+                  <div class="ov-big" id="end-title">게임 종료</div>
+                  <div class="ov-sub" id="end-body">-</div>
+                  <div class="ov-btns">
+                    <button class="mc-btn mc-btn-p" onclick="backToWaiting()">방으로 가기</button>
+                  </div>
+                </div>
+                <div class="overlay" id="ov-kicked">
+                  <div class="ov-tag">CLOSED</div>
+                  <div class="ov-big">게임 종료</div>
+                  <div class="ov-sub">방장이 나가거나 오류가 발생하여 게임이 종료되었습니다.</div>
+                  <div class="ov-btns">
+                    <button class="mc-btn mc-btn-g" onclick="goLobby()">로비로</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="canvas-foot">
+                <span id="hint">스페이스/↑: 점프, ↓: 숙이기</span>
+                <div class="spectate" id="spectate">
+                  <button class="arrow" onclick="spectatePrev()">‹</button>
+                  <span style="font-size:11px;color:var(--text2);font-weight:900;" id="spectate-name">-</span>
+                  <button class="arrow" onclick="spectateNext()">›</button>
+                </div>
+                <span id="speed-disp" style="font-family:var(--mono);color:var(--text3);font-size:10px;"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat">
+            <div class="chat-head">
+              <span class="t">채팅</span>
+              <span class="pill" id="chat-pill">ON</span>
+            </div>
+            <div class="chat-list" id="chat-list"></div>
+            <div class="chat-input">
+              <input id="chat-text" type="text" placeholder="메시지 입력…" maxlength="120">
+              <button id="chat-send" onclick="sendChat()">보내기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// Firebase init (same project as gametest-fixed.html)
+firebase.initializeApp({
+  apiKey:"AIzaSyDIl0-jomcfA8ykz-nYK_rYaLb-IE_yICc",
+  authDomain:"codet-597c7.firebaseapp.com",
+  databaseURL:"https://codet-597c7-default-rtdb.firebaseio.com",
+  projectId:"codet-597c7",
+  storageBucket:"codet-597c7.firebasestorage.app",
+  messagingSenderId:"619578457920",
+  appId:"1:619578457920:web:52d98e7430f9b9820104a5"
+});
+const db=firebase.database();
+
+// Global ranking (reuse from single game)
+let rankingData=[];
+function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+function getRankPos(score){
+  let r=1;
+  for(const item of rankingData){if(item.score>score)r++;}
+  return Math.min(r,100);
+}
+function loadGlobalRanking(){
+  db.ref('game_ranking').orderByChild('score').limitToLast(100).on('value',snap=>{
+    rankingData=[];
+    const d=snap.val();
+    if(d){Object.values(d).forEach(v=>rankingData.push(v));rankingData.sort((a,b)=>b.score-a.score);}
+    updateGlobalRankUI();
+    updateMembersUI();
+  });
+}
+function getMyStoredBest(){
+  if(!currentUser)return 0;
+  const me=rankingData.find(i=>i.nick===currentUser.nick);
+  return me?me.score:0;
+}
+function updateGlobalRankUI(){
+  const best=Math.max(currentUser?.bestScore||0,getMyStoredBest());
+  document.getElementById('hud-best').textContent=best.toLocaleString();
+  document.getElementById('hud-global-rank').textContent=(rankingData.length||best>0)?(getRankPos(best)+'위'):'—';
+}
+
+// ── AUTH (copied behavior) ──
+let currentUser=null;
+function showErr(id,msg){const el=document.getElementById(id);el.style.display='block';el.textContent=msg;setTimeout(()=>el.style.display='none',4000);}
+function showLogin(){document.getElementById('signup-card').style.display='none';document.getElementById('login-card').style.display='block';}
+function showSignup(){document.getElementById('login-card').style.display='none';document.getElementById('signup-card').style.display='block';}
+
+async function doRegister(){
+  const nick=document.getElementById('reg-nick').value.trim();
+  const pw=document.getElementById('reg-pw').value.trim();
+  if(!nick)return showErr('reg-err','닉네임을 입력해주세요.');
+  if(nick.length>12)return showErr('reg-err','닉네임은 최대 12자입니다.');
+  if(!/^\d+$/.test(pw))return showErr('reg-err','비밀번호는 숫자만 입력 가능합니다.');
+  if(pw.length<2||pw.length>8)return showErr('reg-err','비밀번호는 2~8자리 숫자입니다.');
+  try{
+    const snap=await db.ref('game_users/'+nick).once('value');
+    if(snap.exists())return showErr('reg-err','이미 사용 중인 닉네임입니다.');
+    await db.ref('game_users/'+nick).set({pw,bestScore:0,createdAt:Date.now()});
+    localStorage.setItem('jogame_user',JSON.stringify({nick,pw}));
+    currentUser={nick,bestScore:0};
+    enterApp();
+  }catch(e){showErr('reg-err','오류: '+e.message);}
+}
+async function doLogin(){
+  const nick=document.getElementById('log-nick').value.trim();
+  const pw=document.getElementById('log-pw').value.trim();
+  if(!nick||!pw)return showErr('log-err','닉네임과 비밀번호를 입력해주세요.');
+  try{
+    const snap=await db.ref('game_users/'+nick).once('value');
+    if(!snap.exists())return showErr('log-err','닉네임을 찾을 수 없습니다.');
+    const d=snap.val();
+    if(d.pw!==pw)return showErr('log-err','비밀번호가 틀렸습니다.');
+    localStorage.setItem('jogame_user',JSON.stringify({nick,pw}));
+    currentUser={nick,bestScore:d.bestScore||0};
+    enterApp();
+  }catch(e){showErr('log-err','오류: '+e.message);}
+}
+
+function doLogout(){
+  leaveRoom(true);
+  localStorage.removeItem('jogame_user');
+  currentUser=null;
+  document.getElementById('app').classList.remove('on');
+  document.getElementById('auth-screen').style.display='flex';
+  showSignup();
+}
+
+window.addEventListener('DOMContentLoaded', async ()=>{
+  const saved=localStorage.getItem('jogame_user');
+  if(saved){
+    try{
+      const {nick,pw}=JSON.parse(saved);
+      const snap=await db.ref('game_users/'+nick).once('value');
+      if(snap.exists() && snap.val().pw===pw){
+        currentUser={nick,bestScore:snap.val().bestScore||0};
+        enterApp();
+        return;
+      }
+    }catch(e){}
+    localStorage.removeItem('jogame_user');
+  }
+});
+
+function enterApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').classList.add('on');
+  document.getElementById('tb-nick').textContent=currentUser.nick;
+  initCanvas();
+  initGame();
+  loadGlobalRanking();
+  initLobby();
+  goLobby();
+}
+
+// ── LOBBY / ROOMS ──
+const roomsRef=db.ref('team_rooms');
+const membersRef=(roomId)=>db.ref('team_roomMembers/'+roomId);
+const chatRef=(roomId)=>db.ref('team_roomChat/'+roomId);
+const roundsRef=(roomId)=>db.ref('team_roomRounds/'+roomId);
+
+let lobbyUnsub=null;
+let roomState=null;
+let currentRoomId=null;
+let currentMembers={};
+let currentChatEnabled=true;
+
+document.getElementById('new-room-pw-on').addEventListener('change',()=>{
+  const on=document.getElementById('new-room-pw-on').checked;
+  document.getElementById('new-room-pw').disabled=!on;
+});
+
+function initLobby(){
+  if(lobbyUnsub) return;
+  lobbyUnsub = roomsRef.limitToLast(200).on('value', snap=>{
+    renderRooms(snap.val()||{});
+  });
+}
+function refreshLobby(){
+  roomsRef.limitToLast(200).once('value').then(snap=>renderRooms(snap.val()||{}));
+}
+function renderRooms(data){
+  const list=document.getElementById('rooms-list');
+  const entries=Object.entries(data)
+    .map(([id,v])=>({id,...v}))
+    .filter(r=>r && r.status && r.status!=='closed')
+    .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  document.getElementById('rooms-count').textContent=entries.length;
+  if(!entries.length){
+    list.innerHTML='<div class="rooms-empty">현재 열린 방이 없습니다.<br>오른쪽에서 방을 만들어보세요.</div>';
+    return;
+  }
+  list.innerHTML=entries.map(r=>{
+    const cur=r.playerCount||0, max=r.maxPlayers||30;
+    const lock=r.hasPassword?'🔒':'';
+    const st=r.status==='playing'?'진행중':(r.status==='countdown'?'카운트다운':'대기중');
+    return `<div class="room-row" onclick="joinRoomPrompt('${r.id}')">
+      <div class="room-name">${esc(r.name||'(이름없음)')} ${lock}</div>
+      <div class="room-meta">
+        <span class="pill">${esc(r.hostNick||'-')}</span>
+        <span class="pill">${cur}/${max}</span>
+        <span class="pill">${st}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function sha256Hex(str){
+  const enc=new TextEncoder().encode(str);
+  const buf=await crypto.subtle.digest('SHA-256', enc);
+  const arr=Array.from(new Uint8Array(buf));
+  return arr.map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function createRoom(){
+  const name=document.getElementById('new-room-name').value.trim() || (currentUser.nick+'의 방');
+  let max=parseInt(document.getElementById('new-room-max').value,10);
+  const pwOn=document.getElementById('new-room-pw-on').checked;
+  const pw=document.getElementById('new-room-pw').value.trim();
+
+  if(!(max>=2 && max<=30)) max=10;
+  if(pwOn){
+    if(!/^\d+$/.test(pw)) return showErr('room-create-err','비밀번호는 숫자만 입력 가능합니다.');
+    if(pw.length<2||pw.length>8) return showErr('room-create-err','비밀번호는 2~8자리 숫자입니다.');
+  }
+  try{
+    const roomId=roomsRef.push().key;
+    const now=Date.now();
+    const pwHash=pwOn?await sha256Hex(pw):null;
+    const room={
+      name,
+      hostNick: currentUser.nick,
+      createdAt: now,
+      maxPlayers: max,
+      hasPassword: !!pwOn,
+      passwordHash: pwHash,
+      status: 'lobby',
+      playerCount: 0,
+      chatEnabled: true,
+      roundId: null,
+      countdownStartAt: null,
+      gameStartAt: null
+    };
+    await roomsRef.child(roomId).set(room);
+    await joinRoom(roomId, pwOn?pw:null);
+  }catch(e){
+    showErr('room-create-err','오류: '+e.message);
+  }
+}
+
+async function joinRoomPrompt(roomId){
+  const snap=await roomsRef.child(roomId).once('value');
+  if(!snap.exists()) return alert('방이 존재하지 않습니다.');
+  const room=snap.val();
+  if(room.hasPassword){
+    const pw=prompt('비밀번호를 입력하세요');
+    if(pw==null) return;
+    await joinRoom(roomId, pw);
+  } else {
+    await joinRoom(roomId, null);
+  }
+}
+
+async function joinRoom(roomId, pw){
+  if(currentRoomId) await leaveRoom(false);
+  const roomSnap=await roomsRef.child(roomId).once('value');
+  if(!roomSnap.exists()) return alert('방이 존재하지 않습니다.');
+  const room=roomSnap.val();
+
+  if(room.hasPassword){
+    const given=pw||'';
+    if(!/^\d+$/.test(given)) return alert('비밀번호가 틀렸습니다.');
+    const hash=await sha256Hex(given);
+    if(hash!==room.passwordHash) return alert('비밀번호가 틀렸습니다.');
+  }
+
+  const countRef=roomsRef.child(roomId).child('playerCount');
+  const maxPlayers=room.maxPlayers||30;
+  const tx=await countRef.transaction(cur=>{
+    cur=cur||0;
+    if(cur>=maxPlayers) return;
+    return cur+1;
+  });
+  if(!tx.committed){
+    alert('인원수가 찼습니다');
+    return;
+  }
+
+  currentRoomId=roomId;
+  currentChatEnabled=room.chatEnabled!==false;
+  roomState=room;
+
+  // register presence
+  const mePath='team_roomMembers/'+roomId+'/'+currentUser.nick;
+  const meRef=db.ref(mePath);
+  const isHost=(room.hostNick===currentUser.nick);
+  const member={
+    nick: currentUser.nick,
+    joinedAt: Date.now(),
+    isHost,
+    isAlive: true,
+    score: 0,
+    diedAt: null,
+    lastState: null
+  };
+
+  // onDisconnect: remove member, decrement count (best effort)
+  const updatesOnDisc={};
+  updatesOnDisc[mePath]=null;
+  updatesOnDisc['team_roomChat/'+roomId+'/'+currentUser.nick+'_typing']=null;
+  const disc=db.ref();
+  disc.onDisconnect().update(updatesOnDisc);
+  countRef.onDisconnect().transaction(cur=>Math.max((cur||1)-1,0));
+
+  await meRef.set(member);
+
+  subscribeRoom(roomId);
+  showRoomUI(roomId);
+}
+
+function goLobby(){
+  document.getElementById('lobby').classList.add('on');
+  document.getElementById('room').classList.remove('on');
+  document.getElementById('ov-kicked').classList.remove('show');
+}
+function showRoomUI(roomId){
+  document.getElementById('lobby').classList.remove('on');
+  document.getElementById('room').classList.add('on');
+  document.getElementById('ov-wait').classList.add('show');
+  document.getElementById('ov-countdown').classList.remove('show');
+  document.getElementById('ov-ended').classList.remove('show');
+  updateRoomHeader();
+  resetLocalRound();
+}
+
+// ── ROOM SUBSCRIPTIONS ──
+let roomUnsub=null, membersUnsub=null, chatUnsub=null;
+function clearSubs(){
+  if(roomUnsub && currentRoomId) roomsRef.child(currentRoomId).off('value', roomUnsub);
+  if(membersUnsub && currentRoomId) membersRef(currentRoomId).off('value', membersUnsub);
+  if(chatUnsub && currentRoomId) chatRef(currentRoomId).limitToLast(80).off('value', chatUnsub);
+  roomUnsub=null; membersUnsub=null; chatUnsub=null;
+}
+
+function subscribeRoom(roomId){
+  clearSubs();
+
+  roomUnsub = roomsRef.child(roomId).on('value', snap=>{
+    if(!snap.exists()){
+      kickClosed();
+      return;
+    }
+    roomState=snap.val();
+    // host gone? if host member missing, members listener will handle too.
+    updateRoomHeader();
+    applyRoomState();
+  });
+
+  membersUnsub = membersRef(roomId).on('value', snap=>{
+    currentMembers=snap.val()||{};
+    updateMembersUI();
+    updateAliveCount();
+    // if host member disappeared, close room for everyone
+    const hostNick=roomState?.hostNick;
+    if(hostNick && !currentMembers[hostNick]){
+      if(roomState?.status!=='ended' && roomState?.status!=='closed'){
+        // room is effectively invalid
+        kickClosed();
+      }
+    }
+    // host auto-end when everyone dead
+    maybeHostEndRound();
+  });
+
+  chatUnsub = chatRef(roomId).limitToLast(80).on('value', snap=>{
+    const msgs=snap.val()||{};
+    renderChat(msgs);
+  });
+}
+
+function updateRoomHeader(){
+  document.getElementById('room-name').textContent=roomState?.name||'-';
+  const cur=roomState?.playerCount||Object.keys(currentMembers||{}).length||0;
+  const max=roomState?.maxPlayers||30;
+  const st=roomState?.status||'lobby';
+  document.getElementById('room-meta').textContent=`방장: ${roomState?.hostNick||'-'} · 인원: ${cur}/${max} · 상태: ${st}`;
+  const isHost=(roomState?.hostNick===currentUser?.nick);
+  document.getElementById('host-tag').style.display=isHost?'':'none';
+  document.getElementById('btn-start').style.display=isHost?'':'none';
+  document.getElementById('btn-chat-toggle').textContent='채팅: '+((roomState?.chatEnabled!==false)?'ON':'OFF');
+  document.getElementById('chat-pill').textContent=(roomState?.chatEnabled!==false)?'ON':'OFF';
+}
+
+function updateAliveCount(){
+  const mems=Object.values(currentMembers||{});
+  const alive=mems.filter(m=>m && m.isAlive).length;
+  const total=mems.length;
+  document.getElementById('alive-count').textContent=`생존 ${alive}/${total}`;
+}
+
+function updateMembersUI(){
+  const wrap=document.getElementById('members');
+  const mems=Object.values(currentMembers||{});
+  mems.sort((a,b)=>{
+    const as=(a?.score)||0, bs=(b?.score)||0;
+    if(as!==bs) return bs-as;
+    const ad=a?.diedAt||0, bd=b?.diedAt||0;
+    return (ad||0)-(bd||0);
+  });
+
+  wrap.innerHTML=mems.map(m=>{
+    const me=(m.nick===currentUser.nick);
+    const alive=!!m.isAlive;
+    const best=(m.bestScoreCached!=null)?m.bestScoreCached:null;
+    const bestTxt=(best!=null)?('BEST '+best):'BEST -';
+    const globalRank=(m.rankCached!=null)?(m.rankCached+'위'):'-';
+    const roomRank=(m.roomRankCached!=null)?(m.roomRankCached+'위'):'-';
+    return `<div class="mem ${me?'me':''}">
+      <div class="nick">${esc(m.nick)}${m.isHost?' <span class="pill">HOST</span>':''}</div>
+      <div class="st ${alive?'ok':'bad'}">${alive?'ALIVE':'DEAD'}</div>
+      <div class="st">${bestTxt}</div>
+      <div class="st">랭킹 ${globalRank}</div>
+      <div class="st">방 ${roomRank}</div>
+    </div>`;
+  }).join('');
+
+  if(spectating) setSpectate(true);
+  updateSpectateBanner();
+}
+
+function kickClosed(){
+  stopGameLoop();
+  document.getElementById('ov-kicked').classList.add('show');
+  document.getElementById('ov-wait').classList.remove('show');
+  document.getElementById('ov-countdown').classList.remove('show');
+  document.getElementById('ov-ended').classList.remove('show');
+  setTimeout(()=>goLobby(), 1200);
+}
+
+async function leaveRoom(goLobbyAfter=true){
+  if(!currentRoomId) { if(goLobbyAfter) goLobby(); return; }
+  stopGameLoop();
+  const roomId=currentRoomId;
+  clearSubs();
+  currentRoomId=null;
+  roomState=null;
+  currentMembers={};
+  // remove member and decrement count
+  try{
+    await db.ref('team_roomMembers/'+roomId+'/'+currentUser.nick).remove();
+    await roomsRef.child(roomId).child('playerCount').transaction(cur=>Math.max((cur||1)-1,0));
+  }catch(e){}
+  if(goLobbyAfter) goLobby();
+}
+
+// ── CHAT ──
+const BAD_WORDS=['씨발','시발','병신','ㅅㅂ','ㅂㅅ','존나','좆','개새끼','새끼','미친','좆같','fuck','shit'];
+function normalizeText(t){return (t||'').toLowerCase().replace(/\s+/g,'');}
+function isBadText(t){
+  const n=normalizeText(t);
+  return BAD_WORDS.some(w=>n.includes(normalizeText(w)));
+}
+function renderChat(msgsObj){
+  const list=document.getElementById('chat-list');
+  const msgs=Object.values(msgsObj||{}).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+  list.innerHTML=msgs.map(m=>{
+    const blocked=!!m.blocked;
+    const body=blocked?'메시지가 블라인드 처리 되었습니다.':esc(m.text||'');
+    return `<div class="msg">
+      <div class="a">${esc(m.nick||'?')} · ${(new Date(m.createdAt||Date.now())).toLocaleTimeString()}</div>
+      <div class="b">${body}</div>
+    </div>`;
+  }).join('');
+  list.scrollTop=list.scrollHeight;
+  updateChatInputState();
+}
+function updateChatInputState(){
+  const enabled=(roomState?.chatEnabled!==false);
+  const isHost=(roomState?.hostNick===currentUser?.nick);
+  const canTalk=enabled || isHost;
+  document.getElementById('chat-text').disabled=!canTalk;
+  document.getElementById('chat-send').disabled=!canTalk;
+}
+async function toggleChat(){
+  if(!currentRoomId) return;
+  const isHost=(roomState?.hostNick===currentUser?.nick);
+  if(!isHost) return alert('방장만 설정할 수 있습니다.');
+  const next=!(roomState?.chatEnabled!==false);
+  await roomsRef.child(currentRoomId).child('chatEnabled').set(next);
+}
+async function sendChat(){
+  if(!currentRoomId) return;
+  const enabled=(roomState?.chatEnabled!==false);
+  const isHost=(roomState?.hostNick===currentUser?.nick);
+  if(!enabled && !isHost) return;
+  const input=document.getElementById('chat-text');
+  const text=input.value.trim();
+  if(!text) return;
+  input.value='';
+  const blocked=isBadText(text);
+  const msg={
+    nick: currentUser.nick,
+    text,
+    blocked,
+    createdAt: Date.now()
+  };
+  await chatRef(currentRoomId).push(msg);
+}
+document.getElementById('chat-text').addEventListener('keydown',e=>{
+  if(e.key==='Enter') sendChat();
+});
+
+// ── GAME STATE MACHINE (room) ──
+let cdTimer=null;
+function applyRoomState(){
+  if(!currentRoomId || !roomState) return;
+  updateChatInputState();
+
+  const st=roomState.status||'lobby';
+  document.getElementById('room-status').textContent =
+    st==='playing'?'진행중':(st==='countdown'?'카운트다운':(st==='ended'?'종료':'대기중'));
+
+  const my=currentMembers?.[currentUser.nick];
+  const dead=!!(my && my.isAlive===false);
+  document.getElementById('dead-tag').style.display=dead?'':'none';
+  updateSpectateBanner();
+
+  if(st==='lobby'){
+    document.getElementById('ov-wait').classList.add('show');
+    document.getElementById('ov-countdown').classList.remove('show');
+    document.getElementById('ov-ended').classList.remove('show');
+    stopGameLoop();
+    resetLocalRound();
+  } else if(st==='countdown'){
+    document.getElementById('ov-wait').classList.remove('show');
+    document.getElementById('ov-ended').classList.remove('show');
+    document.getElementById('ov-countdown').classList.add('show');
+    startCountdownTick();
+  } else if(st==='playing'){
+    document.getElementById('ov-wait').classList.remove('show');
+    document.getElementById('ov-countdown').classList.remove('show');
+    document.getElementById('ov-ended').classList.remove('show');
+    maybeStartLocalGame();
+  } else if(st==='ended'){
+    document.getElementById('ov-wait').classList.remove('show');
+    document.getElementById('ov-countdown').classList.remove('show');
+    document.getElementById('ov-ended').classList.add('show');
+    stopGameLoop();
+    renderEndSummary();
+  }
+}
+
+async function hostStart(){
+  if(!currentRoomId) return;
+  const isHost=(roomState?.hostNick===currentUser?.nick);
+  if(!isHost) return;
+  if(roomState?.status==='playing' || roomState?.status==='countdown') return;
+
+  // reset members for new round
+  const memKeys=Object.keys(currentMembers||{});
+  const baseUpdates={};
+  for(const k of memKeys){
+    baseUpdates['team_roomMembers/'+currentRoomId+'/'+k+'/isAlive']=true;
+    baseUpdates['team_roomMembers/'+currentRoomId+'/'+k+'/score']=0;
+    baseUpdates['team_roomMembers/'+currentRoomId+'/'+k+'/diedAt']=null;
+  }
+  const now=Date.now();
+  const roundId=String(now);
+  baseUpdates['team_rooms/'+currentRoomId+'/roundId']=roundId;
+  baseUpdates['team_rooms/'+currentRoomId+'/countdownStartAt']=now;
+  baseUpdates['team_rooms/'+currentRoomId+'/gameStartAt']=now+5000;
+  baseUpdates['team_rooms/'+currentRoomId+'/status']='countdown';
+  await db.ref().update(baseUpdates);
+}
+
+function startCountdownTick(){
+  if(cdTimer) return;
+  cdTimer=setInterval(()=>{
+    if(!roomState || roomState.status!=='countdown'){clearInterval(cdTimer);cdTimer=null;return;}
+    const startAt=roomState.gameStartAt||0;
+    const left=Math.max(0, Math.ceil((startAt-Date.now())/1000));
+    document.getElementById('cd-num').textContent=String(Math.min(5,Math.max(0,left)));
+    if(left<=0){
+      clearInterval(cdTimer);cdTimer=null;
+      // host flips to playing; others will follow
+      if(roomState.hostNick===currentUser.nick){
+        roomsRef.child(currentRoomId).child('status').set('playing');
+      }
+    }
+  }, 120);
+}
+
+async function backToWaiting(){
+  if(!currentRoomId) return goLobby();
+  // only host can reset status back to lobby
+  if(roomState?.hostNick!==currentUser.nick){
+    alert('방장이 다시 시작해야 합니다.');
+    return;
+  }
+  await roomsRef.child(currentRoomId).update({status:'lobby',countdownStartAt:null,gameStartAt:null});
+}
+
+function renderEndSummary(){
+  const mems=Object.values(currentMembers||{});
+  const sorted=[...mems].sort((a,b)=>{
+    const as=a?.score||0, bs=b?.score||0;
+    if(as!==bs) return bs-as;
+    const ad=a?.diedAt||Infinity, bd=b?.diedAt||Infinity;
+    return ad-bd;
+  });
+  // assign ranks (stable)
+  const lines=sorted.map((m,i)=>{
+    const you=(m.nick===currentUser.nick);
+    return `${i+1}등: ${m.nick}${you?'(나)':''} · ${m.score||0}점`;
+  });
+  const myIdx=sorted.findIndex(m=>m.nick===currentUser.nick);
+  const myLine=(myIdx>=0)?`내 순위: ${myIdx+1}등 · ${sorted[myIdx].score||0}점`:'';
+  document.getElementById('end-body').textContent = (myLine?myLine+'\n\n':'') + lines.join('\n');
+}
+
+// ── GAME (local runner + ghost sync) ──
+// Images
+function loadImg(src){const i=new Image();i.src=src;return i;}
+const playerImg=loadImg('https://i.ibb.co/VpNG3CG5/5.gif');
+const cactusImg=loadImg('https://i.ibb.co/0y2gkKMz/Begging-Tame-Wolf-removebg-preview-2.png');
+const birdImg=loadImg('https://i.ibb.co/Q3z3Wn4N/6.gif');
+
+// Canvas
+const canvas=document.getElementById('game-canvas');
+const ctx=canvas.getContext('2d');
+const LW=800,LH=270;
+let dpr=1;
+function initCanvas(){
+  resizeCanvas();
+  if(window.ResizeObserver){
+    new ResizeObserver(resizeCanvas).observe(document.getElementById('canvas-wrap'));
+  } else {
+    window.addEventListener('resize',resizeCanvas);
+  }
+}
+function resizeCanvas(){
+  const wrap=document.getElementById('canvas-wrap');
+  const ww=wrap.clientWidth;
+  const wh=wrap.clientHeight;
+  if(!ww||!wh)return;
+  dpr=Math.min(window.devicePixelRatio||1,2);
+  canvas.width=Math.round(ww*dpr);
+  canvas.height=Math.round(wh*dpr);
+  canvas.style.width=ww+'px';
+  canvas.style.height=wh+'px';
+  ctx.setTransform((ww/LW)*dpr,0,0,(wh/LH)*dpr,0,0);
+  drawFrame();
+}
+
+// Game constants
+const GY=228;
+const GRAV=0.68,JUMP_F=-15;
+const DX=65,DW=60,DH=60;
+
+// Local game state
+let gameRunning=false,gameStarted=false;
+let frame=0,score=0,speed=5,raf=null,gOff=0;
+let dino={y:GY-DH,vy:0,jumping:false,ducking:false};
+let obstacles=[],cooldown=85;
+let clouds=[{x:180,y:22,spd:0.55},{x:460,y:38,spd:0.38},{x:680,y:15,spd:0.48}];
+
+// Room sync / spectate
+let syncTimer=null;
+let ghostStates={}; // nick -> {y,ducking,ts}
+let spectating=false;
+let spectateTargetNick=null;
+let spectateList=[];
+let lastDeathRankShown=null;
+
+function initGame(){
+  resetLocalRound();
+  drawFrame();
+}
+function resetLocalRound(){
+  gameRunning=false;gameStarted=false;
+  frame=0;score=0;speed=5;gOff=0;
+  dino={y:GY-DH,vy:0,jumping:false,ducking:false};
+  obstacles=[];cooldown=85;
+  document.getElementById('hud-score').textContent='0';
+  document.getElementById('hud-room-rank').textContent='—';
+  document.getElementById('speed-disp').textContent='';
+  setSpectate(false);
+}
+
+function drawBg(){
+  const g=ctx.createLinearGradient(0,0,0,GY);
+  g.addColorStop(0,'#5bc8f5');g.addColorStop(0.65,'#87CEEB');g.addColorStop(1,'#b0e0f7');
+  ctx.fillStyle=g;ctx.fillRect(0,0,LW,GY);
+  ctx.fillStyle='#fff9a0';ctx.shadowColor='#ffe87c';ctx.shadowBlur=18;
+  ctx.fillRect(720,18,34,34);ctx.shadowBlur=0;
+  ctx.fillStyle='#ffe87c';
+  ctx.fillRect(733,10,8,6);ctx.fillRect(733,48,8,6);
+  ctx.fillRect(712,26,6,8);ctx.fillRect(750,26,6,8);
+}
+function drawGround(){
+  const bw=16;
+  for(let x=0;x<LW;x+=bw){
+    ctx.fillStyle=(Math.floor((x+gOff)/bw)%2===0)?'#5a9e38':'#4d8c2f';
+    ctx.fillRect(x,GY,bw,8);
+  }
+  ctx.fillStyle='#78c44a';
+  for(let x=0;x<LW;x+=bw)ctx.fillRect(x+1,GY,bw-2,3);
+  for(let row=0;row<3;row++){
+    const dy=GY+8+row*11;
+    for(let x=0;x<LW;x+=bw){
+      ctx.fillStyle=((Math.floor((x+gOff)/bw)+row)%2===0)?'#9b6b3a':'#8B5E32';
+      ctx.fillRect(x,dy,bw,11);
+      ctx.strokeStyle='rgba(0,0,0,0.12)';ctx.lineWidth=0.5;ctx.strokeRect(x,dy,bw,11);
+    }
+  }
+}
+function drawClouds(){
+  const bw=16;
+  const sh=[[1,0],[2,0],[3,0],[0,1],[1,1],[2,1],[3,1],[4,1],[0,2],[1,2],[2,2],[3,2],[4,2]];
+  clouds.forEach(c=>{
+    ctx.fillStyle='#ffffffd0';
+    sh.forEach(([bx,by])=>ctx.fillRect(c.x+bx*bw,c.y+by*(bw*0.6),bw,bw*0.6));
+  });
+}
+
+function drawMyDino(){
+  const dh=dino.ducking?DH*0.62:DH, dw=dino.ducking?DW*1.3:DW;
+  const dy=dino.ducking?GY-dh:dino.y;
+  if(playerImg.complete&&playerImg.naturalWidth>0) ctx.drawImage(playerImg,DX,dy,dw,dh);
+  else {ctx.fillStyle='#8B6340';ctx.fillRect(DX,dy,dw,dh);}
+  // highlight me
+  ctx.strokeStyle='#22c55e';
+  ctx.lineWidth=4;
+  ctx.strokeRect(DX-2,dy-2,dw+4,dh+4);
+}
+
+function drawGhosts(){
+  if(!currentRoomId) return;
+  const meNick=currentUser?.nick;
+  for(const [nick, m] of Object.entries(currentMembers||{})){
+    if(!m || nick===meNick) continue;
+    const st=m.lastState;
+    if(!st) continue;
+    const y=st.y;
+    const duck=!!st.ducking;
+    const dh=duck?DH*0.62:DH, dw=duck?DW*1.3:DW;
+    const dy=duck?GY-dh:y;
+    ctx.globalAlpha=0.35;
+    if(playerImg.complete&&playerImg.naturalWidth>0) ctx.drawImage(playerImg,DX,dy,dw,dh);
+    else {ctx.fillStyle='#333';ctx.fillRect(DX,dy,dw,dh);}
+    ctx.globalAlpha=1;
+    ctx.fillStyle='rgba(0,0,0,0.45)';
+    ctx.font='11px var(--mono)';
+    ctx.fillText(nick, DX, Math.max(14,dy-6));
+  }
+}
+
+function makeCactus(x,v){
+  const s={sm:{w:36,h:46},md:{w:44,h:58},lg:{w:52,h:68}}[v]||{w:44,h:58};
+  return{type:'cactus',x,w:s.w,h:s.h};
+}
+function makeTree(x){return{type:'tree',x,w:16,trunkH:28+Math.floor(Math.random()*16),leafW:40,leafH:32};}
+function makeBird(x){
+  const ys=[GY-90,GY-110,GY-130];
+  return{type:'bird',x,w:86,h:64,y:ys[Math.floor(Math.random()*ys.length)]};
+}
+function spawnObsGroup(){
+  if(speed>7&&Math.random()<0.22){obstacles.push(makeBird(LW+20));return;}
+  const roll=Math.random();
+  if(roll<0.25){obstacles.push(makeCactus(LW+20,Math.random()<0.5?'sm':'md'));}
+  else if(roll<0.42){obstacles.push(makeTree(LW+20));}
+  else if(roll<0.60){const o1=makeCactus(LW+20,'sm');const gap=20+Math.floor(Math.random()*12);obstacles.push(o1,makeCactus(LW+20+o1.w+gap,Math.random()<0.6?'sm':'md'));}
+  else if(roll<0.76){const tree=makeTree(LW+20);const gap=22+Math.floor(Math.random()*14);obstacles.push(tree,makeCactus(LW+20+tree.w+gap,'sm'));}
+  else if(roll<0.88){const c=makeCactus(LW+20,'sm');obstacles.push(c,makeBird(LW+20+c.w+110+Math.floor(Math.random()*50)));}
+  else{obstacles.push(makeCactus(LW+20,Math.random()<0.5?'md':'lg'));}
+}
+function drawObs(o){
+  if(o.type==='cactus'){
+    const oy=GY-o.h;
+    if(cactusImg.complete&&cactusImg.naturalWidth>0)ctx.drawImage(cactusImg,o.x,oy,o.w,o.h);
+    else{ctx.fillStyle='#4a9e2f';ctx.fillRect(o.x,oy,o.w,o.h);}
+  }else if(o.type==='tree'){
+    const tx=o.x,ty=GY-o.trunkH,bw=16;
+    for(let row=0;row<Math.ceil(o.trunkH/bw);row++){
+      const by=ty+row*bw;
+      ctx.fillStyle=(row%2===0)?'#9b7b4a':'#8a6b3a';
+      ctx.fillRect(tx,by,bw,Math.min(bw,GY-by));
+      ctx.strokeStyle='rgba(0,0,0,0.15)';ctx.lineWidth=0.5;ctx.strokeRect(tx,by,bw,Math.min(bw,GY-by));
+    }
+    const lx=tx-(o.leafW-bw)/2,ly=ty-o.leafH+8;
+    [[0,1],[1,1],[2,1],[0,0],[1,0],[2,0],[0,2],[1,2],[2,2]].forEach(([bx,by])=>{
+      ctx.fillStyle=(bx+by)%2===0?'#4a9e2f':'#3d8526';
+      ctx.fillRect(lx+bx*(o.leafW/3),ly+by*(o.leafH/3),o.leafW/3,o.leafH/3);
+    });
+  }else if(o.type==='bird'){
+    if(birdImg.complete&&birdImg.naturalWidth>0)ctx.drawImage(birdImg,o.x,o.y,o.w,o.h);
+    else{ctx.fillStyle='#e87d2a';ctx.fillRect(o.x,o.y,o.w,30);}
+  }
+}
+function getHitbox(o){
+  if(o.type==='cactus')return{x:o.x+7,y:GY-o.h+7,w:o.w-14,h:o.h-10};
+  if(o.type==='tree'){const lx=o.x-(o.leafW-16)/2,ly=GY-o.trunkH-o.leafH+8;return{x:lx+5,y:ly,w:o.leafW-10,h:o.trunkH+o.leafH-10};}
+  if(o.type==='bird')return{x:o.x+18,y:o.y+16,w:o.w-36,h:o.h-28};
+  return{x:o.x,y:0,w:0,h:0};
+}
+function hits(o){
+  const dh=dino.ducking?DH*0.62:DH, dw=dino.ducking?DW*1.3:DW;
+  const dy=dino.ducking?GY-dh:dino.y;
+  const dr={x:DX+8,y:dy+8,w:dw-16,h:dh-12};
+  const or=getHitbox(o);
+  return!(dr.x+dr.w<or.x||dr.x>or.x+or.w||dr.y+dr.h<or.y||dr.y>or.y+or.h);
+}
+
+function drawFrame(){
+  ctx.clearRect(0,0,LW,LH);
+  drawBg();drawClouds();drawGround();
+  obstacles.forEach(drawObs);
+  drawGhosts();
+  drawMyDino();
+}
+
+function stopGameLoop(){
+  if(raf) cancelAnimationFrame(raf);
+  raf=null;
+  gameRunning=false;
+  if(syncTimer){clearInterval(syncTimer);syncTimer=null;}
+}
+
+function maybeStartLocalGame(){
+  const my=currentMembers?.[currentUser.nick];
+  if(!my || my.isAlive===false) return setSpectate(true);
+  if(gameRunning) return;
+  // align start with server start time to feel simultaneous
+  const startAt=roomState?.gameStartAt||Date.now();
+  const drift=Math.max(0, Date.now()-startAt);
+  resetLocalRound();
+  gameStarted=true;gameRunning=true;
+  frame=Math.floor(drift/16); // coarse alignment
+  raf=requestAnimationFrame(loop);
+  startSync();
+}
+
+function startSync(){
+  if(syncTimer) return;
+  syncTimer=setInterval(()=>{
+    if(!currentRoomId || !gameRunning) return;
+    const payload={
+      y:dino.y,
+      ducking:!!dino.ducking,
+      score:score,
+      ts:Date.now()
+    };
+    const up={};
+    up['team_roomMembers/'+currentRoomId+'/'+currentUser.nick+'/score']=score;
+    up['team_roomMembers/'+currentRoomId+'/'+currentUser.nick+'/lastState']=payload;
+    db.ref().update(up);
+    updateRoomRankUI();
+  }, 220);
+}
+
+function computeRoomRanks(){
+  const mems=Object.values(currentMembers||{});
+  const sorted=[...mems].sort((a,b)=>{
+    const as=a?.score||0, bs=b?.score||0;
+    if(as!==bs) return bs-as;
+    const ad=a?.diedAt||Infinity, bd=b?.diedAt||Infinity;
+    return ad-bd;
+  });
+  const map={};
+  sorted.forEach((m,i)=>{ if(m && m.nick) map[m.nick]=i+1; });
+  return map;
+}
+function updateRoomRankUI(){
+  const ranks=computeRoomRanks();
+  const myRank=ranks[currentUser.nick];
+  document.getElementById('hud-room-rank').textContent=myRank?(myRank+'위'):'—';
+}
+
+function maybeHostEndRound(){
+  if(!currentRoomId || !roomState) return;
+  if(roomState.hostNick!==currentUser.nick) return;
+  if(roomState.status!=='playing') return;
+  const mems=Object.values(currentMembers||{});
+  const alive=mems.filter(m=>m && m.isAlive).length;
+  if(alive<=0){
+    roomsRef.child(currentRoomId).child('status').set('ended');
+  }
+}
+
+async function gameOver(){
+  stopGameLoop();
+  // mark dead + diedAt
+  if(currentRoomId){
+    await db.ref('team_roomMembers/'+currentRoomId+'/'+currentUser.nick).update({
+      isAlive:false,
+      score:score,
+      diedAt: Date.now()
+    });
+  }
+  setSpectate(true);
+  updateSpectateBanner();
+}
+
+function loop(){
+  if(!gameRunning) return;
+  frame++;
+  speed=Math.min(5+(frame/300)+Math.pow(frame/1200,2),22);
+  score=Math.floor(frame/6);
+  document.getElementById('hud-score').textContent=String(score);
+  document.getElementById('speed-disp').textContent='x'+speed.toFixed(1);
+  gOff=(gOff+speed)%800;
+  clouds.forEach(c=>{c.x-=c.spd;if(c.x<-100)c.x=LW+20;});
+  if(!dino.ducking){
+    dino.vy+=GRAV;dino.y+=dino.vy;
+    if(dino.y>=GY-DH){dino.y=GY-DH;dino.vy=0;dino.jumping=false;}
+  } else dino.y=GY-DH*0.62;
+  cooldown--;
+  if(cooldown<=0){
+    spawnObsGroup();
+    cooldown=Math.max(55,120-Math.floor(speed*5))+Math.floor(Math.random()*60);
+  }
+  obstacles=obstacles.filter(o=>o.x>-200);
+  for(const o of obstacles){
+    o.x-=(o.type==='bird'?speed*0.95:speed);
+    if(hits(o)){gameOver();return;}
+  }
+  drawFrame();
+  raf=requestAnimationFrame(loop);
+}
+
+function jump(){
+  if(!gameStarted||!gameRunning) return;
+  if(!dino.jumping){dino.vy=JUMP_F;dino.jumping=true;dino.ducking=false;}
+}
+function startDuck(){if(gameRunning&&!dino.jumping)dino.ducking=true;}
+function stopDuck(){dino.ducking=false;}
+
+document.addEventListener('keydown',e=>{
+  if(!currentRoomId) return;
+  if(roomState?.status!=='playing') return;
+  const my=currentMembers?.[currentUser.nick];
+  if(!my || my.isAlive===false) return;
+  if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();jump();}
+  if(e.code==='ArrowDown'){e.preventDefault();startDuck();}
+});
+document.addEventListener('keyup',e=>{
+  if(e.code==='ArrowDown') stopDuck();
+});
+canvas.addEventListener('click',()=>{
+  if(!currentRoomId) return;
+  if(roomState?.status!=='playing') return;
+  const my=currentMembers?.[currentUser.nick];
+  if(!my || my.isAlive===false) return;
+  jump();
+});
+
+// ── SPECTATE ──
+function setSpectate(on){
+  spectating=!!on;
+  const el=document.getElementById('spectate');
+  if(!spectating){
+    el.classList.remove('on');
+    document.getElementById('spectate-banner').classList.remove('on');
+    return;
+  }
+  el.classList.add('on');
+  document.getElementById('spectate-banner').classList.add('on');
+  // build list (prefer alive, else all)
+  const mems=Object.values(currentMembers||{});
+  const alive=mems.filter(m=>m && m.isAlive).map(m=>m.nick);
+  spectateList=alive.length?alive:mems.filter(m=>m).map(m=>m.nick);
+  if(!spectateTargetNick || !spectateList.includes(spectateTargetNick)){
+    spectateTargetNick=spectateList[0]||null;
+  }
+  document.getElementById('spectate-name').textContent=spectateTargetNick?('관전: '+spectateTargetNick):'관전: -';
+  updateSpectateBanner();
+}
+
+function updateSpectateBanner(){
+  const banner=document.getElementById('spectate-banner');
+  if(!banner) return;
+  if(!currentRoomId || !roomState) { banner.classList.remove('on'); return; }
+  const my=currentMembers?.[currentUser.nick];
+  const isDead=!!(my && my.isAlive===false);
+  const ranks=computeRoomRanks();
+  const myRank=ranks[currentUser.nick]||null;
+  const myScore=(my && typeof my.score==='number')?my.score:score;
+
+  if(roomState.status==='playing' && isDead){
+    banner.classList.add('on');
+    banner.textContent=[
+      '관전중',
+      (myRank?`내 순위: ${myRank}등`:'내 순위: 집계중'),
+      `내 점수: ${myScore||0}점`
+    ].join('\\n');
+
+    if(myRank && lastDeathRankShown!==myRank){
+      lastDeathRankShown=myRank;
+      const hint=document.getElementById('hint');
+      if(hint) hint.textContent=`탈락! 당신은 현재 ${myRank}등 입니다. (관전 가능)`;
+    }
+    return;
+  }
+
+  banner.classList.remove('on');
+  const hint=document.getElementById('hint');
+  if(hint && roomState.status!=='ended') hint.textContent='스페이스/↑: 점프, ↓: 숙이기';
+}
+function spectatePrev(){
+  if(!spectating || !spectateList.length) return;
+  const i=spectateList.indexOf(spectateTargetNick);
+  spectateTargetNick=spectateList[(i-1+spectateList.length)%spectateList.length];
+  document.getElementById('spectate-name').textContent='관전: '+spectateTargetNick;
+}
+function spectateNext(){
+  if(!spectating || !spectateList.length) return;
+  const i=spectateList.indexOf(spectateTargetNick);
+  spectateTargetNick=spectateList[(i+1)%spectateList.length];
+  document.getElementById('spectate-name').textContent='관전: '+spectateTargetNick;
+}
+
+// update cached best/rank per member for UI
+async function hydrateMemberCaches(){
+  if(!currentRoomId) return;
+  const mems=Object.values(currentMembers||{});
+  const ranks=computeRoomRanks();
+  const updates={};
+  for(const m of mems){
+    if(!m || !m.nick) continue;
+    const bestSnap=await db.ref('game_users/'+m.nick+'/bestScore').once('value');
+    const best=bestSnap.exists()?bestSnap.val():0;
+    const globalRank=(rankingData.length||best>0)?getRankPos(best):null;
+    updates['team_roomMembers/'+currentRoomId+'/'+m.nick+'/bestScoreCached']=best;
+    updates['team_roomMembers/'+currentRoomId+'/'+m.nick+'/rankCached']=globalRank;
+    updates['team_roomMembers/'+currentRoomId+'/'+m.nick+'/roomRankCached']=ranks[m.nick]||null;
+  }
+  if(Object.keys(updates).length) db.ref().update(updates);
+}
+
+// Periodically refresh caches (lightweight, capped)
+setInterval(()=>{
+  if(currentRoomId && roomState && roomState.status!=='playing'){
+    hydrateMemberCaches();
+  }
+}, 4000);
+</script>
+</body>
+</html>
+
