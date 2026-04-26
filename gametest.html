@@ -704,8 +704,8 @@ function makeCactus(x,v){
 }
 function makeTree(x){return{type:'tree',x,w:16,trunkH:28+Math.floor(Math.random()*16),leafW:40,leafH:32};}
 function makeBird(x){
-  // ✅ 새를 더 낮게 배치 (점프 또는 숙이기로 피할 수 있게)
-  const ys=[GY-75,GY-95,GY-115];
+  // 새가 숙이기(duck)로 피할 수 있도록, 최저 고도를 조금 더 올림
+  const ys=[GY-90,GY-110,GY-130];
   return{type:'bird',x,w:86,h:64,y:ys[Math.floor(Math.random()*ys.length)]};
 }
 function spawnObsGroup(){
@@ -744,7 +744,8 @@ function drawObs(o){
 function getHitbox(o){
   if(o.type==='cactus')return{x:o.x+7,y:GY-o.h+7,w:o.w-14,h:o.h-10};
   if(o.type==='tree'){const lx=o.x-(o.leafW-16)/2,ly=GY-o.trunkH-o.leafH+8;return{x:lx+5,y:ly,w:o.leafW-10,h:o.trunkH+o.leafH-10};}
-  if(o.type==='bird')return{x:o.x+12,y:o.y+12,w:o.w-24,h:o.h-20};
+  // 새는 이미지 여백이 커서 히트박스를 조금 더 타이트하게 잡음
+  if(o.type==='bird')return{x:o.x+18,y:o.y+16,w:o.w-36,h:o.h-28};
   return{x:o.x,y:0,w:0,h:0};
 }
 function hits(o){
