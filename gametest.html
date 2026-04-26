@@ -222,7 +222,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     </div>
     <div class="auth-card" id="signup-card">
       <div class="card-title">새 계정 만들기</div>
-      <div class="field"><label>닉네임</label><input type="text" id="reg-nick" placeholder="닉네임" maxlength="12" autocomplete="off"></div>
+      <div class="field"><label>닉네임</label><input type="text" id="reg-nick" placeholder="닉���임" maxlength="12" autocomplete="off"></div>
       <div class="field">
         <label>비밀번호</label>
         <input type="password" id="reg-pw" placeholder="숫자 2~8자리" maxlength="8" inputmode="numeric" pattern="[0-9]*">
@@ -690,7 +690,8 @@ function makeCactus(x,v){
 }
 function makeTree(x){return{type:'tree',x,w:16,trunkH:28+Math.floor(Math.random()*16),leafW:40,leafH:32};}
 function makeBird(x){
-  const ys=[GY-110,GY-135,GY-160];
+  // ✅ 새를 더 낮게 배치 (점프 또는 숙이기로 피할 수 있게)
+  const ys=[GY-75,GY-95,GY-115];
   return{type:'bird',x,w:86,h:64,y:ys[Math.floor(Math.random()*ys.length)]};
 }
 function spawnObsGroup(){
