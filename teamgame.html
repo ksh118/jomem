@@ -20,6 +20,13 @@
 html,body{width:100%;height:100%;overflow:hidden;}
 body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
 button,input{font-family:inherit;}
+body.playing .side,
+body.playing .chat,
+body.playing .room-actions{display:none !important;}
+body.playing .canvas-card{margin:0;border-radius:0;border-left:none;border-right:none;border-bottom:none;}
+body.playing .center{background:var(--bg);}
+body.playing .panel{max-width:none;border-radius:0;}
+body.playing .main{padding:0;}
 
 /* ── AUTH (copied from gametest-fixed.html) ── */
 #auth-screen{position:fixed;inset:0;overflow-y:auto;display:flex;align-items:center;justify-content:center;padding:20px;}
@@ -520,6 +527,7 @@ let roomState=null;
 let currentRoomId=null;
 let currentMembers={};
 let currentChatEnabled=true;
+let joinLock=false;
 
 document.getElementById('new-room-pw-on').addEventListener('change',()=>{
   const on=document.getElementById('new-room-pw-on').checked;
@@ -605,6 +613,7 @@ async function createRoom(){
 }
 
 async function joinRoomPrompt(roomId){
+  if(joinLock) return;
   const snap=await roomsRef.child(roomId).once('value');
   if(!snap.exists()) return alert('방이 존재하지 않습니다.');
   const room=snap.val();
@@ -618,35 +627,21 @@ async function joinRoomPrompt(roomId){
 }
 
 async function joinRoom(roomId, pw){
+  if(joinLock) return;
+  joinLock=true;
   if(currentRoomId) await leaveRoom(false);
   const roomSnap=await roomsRef.child(roomId).once('value');
-  if(!roomSnap.exists()) return alert('방이 존재하지 않습니다.');
+  if(!roomSnap.exists()) { joinLock=false; return alert('방이 존재하지 않습니다.'); }
   const room=roomSnap.val();
 
   if(room.hasPassword){
     const given=pw||'';
-    if(!/^\d+$/.test(given)) return alert('비밀번호가 틀렸습니다.');
+    if(!/^\d+$/.test(given)) { joinLock=false; return alert('비밀번호가 틀렸습니다.'); }
     const hash=await sha256Hex(given);
-    if(hash!==room.passwordHash) return alert('비밀번호가 틀렸습니다.');
+    if(hash!==room.passwordHash) { joinLock=false; return alert('비밀번호가 틀렸습니다.'); }
   }
 
-  const countRef=roomsRef.child(roomId).child('playerCount');
-  const maxPlayers=room.maxPlayers||30;
-  const tx=await countRef.transaction(cur=>{
-    cur=cur||0;
-    if(cur>=maxPlayers) return;
-    return cur+1;
-  });
-  if(!tx.committed){
-    alert('인원수가 찼습니다');
-    return;
-  }
-
-  currentRoomId=roomId;
-  currentChatEnabled=room.chatEnabled!==false;
-  roomState=room;
-
-  // register presence
+  // Create member atomically first to prevent multi-join spam by same nick
   const mePath='team_roomMembers/'+roomId+'/'+currentUser.nick;
   const meRef=db.ref(mePath);
   const isHost=(room.hostNick===currentUser.nick);
@@ -659,6 +654,32 @@ async function joinRoom(roomId, pw){
     diedAt: null,
     lastState: null
   };
+  const meTx=await meRef.transaction(cur=>{
+    if(cur) return; // already exists
+    return member;
+  });
+  if(!meTx.committed){
+    joinLock=false;
+    return alert('이미 방에 들어가 있습니다.');
+  }
+
+  const countRef=roomsRef.child(roomId).child('playerCount');
+  const maxPlayers=room.maxPlayers||30;
+  const tx=await countRef.transaction(cur=>{
+    cur=cur||0;
+    if(cur>=maxPlayers) return;
+    return cur+1;
+  });
+  if(!tx.committed){
+    await meRef.remove();
+    joinLock=false;
+    alert('인원수가 찼습니다');
+    return;
+  }
+
+  currentRoomId=roomId;
+  currentChatEnabled=room.chatEnabled!==false;
+  roomState=room;
 
   // onDisconnect: remove member, decrement count (best effort)
   const updatesOnDisc={};
@@ -670,10 +691,9 @@ async function joinRoom(roomId, pw){
   // (May go negative in rare double-decrement cases; UI clamps and periodic activity will correct.)
   countRef.onDisconnect().set(firebase.database.ServerValue.increment(-1));
 
-  await meRef.set(member);
-
   subscribeRoom(roomId);
   showRoomUI(roomId);
+  joinLock=false;
 }
 
 function goLobby(){
@@ -705,10 +725,16 @@ function subscribeRoom(roomId){
 
   roomUnsub = roomsRef.child(roomId).on('value', snap=>{
     if(!snap.exists()){
+      document.getElementById('ov-kicked').querySelector('.ov-sub').textContent='방이 삭제되었습니다.';
       kickClosed();
       return;
     }
     roomState=snap.val();
+    if(roomState?.deletedAt){
+      document.getElementById('ov-kicked').querySelector('.ov-sub').textContent='방이 삭제되었습니다.';
+      kickClosed();
+      return;
+    }
     // host gone? if host member missing, members listener will handle too.
     updateRoomHeader();
     applyRoomState();
@@ -773,12 +799,14 @@ function updateMembersUI(){
     const bestTxt=(best!=null)?('BEST '+best):'BEST -';
     const globalRank=(m.rankCached!=null)?(m.rankCached+'위'):'-';
     const roomRank=(m.roomRankCached!=null)?(m.roomRankCached+'위'):'-';
+    const total=(m.roomTotalScore!=null)?m.roomTotalScore:0;
     return `<div class="mem ${me?'me':''}">
-      <div class="nick">${esc(m.nick)}${m.isHost?' <span class="pill">HOST</span>':''}</div>
+      <div class="nick">${esc(m.nick)}${m.isHost?' <span class="pill">👑</span>':''}</div>
       <div class="st ${alive?'ok':'bad'}">${alive?'ALIVE':'DEAD'}</div>
       <div class="st">${bestTxt}</div>
       <div class="st">랭킹 ${globalRank}</div>
       <div class="st">방 ${roomRank}</div>
+      <div class="st">누적 ${total}</div>
     </div>`;
   }).join('');
 
@@ -788,6 +816,7 @@ function updateMembersUI(){
 
 function kickClosed(){
   stopGameLoop();
+  // message can be customized before showing
   document.getElementById('ov-kicked').classList.add('show');
   document.getElementById('ov-wait').classList.remove('show');
   document.getElementById('ov-countdown').classList.remove('show');
@@ -797,8 +826,11 @@ function kickClosed(){
 
 async function leaveRoom(goLobbyAfter=true){
   if(!currentRoomId) { if(goLobbyAfter) goLobby(); return; }
+  const confirmLeave=confirm('정말로 나가겠습니까?');
+  if(!confirmLeave) return;
   stopGameLoop();
   const roomId=currentRoomId;
+  const isHost=(roomState?.hostNick===currentUser.nick);
   clearSubs();
   currentRoomId=null;
   roomState=null;
@@ -808,6 +840,24 @@ async function leaveRoom(goLobbyAfter=true){
     await db.ref('team_roomMembers/'+roomId+'/'+currentUser.nick).remove();
     await roomsRef.child(roomId).child('playerCount').transaction(cur=>Math.max((cur||1)-1,0));
   }catch(e){}
+
+  // If host leaves, delete room and related data
+  if(isHost){
+    try{
+      const now=Date.now();
+      await roomsRef.child(roomId).update({deletedAt:now,deletedBy:currentUser.nick});
+      // allow other clients to see message then delete nodes
+      setTimeout(()=>{ 
+        const del={};
+        del['team_rooms/'+roomId]=null;
+        del['team_roomMembers/'+roomId]=null;
+        del['team_roomChat/'+roomId]=null;
+        del['team_roomRounds/'+roomId]=null;
+        del['team_roomScores/'+roomId]=null;
+        db.ref().update(del);
+      }, 500);
+    }catch(e){}
+  }
   if(goLobbyAfter) goLobby();
 }
 
@@ -875,6 +925,7 @@ function applyRoomState(){
   updateChatInputState();
 
   const st=roomState.status||'lobby';
+  document.body.classList.toggle('playing', st==='playing');
   document.getElementById('room-status').textContent =
     st==='playing'?'진행중':(st==='countdown'?'카운트다운':(st==='ended'?'종료':'대기중'));
 
@@ -921,10 +972,13 @@ async function hostStart(){
     baseUpdates['team_roomMembers/'+currentRoomId+'/'+k+'/isAlive']=true;
     baseUpdates['team_roomMembers/'+currentRoomId+'/'+k+'/score']=0;
     baseUpdates['team_roomMembers/'+currentRoomId+'/'+k+'/diedAt']=null;
+    baseUpdates['team_roomMembers/'+currentRoomId+'/'+k+'/lastState']=null;
   }
   const now=Date.now();
   const roundId=String(now);
+  const seed=Math.floor(Math.random()*2147483647)+1;
   baseUpdates['team_rooms/'+currentRoomId+'/roundId']=roundId;
+  baseUpdates['team_rooms/'+currentRoomId+'/seed']=seed;
   baseUpdates['team_rooms/'+currentRoomId+'/countdownStartAt']=now;
   baseUpdates['team_rooms/'+currentRoomId+'/gameStartAt']=now+5000;
   baseUpdates['team_rooms/'+currentRoomId+'/status']='countdown';
@@ -1022,6 +1076,30 @@ let dino={y:GY-DH,vy:0,jumping:false,ducking:false};
 let obstacles=[],cooldown=85;
 let clouds=[{x:180,y:22,spd:0.55},{x:460,y:38,spd:0.38},{x:680,y:15,spd:0.48}];
 
+// Deterministic round RNG/spawn scheduler (shared across clients)
+let roundSeed=1;
+let rngState=1;
+let nextSpawnFrame=90;
+function initRoundRng(seed){
+  roundSeed=seed||1;
+  rngState=roundSeed>>>0;
+  if(rngState===0) rngState=1;
+}
+function rng01(){
+  // LCG (deterministic)
+  rngState = (rngState * 1664525 + 1013904223) >>> 0;
+  return rngState / 4294967296;
+}
+function resetSpawnSchedule(){
+  nextSpawnFrame=85;
+}
+function calcNextSpawnFrame(){
+  // mirror previous cooldown logic but deterministic
+  const base=Math.max(55,120-Math.floor(speed*5));
+  const extra=Math.floor(rng01()*60);
+  nextSpawnFrame=frame + base + extra;
+}
+
 // Room sync / spectate
 let syncTimer=null;
 let ghostStates={}; // nick -> {y,ducking,ts}
@@ -1039,6 +1117,7 @@ function resetLocalRound(){
   frame=0;score=0;speed=5;gOff=0;
   dino={y:GY-DH,vy:0,jumping:false,ducking:false};
   obstacles=[];cooldown=85;
+  resetSpawnSchedule();
   document.getElementById('hud-score').textContent='0';
   document.getElementById('hud-room-rank').textContent='—';
   document.getElementById('speed-disp').textContent='';
@@ -1123,14 +1202,27 @@ function makeBird(x){
   return{type:'bird',x,w:86,h:64,y:ys[Math.floor(Math.random()*ys.length)]};
 }
 function spawnObsGroup(){
-  if(speed>7&&Math.random()<0.22){obstacles.push(makeBird(LW+20));return;}
-  const roll=Math.random();
-  if(roll<0.25){obstacles.push(makeCactus(LW+20,Math.random()<0.5?'sm':'md'));}
+  if(speed>7 && rng01()<0.22){obstacles.push(makeBird(LW+20));return;}
+  const roll=rng01();
+  if(roll<0.25){obstacles.push(makeCactus(LW+20, rng01()<0.5?'sm':'md'));}
   else if(roll<0.42){obstacles.push(makeTree(LW+20));}
-  else if(roll<0.60){const o1=makeCactus(LW+20,'sm');const gap=20+Math.floor(Math.random()*12);obstacles.push(o1,makeCactus(LW+20+o1.w+gap,Math.random()<0.6?'sm':'md'));}
-  else if(roll<0.76){const tree=makeTree(LW+20);const gap=22+Math.floor(Math.random()*14);obstacles.push(tree,makeCactus(LW+20+tree.w+gap,'sm'));}
-  else if(roll<0.88){const c=makeCactus(LW+20,'sm');obstacles.push(c,makeBird(LW+20+c.w+110+Math.floor(Math.random()*50)));}
-  else{obstacles.push(makeCactus(LW+20,Math.random()<0.5?'md':'lg'));}
+  else if(roll<0.60){
+    const o1=makeCactus(LW+20,'sm');
+    const gap=20+Math.floor(rng01()*12);
+    obstacles.push(o1, makeCactus(LW+20+o1.w+gap, rng01()<0.6?'sm':'md'));
+  }
+  else if(roll<0.76){
+    const tree=makeTree(LW+20);
+    const gap=22+Math.floor(rng01()*14);
+    obstacles.push(tree, makeCactus(LW+20+tree.w+gap,'sm'));
+  }
+  else if(roll<0.88){
+    const c=makeCactus(LW+20,'sm');
+    obstacles.push(c, makeBird(LW+20+c.w+110+Math.floor(rng01()*50)));
+  }
+  else{
+    obstacles.push(makeCactus(LW+20, rng01()<0.5?'md':'lg'));
+  }
 }
 function drawObs(o){
   if(o.type==='cactus'){
@@ -1192,8 +1284,15 @@ function maybeStartLocalGame(){
   const startAt=roomState?.gameStartAt||Date.now();
   const drift=Math.max(0, Date.now()-startAt);
   resetLocalRound();
+  initRoundRng(roomState?.seed||1);
   gameStarted=true;gameRunning=true;
   frame=Math.floor(drift/16); // coarse alignment
+  // fast-forward RNG/spawn schedule to current frame
+  // (simple approach: step spawn frames deterministically until >= frame)
+  while(nextSpawnFrame < frame){
+    // consume RNG similarly to spawning decision to keep schedule consistent
+    calcNextSpawnFrame();
+  }
   raf=requestAnimationFrame(loop);
   startSync();
 }
@@ -1254,6 +1353,11 @@ async function gameOver(){
       score:score,
       diedAt: Date.now()
     });
+    // cumulative score for this room
+    const up={};
+    up['team_roomScores/'+currentRoomId+'/'+currentUser.nick+'/totalScore']=firebase.database.ServerValue.increment(score);
+    up['team_roomMembers/'+currentRoomId+'/'+currentUser.nick+'/roomTotalScore']=firebase.database.ServerValue.increment(score);
+    db.ref().update(up);
   }
   setSpectate(true);
   updateSpectateBanner();
@@ -1272,10 +1376,9 @@ function loop(){
     dino.vy+=GRAV;dino.y+=dino.vy;
     if(dino.y>=GY-DH){dino.y=GY-DH;dino.vy=0;dino.jumping=false;}
   } else dino.y=GY-DH*0.62;
-  cooldown--;
-  if(cooldown<=0){
+  if(frame>=nextSpawnFrame){
     spawnObsGroup();
-    cooldown=Math.max(55,120-Math.floor(speed*5))+Math.floor(Math.random()*60);
+    calcNextSpawnFrame();
   }
   obstacles=obstacles.filter(o=>o.x>-200);
   for(const o of obstacles){
