@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>조밈 팀게임 관리자</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+<style>
+:root{--bg:#fff;--surface:#f7f7f5;--border:#e8e8e4;--border2:#d4d4ce;--text:#37352f;--text2:#787774;--accent:#f97316;--danger:#e03e3e;--r:10px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--surface);color:var(--text);padding:16px;}
+.wrap{max-width:980px;margin:0 auto;}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.title{font-size:18px;font-weight:800;}
+.pill{font-size:12px;border:1px solid var(--border2);border-radius:999px;padding:2px 10px;background:#fff;color:var(--text2);font-weight:800;}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--r);box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden;margin-bottom:12px;}
+.head{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.head h2{font-size:14px;font-weight:800;}
+.body{padding:12px 14px;}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+input,button,select{font-family:inherit;}
+input,select{border:1px solid var(--border2);border-radius:10px;padding:9px 10px;outline:none;}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(249,115,22,.15);}
+button{border:none;border-radius:10px;padding:9px 12px;font-weight:800;cursor:pointer;}
+.btn{background:var(--text);color:#fff;}
+.btn2{background:#fff;border:1px solid var(--border2);color:var(--text2);}
+.danger{background:var(--danger);color:#fff;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+.list{border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border);}
+.item:last-child{border-bottom:none;}
+.muted{color:var(--text2);font-size:12px;}
+.name{font-weight:800;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.small{font-size:12px;color:var(--text2);font-weight:800;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="title">조밈 팀게임 관리자</div>
+    <span class="pill" id="admin-state">잠김</span>
+  </div>
+
+  <div class="card" id="lock-card">
+    <div class="head"><h2>관리자 인증</h2></div>
+    <div class="body">
+      <div class="row">
+        <input id="nick" placeholder="닉네임(로그인 닉)" maxlength="12">
+        <input id="pw" placeholder="관리자 비밀번호" type="password" inputmode="numeric" maxlength="8">
+        <button class="btn" onclick="adminLogin()">로그인</button>
+      </div>
+      <div class="muted" style="margin-top:10px;">기본 비밀번호는 0118 (DB에 설정되어 있으면 그 값이 우선됩니다).</div>
+    </div>
+  </div>
+
+  <div class="grid" id="admin-ui" style="display:none;">
+    <div class="card">
+      <div class="head">
+        <h2>방 관리</h2>
+        <button class="btn2" onclick="reloadRooms()">새로고침</button>
+      </div>
+      <div class="body">
+        <div class="list" id="rooms">로딩…</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="head"><h2>권한/점수 관리</h2></div>
+      <div class="body">
+        <div class="row" style="margin-bottom:10px;">
+          <input id="targetNick" placeholder="대상 닉네임" maxlength="12">
+          <button class="btn2" onclick="toggleAdmin(true)">관리자 지정</button>
+          <button class="btn2" onclick="toggleAdmin(false)">관리자 해제</button>
+        </div>
+        <div class="row" style="margin-bottom:10px;">
+          <input id="scoreRoomId" placeholder="roomId (선택)" style="flex:1;min-width:160px;">
+          <input id="newTotal" placeholder="방 누적 점수(totalScore)" type="number" style="width:180px;">
+          <button class="btn2" onclick="setRoomTotal()">방 누적 수정</button>
+        </div>
+        <div class="row">
+          <input id="newBest" placeholder="글로벌 최고기록(bestScore)" type="number" style="width:220px;">
+          <button class="btn2" onclick="setBestScore()">최고기록 수정</button>
+        </div>
+        <div class="muted" style="margin-top:10px;">주의: 점수/권한 수정은 실시간으로 반영됩니다.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyDIl0-jomcfA8ykz-nYK_rYaLb-IE_yICc",
+  authDomain:"codet-597c7.firebaseapp.com",
+  databaseURL:"https://codet-597c7-default-rtdb.firebaseio.com",
+  projectId:"codet-597c7",
+  storageBucket:"codet-597c7.firebasestorage.app",
+  messagingSenderId:"619578457920",
+  appId:"1:619578457920:web:52d98e7430f9b9820104a5"
+});
+const db=firebase.database();
+const roomsRef=db.ref('team_rooms');
+const adminRef=db.ref('team_admin');
+
+async function sha256Hex(str){
+  const enc=new TextEncoder().encode(str);
+  const buf=await crypto.subtle.digest('SHA-256', enc);
+  const arr=Array.from(new Uint8Array(buf));
+  return arr.map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function unlockUI(){
+  document.getElementById('admin-state').textContent='열림';
+  document.getElementById('lock-card').style.display='none';
+  document.getElementById('admin-ui').style.display='';
+  subscribeRooms();
+}
+
+async function adminLogin(){
+  const nick=document.getElementById('nick').value.trim();
+  const pw=document.getElementById('pw').value.trim();
+  if(!nick) return alert('닉네임을 입력하세요');
+
+  // allow if already in admins list
+  const adminSnap=await adminRef.child('admins/'+nick).once('value');
+  if(adminSnap.exists() && adminSnap.val()===true){
+    localStorage.setItem('admin_ok','1');
+    localStorage.setItem('admin_nick',nick);
+    unlockUI();
+    return;
+  }
+
+  if(!pw) return alert('비밀번호를 입력하세요');
+  const inputHash=await sha256Hex(pw);
+  const storedSnap=await adminRef.child('adminPasswordHash').once('value');
+  const stored=storedSnap.exists()?storedSnap.val():null;
+  const defaultHash=await sha256Hex('0118');
+
+  if(stored==null){
+    // initialize to default on first use
+    await adminRef.child('adminPasswordHash').set(defaultHash);
+  }
+  const effective=stored||defaultHash;
+  if(inputHash!==effective) return alert('비밀번호가 틀렸습니다');
+
+  localStorage.setItem('admin_ok','1');
+  localStorage.setItem('admin_nick',nick);
+  unlockUI();
+}
+
+window.addEventListener('DOMContentLoaded', async ()=>{
+  if(localStorage.getItem('admin_ok')==='1'){
+    unlockUI();
+  }
+});
+
+let roomsUnsub=null;
+function subscribeRooms(){
+  if(roomsUnsub) return;
+  roomsUnsub = roomsRef.limitToLast(300).on('value', snap=>{
+    renderRooms(snap.val()||{});
+  });
+}
+function reloadRooms(){
+  roomsRef.limitToLast(300).once('value').then(s=>renderRooms(s.val()||{}));
+}
+
+function renderRooms(data){
+  const el=document.getElementById('rooms');
+  const rooms=Object.entries(data).map(([id,v])=>({id,...v})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  if(!rooms.length){ el.innerHTML='<div class=\"item\"><div class=\"muted\">방이 없습니다.</div></div>'; return; }
+  el.innerHTML=rooms.map(r=>{
+    return `<div class="item">
+      <div class="name">${r.name||'(이름없음)'}</div>
+      <div class="small">${r.hostNick||'-'}</div>
+      <div class="small">${r.status||'-'}</div>
+      <button class="btn2" onclick="renameRoom('${r.id}')">이름</button>
+      <button class="danger" onclick="deleteRoom('${r.id}')">삭제</button>
+    </div>`;
+  }).join('');
+}
+
+async function renameRoom(roomId){
+  const name=prompt('새 방 이름');
+  if(name==null) return;
+  await roomsRef.child(roomId).child('name').set(name.trim().slice(0,18));
+}
+
+async function deleteRoom(roomId){
+  if(!confirm('정말로 방을 삭제할까요?')) return;
+  const now=Date.now();
+  await roomsRef.child(roomId).update({deletedAt:now,deletedBy:localStorage.getItem('admin_nick')||'admin'});
+  setTimeout(()=>{
+    const del={};
+    del['team_rooms/'+roomId]=null;
+    del['team_roomMembers/'+roomId]=null;
+    del['team_roomChat/'+roomId]=null;
+    del['team_roomRounds/'+roomId]=null;
+    del['team_roomScores/'+roomId]=null;
+    db.ref().update(del);
+  }, 400);
+}
+
+async function toggleAdmin(make){
+  const nick=document.getElementById('targetNick').value.trim();
+  if(!nick) return alert('대상 닉네임을 입력하세요');
+  await adminRef.child('admins/'+nick).set(!!make);
+  alert(make?'관리자로 지정했습니다':'관리자를 해제했습니다');
+}
+
+async function setBestScore(){
+  const nick=document.getElementById('targetNick').value.trim();
+  const v=parseInt(document.getElementById('newBest').value,10);
+  if(!nick) return alert('대상 닉네임을 입력하세요');
+  if(!Number.isFinite(v)) return alert('점수를 입력하세요');
+  await db.ref('game_users/'+nick+'/bestScore').set(v);
+  alert('저장했습니다');
+}
+
+async function setRoomTotal(){
+  const nick=document.getElementById('targetNick').value.trim();
+  const roomId=document.getElementById('scoreRoomId').value.trim();
+  const v=parseInt(document.getElementById('newTotal').value,10);
+  if(!nick) return alert('대상 닉네임을 입력하세요');
+  if(!roomId) return alert('roomId를 입력하세요');
+  if(!Number.isFinite(v)) return alert('점수를 입력하세요');
+  await db.ref('team_roomScores/'+roomId+'/'+nick+'/totalScore').set(v);
+  await db.ref('team_roomMembers/'+roomId+'/'+nick+'/roomTotalScore').set(v);
+  alert('저장했습니다');
+}
+</script>
+</body>
+</html>
+
