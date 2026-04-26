@@ -406,6 +406,9 @@ function checkMobileAccess(){
 }
 
 function openMobileRank(){
+  // Mobile warning is a fullscreen overlay (z-index:9999).
+  // Hide it while ranking modal is open so the modal is visible/clickable.
+  document.getElementById('mobile-warning').classList.remove('show');
   document.getElementById('rank-modal').classList.add('show');
 }
 
@@ -514,6 +517,14 @@ function getRankPos(score){
   for(const item of rankingData){if(item.score>score)r++;}
   return Math.min(r,100);
 }
+
+function getEffectiveRankScore(latestRunScore){
+  // Ranking is based on the best score saved for each nick.
+  // So "current rank" should reflect the player's best (either previously saved or just achieved).
+  const storedBest=getMyStoredBest();
+  const userBest=currentUser?.bestScore||0;
+  return Math.max(latestRunScore||0,storedBest,userBest);
+}
 function getMyStoredBest(){
   if(!currentUser)return 0;
   const me=rankingData.find(i=>i.nick===currentUser.nick);
@@ -533,7 +544,10 @@ async function saveScore(score){
   return true;
 }
 function openRank(){document.getElementById('rank-modal').classList.add('show');}
-function closeRank(){document.getElementById('rank-modal').classList.remove('show');}
+function closeRank(){
+  document.getElementById('rank-modal').classList.remove('show');
+  if(isMobile()) document.getElementById('mobile-warning').classList.add('show');
+}
 document.getElementById('rank-modal').addEventListener('click',e=>{if(e.target===document.getElementById('rank-modal'))closeRank();});
 
 /* ── GUIDE ── */
@@ -777,7 +791,8 @@ async function gameOver(){
   gameRunning=false;cancelAnimationFrame(raf);
   const isNew=await saveScore(score);
   await new Promise(r=>setTimeout(r,500));
-  const rank=getRankPos(score);
+  const effScore=getEffectiveRankScore(score);
+  const rank=getRankPos(effScore);
   document.getElementById('go-score').textContent=score.toLocaleString();
   document.getElementById('go-best-txt').textContent='최고 기록: '+(currentUser?.bestScore||score);
   document.getElementById('go-rank-txt').textContent='현재 등수 '+rank+'위';
@@ -819,3 +834,4 @@ btnDuck.addEventListener('mouseleave',stopDuck);
 </script>
 </body>
 </html>
+
