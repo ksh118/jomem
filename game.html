@@ -105,17 +105,39 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .rank-btn{display:flex;align-items:center;gap:4px;padding:3px 9px;border:1px solid var(--border2);border-radius:6px;background:var(--bg);font-size:11px;font-weight:500;color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap;}
 .rank-btn:hover{background:var(--surface);}
 
-/* Announcement bar */
-.announce-wrap{padding:10px 12px 0 12px;display:flex;justify-content:center;}
-.announce{width:100%;max-width:860px;border-radius:10px;padding:10px 12px;background:#fff7ed;border:1px solid #ffd8a8;display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.04);cursor:pointer;}
-.announce .ann-icon{background:#ffb850;color:#fff;border-radius:8px;padding:6px 8px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;font-size:18px;}
-.announce .ann-body{flex:1;display:flex;flex-direction:column;gap:4px;}
-.ann-top{display:flex;align-items:center;gap:8px;}
-.ann-title{font-size:13px;font-weight:700;color:#b45309;}
-.ann-sub{font-size:12px;color:#7c3a00;}
-.ann-right{display:flex;align-items:center;gap:8px;}
-.ann-badge{width:24px;height:24px;border-radius:50%;background:#ff3b3b;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;}
-.ann-pill{background:#ffd27a;color:#2b1200;padding:6px 10px;border-radius:10px;font-weight:700;font-size:12px;}
+.canvas-wrap{
+  position:relative;
+  width:100%;
+  padding-bottom:33.75%;
+  background:#87CEEB;
+  overflow:hidden;
+  flex-shrink:0;
+}
+.canvas-wrap canvas{
+  position:absolute;
+  top:0;left:0;
+}
+
+.overlay{position:absolute;inset:0;background:rgba(20,14,6,0.84);display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;z-index:10;}
+.overlay.show{display:flex;}
+.ov-tag{font-size:9px;font-weight:700;letter-spacing:3px;color:#a0a0a0;font-family:var(--mono);text-transform:uppercase;}
+.ov-score{font-family:var(--mono);font-size:38px;font-weight:700;color:#fff;letter-spacing:-2px;line-height:1;text-shadow:3px 3px 0 rgba(0,0,0,0.5);}
+.ov-sub{font-size:11px;color:#bbb;font-family:var(--mono);}
+.ov-rank{font-size:12px;font-weight:700;color:#6abf44;font-family:var(--mono);}
+.new-rec-badge{display:none;background:#f6c90e;color:#1a1200;border-radius:4px;padding:3px 12px;font-size:11px;font-weight:700;font-family:var(--mono);letter-spacing:1px;}
+.ov-btns{display:flex;gap:8px;margin-top:6px;}
+.mc-btn{padding:8px 16px;border-radius:3px;font-size:12px;font-weight:700;font-family:var(--mono);cursor:pointer;border:none;letter-spacing:0.5px;}
+.mc-btn-p{background:#5a8f3c;color:#fff;border-bottom:3px solid #3d6028;}
+.mc-btn-p:hover{background:#6abf44;}
+.mc-btn-g{background:#555;color:#ddd;border-bottom:3px solid #333;}
+.mc-btn-g:hover{background:#666;}
+#start-ov .ov-logo{font-family:var(--mono);font-size:20px;font-weight:700;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.5);letter-spacing:2px;}
+#start-ov .ov-dino{width:48px;height:48px;object-fit:contain;}
+
+.canvas-hint{padding:4px 10px;border-top:1px solid var(--border);background:var(--bg);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.canvas-hint span{font-size:10px;color:var(--text3);}
+.feedback-btn{font-size:10px;color:var(--text2);background:var(--surface);border:1px solid var(--border2);border-radius:4px;padding:2px 8px;cursor:pointer;font-family:inherit;font-weight:500;white-space:nowrap;flex-shrink:0;}
+.feedback-btn:hover{background:var(--border);}
 
 /* ── FEEDBACK MODAL ── */
 #feedback-modal{position:fixed;inset:0;z-index:250;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);padding:20px;}
@@ -258,20 +280,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   </div>
 
   <div class="game-body">
-    <!-- Announcement bar -->
-    <div class="announce-wrap">
-      <div id="announce-bar" class="announce" style="display:none;" onclick="openAnnounceModal()">
-        <div class="ann-icon">⚠️</div>
-        <div class="ann-body">
-          <div class="ann-top"><div id="ann-pill" class="ann-pill">안읽은 공지가 있어요!</div></div>
-          <div><div class="ann-sub" id="ann-title">공지 제목</div></div>
-        </div>
-        <div class="ann-right">
-          <div id="ann-unread-badge" class="ann-badge" title="읽지 않음" style="display:none;">N</div>
-        </div>
-      </div>
-    </div>
-
     <div class="canvas-card">
       <div class="hud">
         <div class="hstat"><span class="hlabel">점수</span><span class="hval" id="hud-score">0</span></div>
@@ -318,17 +326,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
         <button class="ctrl-btn" id="btn-jump" aria-label="점프">↑</button>
       </div>
     </div>
-  </div>
-</div>
-
-<!-- ANNOUNCEMENT MODAL -->
-<div id="announce-modal">
-  <div class="ann-panel" style="background:var(--bg);border:1px solid var(--border);border-radius:12px;width:100%;max-width:520px;box-shadow:0 8px 30px rgba(0,0,0,.12);overflow:hidden;">
-    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-      <div style="font-size:16px;font-weight:700;color:var(--text);" id="ann-modal-title">공지 제목</div>
-      <button class="ann-close" onclick="closeAnnounceModal()" style="width:34px;height:34px;border:none;background:var(--surface);border-radius:8px;cursor:pointer;">✕</button>
-    </div>
-    <div style="padding:16px;font-size:14px;color:var(--text);line-height:1.8;white-space:pre-wrap;" id="ann-modal-body">공지 내용</div>
   </div>
 </div>
 
@@ -439,7 +436,6 @@ firebase.initializeApp({
 });
 const db=firebase.database();
 let currentUser=null,rankingData=[],currentScore=0;
-let currentAnn=null;
 
 // ── MOBILE DETECTION ──
 function isMobile(){
@@ -456,6 +452,8 @@ function checkMobileAccess(){
 }
 
 function openMobileRank(){
+  // Mobile warning is a fullscreen overlay (z-index:9999).
+  // Hide it while ranking modal is open so the modal is visible/clickable.
   document.getElementById('mobile-warning').classList.remove('show');
   document.getElementById('rank-modal').classList.add('show');
 }
@@ -471,6 +469,7 @@ function loadRankingForMobile(){
 
 window.addEventListener('DOMContentLoaded',async()=>{
   checkMobileAccess();
+  
   const saved=localStorage.getItem('jogame_user');
   if(saved&&!isMobile()){
     try{
@@ -518,14 +517,6 @@ async function doLogin(){
   }catch(e){showErr('log-err','오류: '+e.message);}
 }
 function doLogout(){
-  // remove guide flag for this user so next login shows guide again
-  try{
-    const gsStr = localStorage.getItem('jogame_guide_done');
-    if(gsStr){
-      const gs = JSON.parse(gsStr);
-      if(gs && gs.nick && gs.nick === currentUser?.nick) localStorage.removeItem('jogame_guide_done');
-    }
-  }catch(e){}
   localStorage.removeItem('jogame_user');currentUser=null;
   cancelAnimationFrame(raf);gameRunning=false;gameStarted=false;
   document.getElementById('game-screen').style.display='none';
@@ -533,7 +524,6 @@ function doLogout(){
   document.getElementById('auth-screen').style.display='flex';
   showSignup();
 }
-
 function enterGame(){
   document.getElementById('auth-screen').style.display='none';
   const gs=document.getElementById('game-screen');
@@ -543,22 +533,13 @@ function enterGame(){
   loadRanking();
   initCanvas();
   initGame();
-  loadAnnouncement();
-  // guide: show once per-login-user (stored in localStorage under jogame_guide_done)
-  try{
-    const doneStr = localStorage.getItem('jogame_guide_done');
-    const done = doneStr ? JSON.parse(doneStr) : null;
-    if(!done || done.nick !== currentUser.nick){
-      setTimeout(()=>openGuide(false),300);
-    }
-  }catch(e){
-    setTimeout(()=>openGuide(false),300);
-  }
+  if(!sessionStorage.getItem('jogame_guide_done'))setTimeout(()=>openGuide(false),300);
 }
 
 /* ── RANKING ── */
 let allUsersData={};
 function loadRanking(){
+  // Load both ranking and user data to get isAdmin flag reliably
   db.ref('game_users').on('value',uSnap=>{
     allUsersData=uSnap.val()||{};
     db.ref('game_ranking').orderByChild('score').limitToLast(100).once('value').then(snap=>{
@@ -574,6 +555,7 @@ function loadRanking(){
       renderRanking();updateHudRank(currentScore);
     });
   });
+  // Also listen to ranking changes
   db.ref('game_ranking').orderByChild('score').limitToLast(100).on('value',snap=>{
     rankingData=[];
     const d=snap.val();
@@ -606,7 +588,10 @@ function getRankPos(score){
   for(const item of rankingData){if(item.score>score)r++;}
   return Math.min(r,100);
 }
+
 function getEffectiveRankScore(latestRunScore){
+  // Ranking is based on the best score saved for each nick.
+  // So "current rank" should reflect the player's best (either previously saved or just achieved).
   const storedBest=getMyStoredBest();
   const userBest=currentUser?.bestScore||0;
   return Math.max(latestRunScore||0,storedBest,userBest);
@@ -636,52 +621,6 @@ function closeRank(){
 }
 document.getElementById('rank-modal').addEventListener('click',e=>{if(e.target===document.getElementById('rank-modal'))closeRank();});
 
-/* ── ANNOUNCEMENT ── */
-function loadAnnouncement(){
-  // listen for announcements (single node)
-  db.ref('game_announce').on('value', snap=>{
-    const data = snap.val();
-    currentAnn = data || null;
-    renderAnnouncement();
-  });
-}
-
-function renderAnnouncement(){
-  const bar = document.getElementById('announce-bar');
-  if(!currentAnn || !currentAnn.visible){
-    bar.style.display='none';
-    return;
-  }
-  document.getElementById('ann-title').textContent = currentAnn.title || '공지';
-  const views = currentAnn.views || {};
-  const isRead = currentUser && (views[currentUser.nick] !== undefined);
-  const pill = document.getElementById('ann-pill');
-  const badge = document.getElementById('ann-unread-badge');
-  if(!isRead){
-    pill.textContent = '안읽은 공지가 있어요!';
-    badge.style.display='flex';
-  } else {
-    pill.textContent = '공지';
-    badge.style.display='none';
-  }
-  bar.style.display='flex';
-}
-
-async function openAnnounceModal(){
-  if(!currentAnn) return;
-  document.getElementById('ann-modal-title').textContent = currentAnn.title || '공지';
-  document.getElementById('ann-modal-body').textContent = currentAnn.content || '';
-  document.getElementById('announce-modal').classList.add('show');
-
-  if(currentUser){
-    try{
-      await db.ref('game_announce/views/'+currentUser.nick).set(Date.now());
-    }catch(e){console.error('announce read save failed',e);}
-  }
-}
-function closeAnnounceModal(){document.getElementById('announce-modal').classList.remove('show');}
-document.getElementById('announce-modal').addEventListener('click',e=>{if(e.target===document.getElementById('announce-modal'))closeAnnounceModal();});
-
 /* ── GUIDE ── */
 const GUIDE_TOTAL=6;
 let guidePage=1,fwRaf=null;
@@ -689,16 +628,7 @@ function openGuide(){guidePage=1;updateGuideUI();document.getElementById('guide-
 function closeGuide(){document.getElementById('guide-modal').classList.remove('show');stopFireworks();}
 function guideNext(){if(guidePage<GUIDE_TOTAL){guidePage++;updateGuideUI();}}
 function guidePrev(){if(guidePage>1){guidePage--;updateGuideUI();}}
-function guideStartGame(){
-  try{
-    if(currentUser){
-      localStorage.setItem('jogame_guide_done', JSON.stringify({nick: currentUser.nick, ts: Date.now()}));
-    } else {
-      localStorage.setItem('jogame_guide_done', JSON.stringify({nick: null, ts: Date.now()}));
-    }
-  }catch(e){}
-  closeGuide();beginGame();
-}
+function guideStartGame(){sessionStorage.setItem('jogame_guide_done','1');closeGuide();beginGame();}
 function updateGuideUI(){
   for(let i=1;i<=GUIDE_TOTAL;i++){const el=document.getElementById('gd-p'+i);if(el)el.classList.toggle('active',i===guidePage);}
   const dots=document.getElementById('gd-dots');dots.innerHTML='';
@@ -709,11 +639,10 @@ function updateGuideUI(){
 }
 document.getElementById('guide-modal').addEventListener('click',e=>{if(e.target===document.getElementById('guide-modal'))closeGuide();});
 
-/* ── FIREWORKS (unchanged) ── */
+/* ── FIREWORKS ── */
 function startFireworks(){
   const fc=document.getElementById('firework-canvas');
   const page=document.getElementById('gd-p6');
-  if(!fc||!page) return;
   fc.width=page.offsetWidth||400;fc.height=page.offsetHeight||260;
   const c2=fc.getContext('2d');const parts=[];
   const colors=['#ff4444','#ffaa00','#44ff88','#44aaff','#ff44ff','#fff176'];
@@ -765,6 +694,7 @@ async function submitFeedback(){
   }catch(e){alert('전송 실패: '+e.message);}
 }
 document.getElementById('feedback-modal').addEventListener('click',e=>{if(e.target===document.getElementById('feedback-modal'))closeFeedback();});
+// textarea에서 키입력이 게임으로 전달되지 않도록 차단
 document.getElementById('fb-text').addEventListener('keydown',e=>e.stopPropagation());
 document.getElementById('fb-text').addEventListener('keyup',e=>e.stopPropagation());
 document.getElementById('fb-text').addEventListener('keypress',e=>e.stopPropagation());
@@ -875,6 +805,7 @@ function makeCactus(x,v){
 }
 function makeTree(x){return{type:'tree',x,w:16,trunkH:28+Math.floor(Math.random()*16),leafW:40,leafH:32};}
 function makeBird(x){
+  // 새가 숙이기(duck)로 피할 수 있도록, 최저 고도를 조금 더 올림
   const ys=[GY-90,GY-110,GY-130];
   return{type:'bird',x,w:86,h:64,y:ys[Math.floor(Math.random()*ys.length)]};
 }
@@ -914,6 +845,7 @@ function drawObs(o){
 function getHitbox(o){
   if(o.type==='cactus')return{x:o.x+7,y:GY-o.h+7,w:o.w-14,h:o.h-10};
   if(o.type==='tree'){const lx=o.x-(o.leafW-16)/2,ly=GY-o.trunkH-o.leafH+8;return{x:lx+5,y:ly,w:o.leafW-10,h:o.trunkH+o.leafH-10};}
+  // 새는 이미지 여백이 커서 히트박스를 조금 더 타이트하게 잡음
   if(o.type==='bird')return{x:o.x+18,y:o.y+16,w:o.w-36,h:o.h-28};
   return{x:o.x,y:0,w:0,h:0};
 }
@@ -965,7 +897,7 @@ async function gameOver(){
   const rank=getRankPos(effScore);
   document.getElementById('go-score').textContent=score.toLocaleString();
   document.getElementById('go-best-txt').textContent='최고 기록: '+(currentUser?.bestScore||score);
-  document.getElementById('go-rank-txt').textContent='���재 등수 '+rank+'위';
+  document.getElementById('go-rank-txt').textContent='현재 등수 '+rank+'위';
   document.getElementById('new-rec').style.display=isNew?'block':'none';
   document.getElementById('go-ov').classList.add('show');
 }
