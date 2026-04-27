@@ -1,5 +1,3 @@
-
-````html name=admin (19).html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -53,11 +51,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:#f0f0ee;color:var(--text);
 .section-head h2{font-size:14px;font-weight:600;}
 .section-meta{font-size:12px;color:var(--text3);}
 .section-body{padding:0;}
-
-/* TAB NAV */
-.tabs{display:flex;gap:8px;margin-bottom:12px;}
-.tab-btn{padding:8px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border2);cursor:pointer;font-weight:700;}
-.tab-btn.active{background:var(--purple);color:#fff;border-color:var(--purple);}
 
 /* TABLE */
 .table-wrap{overflow-x:auto;}
@@ -113,15 +106,6 @@ tr:hover td{background:#fafaf9;}
 .loading{padding:40px;text-align:center;color:var(--text3);font-size:13px;}
 .empty{padding:40px;text-align:center;color:var(--text3);font-size:13px;line-height:1.8;}
 
-/* ANNOUNCEMENT ADMIN */
-.ann-admin-wrap{padding:14px 16px;display:flex;gap:12px;align-items:flex-start;flex-direction:column;}
-.ann-admin-row{display:flex;gap:8px;width:100%;}
-.ann-admin-row input[type="text"], .ann-admin-row textarea{width:100%;padding:8px;border:1px solid var(--border2);border-radius:8px;}
-.ann-admin-row textarea{height:120px;resize:vertical;}
-.ann-admin-controls{display:flex;gap:8px;align-items:center;}
-.ann-views{font-size:13px;color:var(--text3);}
-
-
 /* STAT CARDS */
 .stats-row{display:flex;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);}
 .stat-card{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
@@ -160,145 +144,100 @@ tr:hover td{background:#fafaf9;}
   </div>
 
   <div class="admin-body">
-    <!-- 탭 네비 -->
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="stats" onclick="switchTab('stats')">현황</button>
-      <button class="tab-btn" data-tab="ranks" onclick="switchTab('ranks')">랭킹</button>
-      <button class="tab-btn" data-tab="users" onclick="switchTab('users')">회원</button>
-      <button class="tab-btn" data-tab="feedback" onclick="switchTab('feedback')">피드백</button>
-      <button class="tab-btn" data-tab="announce" onclick="switchTab('announce')">공지</button>
-    </div>
 
-    <!-- STATS (탭: stats) -->
-    <div id="tab-stats">
-      <div class="section">
-        <div class="section-head">
-          <h2>📊 현황</h2>
-          <span class="section-meta" id="last-updated">로딩 중…</span>
+    <!-- STATS -->
+    <div class="section">
+      <div class="section-head">
+        <h2>📊 현황</h2>
+        <span class="section-meta" id="last-updated">로딩 중…</span>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">전체 회원 수</div>
+          <div class="stat-val purple" id="stat-users">—</div>
         </div>
-        <div class="stats-row">
-          <div class="stat-card">
-            <div class="stat-label">전체 회원 수</div>
-            <div class="stat-val purple" id="stat-users">—</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">랭킹 등록 수</div>
-            <div class="stat-val" id="stat-ranks">—</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">최고 점수</div>
-            <div class="stat-val gold" id="stat-top">—</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">관리자 수</div>
-            <div class="stat-val purple" id="stat-admins">—</div>
-          </div>
+        <div class="stat-card">
+          <div class="stat-label">랭킹 등록 수</div>
+          <div class="stat-val" id="stat-ranks">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">최고 점수</div>
+          <div class="stat-val gold" id="stat-top">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">관리자 수</div>
+          <div class="stat-val purple" id="stat-admins">—</div>
         </div>
       </div>
     </div>
 
-    <!-- RANK TABLE (탭: ranks) -->
-    <div id="tab-ranks" style="display:none;">
-      <div class="section">
-        <div class="section-head">
-          <h2>🏆 점수 랭킹 (높은 순)</h2>
-          <button class="btn-sm btn-edit" onclick="loadData()">🔄 새로고침</button>
-        </div>
-        <div class="section-body">
-          <div class="table-wrap">
-            <table id="rank-table">
-              <thead>
-                <tr>
-                  <th style="width:44px;">순위</th>
-                  <th>닉네임</th>
-                  <th style="width:120px;">점수</th>
-                  <th style="width:200px;">작업</th>
-                </tr>
-              </thead>
-              <tbody id="rank-tbody">
-                <tr><td colspan="4" class="loading">로딩 중…</td></tr>
-              </tbody>
-            </table>
-          </div>
+    <!-- RANKING TABLE -->
+    <div class="section">
+      <div class="section-head">
+        <h2>🏆 점수 랭킹 (높은 순)</h2>
+        <button class="btn-sm btn-edit" onclick="loadData()">🔄 새로고침</button>
+      </div>
+      <div class="section-body">
+        <div class="table-wrap">
+          <table id="rank-table">
+            <thead>
+              <tr>
+                <th style="width:44px;">순위</th>
+                <th>닉네임</th>
+                <th style="width:120px;">점수</th>
+                <th style="width:200px;">작업</th>
+              </tr>
+            </thead>
+            <tbody id="rank-tbody">
+              <tr><td colspan="4" class="loading">로딩 중…</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
 
-    <!-- USERS TABLE (���: users) -->
-    <div id="tab-users" style="display:none;">
-      <div class="section">
-        <div class="section-head">
-          <h2>👤 전체 회원 목록</h2>
-          <span class="section-meta" id="users-meta"></span>
-        </div>
-        <div class="section-body">
-          <div class="table-wrap">
-            <table id="users-table">
-              <thead>
-                <tr>
-                  <th style="width:44px;">#</th>
-                  <th>닉네임</th>
-                  <th style="width:120px;">최고 점수</th>
-                  <th style="width:160px;">가입일</th>
-                  <th style="width:200px;">작업</th>
-                </tr>
-              </thead>
-              <tbody id="users-tbody">
-                <tr><td colspan="5" class="loading">로딩 중…</td></tr>
-              </tbody>
-            </table>
-          </div>
+    <!-- USERS TABLE -->
+    <div class="section">
+      <div class="section-head">
+        <h2>👤 전체 회원 목록</h2>
+        <span class="section-meta" id="users-meta"></span>
+      </div>
+      <div class="section-body">
+        <div class="table-wrap">
+          <table id="users-table">
+            <thead>
+              <tr>
+                <th style="width:44px;">#</th>
+                <th>닉네임</th>
+                <th style="width:120px;">최고 점수</th>
+                <th style="width:160px;">가입일</th>
+                <th style="width:200px;">작업</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody">
+              <tr><td colspan="5" class="loading">로딩 중…</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
 
-    <!-- FEEDBACK (탭: feedback) -->
-    <div id="tab-feedback" style="display:none;">
-      <div class="section">
-        <div class="section-head">
-          <h2>💬 버그신고 및 피드백</h2>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <span class="section-meta" id="feedback-meta">로딩 중…</span>
-            <button class="btn-sm btn-edit" onclick="loadFeedback()">🔄 새로고침</button>
-          </div>
-        </div>
-        <div class="section-body" id="feedback-list">
-          <div class="loading">로딩 중…</div>
+    <!-- FEEDBACK SECTION -->
+    <div class="section">
+      <div class="section-head">
+        <h2>💬 버그신고 및 피드백</h2>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="section-meta" id="feedback-meta">로딩 중…</span>
+          <button class="btn-sm btn-edit" onclick="loadFeedback()">🔄 새로고침</button>
         </div>
       </div>
-    </div>
-
-    <!-- ANNOUNCEMENT ADMIN (탭: announce) -->
-    <div id="tab-announce" style="display:none;">
-      <div class="section">
-        <div class="section-head">
-          <h2>📢 공지 관리 (최대 1개)</h2>
-          <div class="section-meta">현재 공지는 하나만 활성화 가능합니다. 새 공지 등록 전 기존 공지를 삭제/숨김하세요.</div>
-        </div>
-        <div class="section-body">
-          <div class="ann-admin-wrap">
-            <div style="width:100%;display:flex;gap:12px;">
-              <input id="ann-title-input" type="text" placeholder="공지 제목 (간단하게)" />
-            </div>
-            <div style="width:100%;">
-              <textarea id="ann-content-input" placeholder="공지 내용 (여러 줄 가능)"></textarea>
-            </div>
-            <div class="ann-admin-controls">
-              <button class="btn-sm btn-save" onclick="saveAnnouncement()">등록/저장</button>
-              <button class="btn-sm btn-del" onclick="deleteAnnouncement()">삭제</button>
-              <button class="btn-sm btn-edit" onclick="toggleAnnVisibility()">토글 노출(숨기기/표시)</button>
-              <div class="ann-views" id="ann-views">조회자: -</div>
-            </div>
-            <div style="width:100%;padding-top:6px;color:var(--text3);font-size:13px;">등록된 공지는 게임 화면에 제목과 함께 노출됩니다. 사용자가 공지를 클릭하면 조회 기록이 남습니다.</div>
-          </div>
-        </div>
+      <div class="section-body" id="feedback-list">
+        <div class="loading">로딩 중…</div>
       </div>
     </div>
 
   </div><!-- /admin-body -->
 </div><!-- /admin-panel -->
-
-<div id="toast"></div>
 
 <script>
 firebase.initializeApp({
@@ -316,16 +255,6 @@ let adminUser = null;
 let allUsers = {};   // nick -> userData
 let rankingData = []; // [{nick, score, isAdmin}]
 let editingRow = null;
-let currentAnnAdmin = null; // announcement object
-
-// 탭 전환
-function switchTab(tab){
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
-  ['stats','ranks','users','feedback','announce'].forEach(t=>{
-    const el = document.getElementById('tab-'+t);
-    if(el) el.style.display = (t===tab)?'block':'none';
-  });
-}
 
 // ── AUTH ──
 async function doAdminLogin(){
@@ -345,7 +274,6 @@ async function doAdminLogin(){
     panel.classList.add('on');
     document.getElementById('adm-tb-nick').textContent = nick + ' (관리자)';
     loadData();
-    loadAnnouncementAdmin();
   } catch(e){ showErr('adm-err','오류: '+e.message); }
 }
 
@@ -356,7 +284,7 @@ function doAdminLogout(){
   document.getElementById('admin-panel').classList.remove('on');
 }
 
-// 자��� 로그인 (저장된 관리자 세션 복구)
+// 자동 로그인 (저장된 관리자 세션 복구)
 window.addEventListener('DOMContentLoaded', async () => {
   const saved = localStorage.getItem('jogame_admin');
   if(!saved) return;
@@ -372,7 +300,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         panel.classList.add('on');
         document.getElementById('adm-tb-nick').textContent = nick + ' (관리자)';
         loadData();
-        loadAnnouncementAdmin();
       } else {
         localStorage.removeItem('jogame_admin');
       }
@@ -563,10 +490,12 @@ async function saveUserEdit(nick){
   try{
     await db.ref('game_users/'+nick).update({bestScore: newScore});
     const key = nick.replace(/[.#$[\]]/g,'_');
+    // Check if user has a ranking entry
     const rSnap = await db.ref('game_ranking/'+key).once('value');
     if(rSnap.exists()){
       await db.ref('game_ranking/'+key).update({score: newScore});
     } else {
+      // Create ranking entry if score > 0
       if(newScore > 0) await db.ref('game_ranking/'+key).set({nick, score: newScore});
     }
     toast(`${nick}의 점수가 ${newScore.toLocaleString()}으로 변경됐습니다.`);
@@ -584,6 +513,7 @@ async function toggleAdmin(nick, setAdmin){
     } else {
       await db.ref('game_users/'+nick+'/isAdmin').remove();
     }
+    // Also update ranking entry with isAdmin flag
     const key = nick.replace(/[.#$[\]]/g,'_');
     const rSnap = await db.ref('game_ranking/'+key).once('value');
     if(rSnap.exists()){
@@ -598,6 +528,7 @@ async function toggleAdmin(nick, setAdmin){
   } catch(e){ toast('오류: '+e.message); }
 }
 
+// Delegated click handler for admin toggle buttons (data attribute 방식으로 nick 전달)
 document.addEventListener('click', function(e){
   const btn = e.target.closest('[data-toggle-admin]');
   if(!btn) return;
@@ -632,6 +563,7 @@ function renderFeedback(){
     const d = new Date(fb.createdAt);
     const dateStr = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} `
       + `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+    // nick might have changed — show current nick from allUsers if different
     const storedNick = fb.nick;
     return `<div class="fb-item">
       <div class="fb-item-head">
@@ -653,69 +585,7 @@ async function deleteFeedback(key){
   } catch(e){ toast('삭제 실패: '+e.message); }
 }
 
-/* ── ANNOUNCEMENT ADMIN ── */
-async function loadAnnouncementAdmin(){
-  try{
-    const snap = await db.ref('game_announce').once('value');
-    currentAnnAdmin = snap.val() || null;
-    renderAnnAdmin();
-  } catch(e){ toast('공지 로드 실패: '+e.message); }
-}
-
-function renderAnnAdmin(){
-  const titleEl = document.getElementById('ann-title-input');
-  const contentEl = document.getElementById('ann-content-input');
-  const viewsEl = document.getElementById('ann-views');
-  if(!currentAnnAdmin){
-    titleEl.value=''; contentEl.value=''; viewsEl.textContent='조회자: -';
-    return;
-  }
-  titleEl.value = currentAnnAdmin.title || '';
-  contentEl.value = currentAnnAdmin.content || '';
-  const views = currentAnnAdmin.views || {};
-  const viewers = Object.keys(views);
-  if(viewers.length){
-    const list = viewers.map(n=>`${n}(${new Date(views[n]).toLocaleString()})`).join(', ');
-    viewsEl.textContent = '조회자: '+list;
-  } else {
-    viewsEl.textContent = '조회자: -';
-  }
-}
-
-async function saveAnnouncement(){
-  const title = document.getElementById('ann-title-input').value.trim();
-  const content = document.getElementById('ann-content-input').value.trim();
-  if(!title || !content) return toast('제목과 내용을 모두 입력하세요.');
-  try{
-    // single announcement: overwrite or create
-    await db.ref('game_announce').set({title, content, createdAt: Date.now(), visible: true});
-    toast('공지 등록/수정 완료');
-    loadAnnouncementAdmin();
-  } catch(e){ toast('등록 실패: '+e.message); }
-}
-
-async function deleteAnnouncement(){
-  if(!confirm('공지 항목을 삭제하시겠습니까?')) return;
-  try{
-    await db.ref('game_announce').remove();
-    toast('공지가 삭제되었습니다.');
-    loadAnnouncementAdmin();
-  } catch(e){ toast('삭제 실패: '+e.message); }
-}
-
-async function toggleAnnVisibility(){
-  try{
-    const snap = await db.ref('game_announce').once('value');
-    if(!snap.exists()) return toast('등록된 공지가 없습니다.');
-    const v = snap.val();
-    const curVis = v.visible !== false;
-    await db.ref('game_announce/visible').set(!curVis);
-    toast(!curVis ? '공지 표시됨' : '공지 숨김 처리됨');
-    loadAnnouncementAdmin();
-  } catch(e){ toast('오류: '+e.message); }
-}
-
-/* ── UTILS ── */
+// ── UTILS ──
 function esc(t){ const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
 function escAttr(t){ return t.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
 
