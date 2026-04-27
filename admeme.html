@@ -19,7 +19,38 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Noto Sans KR',sans-serif;background:#f0f0ee;color:var(--text);font-size:14px;min-height:100vh;}
 
-/* LOGIN */
+/* TABS */
+.admin-tabs{display:flex;gap:2px;padding:0 24px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:52px;z-index:40;}
+.admin-tab{padding:10px 16px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:none;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color .15s,border-color .15s;}
+.admin-tab:hover{color:var(--text);}
+.admin-tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;}
+.tab-badge{display:inline-flex;align-items:center;justify-content:center;background:#ef4444;color:#fff;font-size:9px;font-weight:700;width:15px;height:15px;border-radius:50%;margin-left:4px;vertical-align:middle;}
+
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* NOTICE FORM */
+.notice-form{padding:18px 18px;}
+.notice-field{margin-bottom:12px;}
+.notice-field label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px;}
+.notice-field input,.notice-field textarea{width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-size:13px;font-family:inherit;color:var(--text);outline:none;transition:border-color .15s;}
+.notice-field input:focus,.notice-field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(35,131,226,.15);}
+.notice-field textarea{resize:vertical;min-height:90px;}
+.notice-submit{padding:9px 20px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;}
+.notice-submit:hover{background:#1a6fc0;}
+.notice-item{padding:16px 18px;border-bottom:1px solid var(--border);}
+.notice-item:last-child{border-bottom:none;}
+.notice-item-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.notice-item-title{font-size:14px;font-weight:700;color:var(--text);flex:1;}
+.notice-status-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:12px;white-space:nowrap;}
+.status-active{background:#dcfce7;color:#16a34a;}
+.status-hidden{background:#f1f5f9;color:#64748b;}
+.notice-item-content{font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;word-break:break-word;margin-bottom:8px;}
+.notice-item-meta{font-size:11px;color:var(--text3);margin-bottom:8px;}
+.notice-viewers-toggle{font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:inherit;padding:0;}
+.notice-viewers-toggle:hover{text-decoration:underline;}
+.notice-viewers-list{margin-top:8px;padding:10px;background:var(--surface);border-radius:6px;font-size:12px;color:var(--text2);}
+
 #login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
 .login-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:32px 28px;width:100%;max-width:360px;box-shadow:0 4px 20px rgba(0,0,0,.08);}
 .login-logo{text-align:center;margin-bottom:24px;}
@@ -143,96 +174,142 @@ tr:hover td{background:#fafaf9;}
     </div>
   </div>
 
+  <div class="admin-tabs">
+    <button class="admin-tab active" onclick="switchTab('stats')" id="tab-stats">📊 현황</button>
+    <button class="admin-tab" onclick="switchTab('ranking')" id="tab-ranking">🏆 랭킹</button>
+    <button class="admin-tab" onclick="switchTab('users')" id="tab-users">👤 회원</button>
+    <button class="admin-tab" onclick="switchTab('notice')" id="tab-notice">📢 공지</button>
+    <button class="admin-tab" onclick="switchTab('feedback')" id="tab-feedback">💬 피드백 <span class="tab-badge" id="feedback-badge" style="display:none;"></span></button>
+  </div>
+
   <div class="admin-body">
 
-    <!-- STATS -->
-    <div class="section">
-      <div class="section-head">
-        <h2>📊 현황</h2>
-        <span class="section-meta" id="last-updated">로딩 중…</span>
-      </div>
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-label">전체 회원 수</div>
-          <div class="stat-val purple" id="stat-users">—</div>
+    <!-- STATS TAB -->
+    <div class="tab-panel active" id="panel-stats">
+      <div class="section">
+        <div class="section-head">
+          <h2>📊 현황</h2>
+          <span class="section-meta" id="last-updated">로딩 중…</span>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">랭킹 등록 수</div>
-          <div class="stat-val" id="stat-ranks">—</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">최고 점수</div>
-          <div class="stat-val gold" id="stat-top">—</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">관리자 수</div>
-          <div class="stat-val purple" id="stat-admins">—</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- RANKING TABLE -->
-    <div class="section">
-      <div class="section-head">
-        <h2>🏆 점수 랭킹 (높은 순)</h2>
-        <button class="btn-sm btn-edit" onclick="loadData()">🔄 새로고침</button>
-      </div>
-      <div class="section-body">
-        <div class="table-wrap">
-          <table id="rank-table">
-            <thead>
-              <tr>
-                <th style="width:44px;">순위</th>
-                <th>닉네임</th>
-                <th style="width:120px;">점수</th>
-                <th style="width:200px;">작업</th>
-              </tr>
-            </thead>
-            <tbody id="rank-tbody">
-              <tr><td colspan="4" class="loading">로딩 중…</td></tr>
-            </tbody>
-          </table>
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">전체 회원 수</div>
+            <div class="stat-val purple" id="stat-users">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">랭킹 등록 수</div>
+            <div class="stat-val" id="stat-ranks">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">최고 점수</div>
+            <div class="stat-val gold" id="stat-top">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">관리자 수</div>
+            <div class="stat-val purple" id="stat-admins">—</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- USERS TABLE -->
-    <div class="section">
-      <div class="section-head">
-        <h2>👤 전체 회원 목록</h2>
-        <span class="section-meta" id="users-meta"></span>
-      </div>
-      <div class="section-body">
-        <div class="table-wrap">
-          <table id="users-table">
-            <thead>
-              <tr>
-                <th style="width:44px;">#</th>
-                <th>닉네임</th>
-                <th style="width:120px;">최고 점수</th>
-                <th style="width:160px;">가입일</th>
-                <th style="width:200px;">작업</th>
-              </tr>
-            </thead>
-            <tbody id="users-tbody">
-              <tr><td colspan="5" class="loading">로딩 중…</td></tr>
-            </tbody>
-          </table>
+    <!-- RANKING TAB -->
+    <div class="tab-panel" id="panel-ranking">
+      <div class="section">
+        <div class="section-head">
+          <h2>🏆 점수 랭킹 (높은 순)</h2>
+          <button class="btn-sm btn-edit" onclick="loadData()">🔄 새로고침</button>
+        </div>
+        <div class="section-body">
+          <div class="table-wrap">
+            <table id="rank-table">
+              <thead>
+                <tr>
+                  <th style="width:44px;">순위</th>
+                  <th>닉네임</th>
+                  <th style="width:120px;">점수</th>
+                  <th style="width:200px;">작업</th>
+                </tr>
+              </thead>
+              <tbody id="rank-tbody">
+                <tr><td colspan="4" class="loading">로딩 중…</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- FEEDBACK SECTION -->
-    <div class="section">
-      <div class="section-head">
-        <h2>💬 버그신고 및 피드백</h2>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span class="section-meta" id="feedback-meta">로딩 중…</span>
-          <button class="btn-sm btn-edit" onclick="loadFeedback()">🔄 새로고침</button>
+    <!-- USERS TAB -->
+    <div class="tab-panel" id="panel-users">
+      <div class="section">
+        <div class="section-head">
+          <h2>👤 전체 회원 목록</h2>
+          <span class="section-meta" id="users-meta"></span>
+        </div>
+        <div class="section-body">
+          <div class="table-wrap">
+            <table id="users-table">
+              <thead>
+                <tr>
+                  <th style="width:44px;">#</th>
+                  <th>닉네임</th>
+                  <th style="width:120px;">최고 점수</th>
+                  <th style="width:160px;">가입일</th>
+                  <th style="width:200px;">작업</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                <tr><td colspan="5" class="loading">로딩 중…</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
-      <div class="section-body" id="feedback-list">
-        <div class="loading">로딩 중…</div>
+    </div>
+
+    <!-- NOTICE TAB -->
+    <div class="tab-panel" id="panel-notice">
+      <div class="section" id="notice-form-section">
+        <div class="section-head">
+          <h2>📢 공지 등록</h2>
+          <span class="section-meta" id="notice-form-meta" style="color:#f97316;font-weight:600;"></span>
+        </div>
+        <div class="notice-form">
+          <div class="notice-field">
+            <label>제목</label>
+            <input type="text" id="notice-title-input" placeholder="공지 제목을 입력하세요" maxlength="60">
+          </div>
+          <div class="notice-field">
+            <label>내용</label>
+            <textarea id="notice-content-input" placeholder="공지 내용을 입력하세요&#10;줄바꿈도 그대로 표시됩니다"></textarea>
+          </div>
+          <button class="notice-submit" onclick="submitNotice()">공지 등록하기</button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-head">
+          <h2>등록된 공지</h2>
+          <button class="btn-sm btn-edit" onclick="loadNotices()">🔄 새로고침</button>
+        </div>
+        <div class="section-body" id="notice-list">
+          <div class="loading">로딩 중…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FEEDBACK TAB -->
+    <div class="tab-panel" id="panel-feedback">
+      <div class="section">
+        <div class="section-head">
+          <h2>💬 버그신고 및 피드백</h2>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="section-meta" id="feedback-meta">로딩 중…</span>
+            <button class="btn-sm btn-edit" onclick="loadFeedback()">🔄 새로고침</button>
+          </div>
+        </div>
+        <div class="section-body" id="feedback-list">
+          <div class="loading">로딩 중…</div>
+        </div>
       </div>
     </div>
 
@@ -255,6 +332,123 @@ let adminUser = null;
 let allUsers = {};   // nick -> userData
 let rankingData = []; // [{nick, score, isAdmin}]
 let editingRow = null;
+
+// ── TABS ──
+function switchTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.admin-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+// ── NOTICES ──
+let noticesData = {}; // key -> notice
+
+async function loadNotices(){
+  document.getElementById('notice-list').innerHTML='<div class="loading">로딩 중…</div>';
+  try{
+    const snap = await db.ref('game_notice').once('value');
+    noticesData = snap.val() || {};
+    renderNotices();
+    updateNoticeFormState();
+  }catch(e){document.getElementById('notice-list').innerHTML='<div class="loading">로드 실패</div>';}
+}
+
+function updateNoticeFormState(){
+  // 활성화된 공지가 있으면 폼에 경고 표시
+  const active = Object.values(noticesData).find(n=>!n.hidden);
+  const meta = document.getElementById('notice-form-meta');
+  if(active){
+    meta.textContent = '⚠️ 활성 공지가 있습니다. 기존 공지를 삭제하거나 숨긴 후 등록하세요.';
+  } else {
+    meta.textContent = '';
+  }
+}
+
+function renderNotices(){
+  const container = document.getElementById('notice-list');
+  const entries = Object.entries(noticesData).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0));
+  if(!entries.length){
+    container.innerHTML='<div class="empty">등록된 공지가 없습니다.</div>';
+    return;
+  }
+  container.innerHTML = entries.map(([key, n])=>{
+    const d = new Date(n.createdAt||0);
+    const dateStr = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const statusBadge = n.hidden
+      ? `<span class="notice-status-badge status-hidden">숨김</span>`
+      : `<span class="notice-status-badge status-active">활성</span>`;
+    const toggleBtn = n.hidden
+      ? `<button class="btn-sm btn-edit" onclick="toggleNoticeHidden('${escAttr(key)}', false)">👁️ 공개</button>`
+      : `<button class="btn-sm" style="background:#fff7ed;color:#c2410c;border:1px solid #fb923c;" onclick="toggleNoticeHidden('${escAttr(key)}', true)">🙈 숨기기</button>`;
+    const viewerCount = n.viewers ? Object.keys(n.viewers).length : 0;
+    return `<div class="notice-item" id="notice-item-${key}">
+      <div class="notice-item-head">
+        <span class="notice-item-title">${esc(n.title||'')}</span>
+        ${statusBadge}
+      </div>
+      <div class="notice-item-content">${esc(n.content||'')}</div>
+      <div class="notice-item-meta">등록: ${dateStr}</div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        ${toggleBtn}
+        <button class="btn-sm btn-del" onclick="deleteNotice('${escAttr(key)}')">🗑️ 삭제</button>
+        <button class="notice-viewers-toggle" onclick="toggleViewers('${escAttr(key)}')">👀 조회자 ${viewerCount}명 보기</button>
+      </div>
+      <div class="notice-viewers-list" id="viewers-${key}" style="display:none;"></div>
+    </div>`;
+  }).join('');
+}
+
+function toggleViewers(key){
+  const el = document.getElementById('viewers-'+key);
+  if(el.style.display!=='none'){el.style.display='none';return;}
+  const n = noticesData[key];
+  if(!n||!n.viewers||!Object.keys(n.viewers).length){
+    el.textContent='조회한 사람이 없습니다.';
+  } else {
+    const list = Object.values(n.viewers).sort((a,b)=>a.viewedAt-b.viewedAt);
+    el.innerHTML = list.map(v=>{
+      const d=new Date(v.viewedAt);
+      const ds=`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      return `<span style="display:inline-block;margin:2px 4px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 8px;">${esc(v.nick)} <span style="color:var(--text3);font-size:10px;">${ds}</span></span>`;
+    }).join('');
+  }
+  el.style.display='block';
+}
+
+async function submitNotice(){
+  const title = document.getElementById('notice-title-input').value.trim();
+  const content = document.getElementById('notice-content-input').value.trim();
+  if(!title) return toast('제목을 입력하세요.');
+  if(!content) return toast('내용을 입력하세요.');
+  // 활성 공지 체크
+  const active = Object.values(noticesData).find(n=>!n.hidden);
+  if(active) return toast('활성 공지가 있습니다. 기존 공지를 삭제하거나 숨긴 후 등록해주세요.');
+  try{
+    await db.ref('game_notice').push({title, content, createdAt: Date.now(), hidden: false});
+    document.getElementById('notice-title-input').value='';
+    document.getElementById('notice-content-input').value='';
+    toast('공지가 등록됐습니다. 📢');
+    loadNotices();
+  }catch(e){toast('등록 실패: '+e.message);}
+}
+
+async function toggleNoticeHidden(key, hide){
+  try{
+    await db.ref('game_notice/'+key+'/hidden').set(hide);
+    toast(hide ? '공지가 숨겨졌습니다.' : '공지가 공개됐습니다.');
+    loadNotices();
+  }catch(e){toast('오류: '+e.message);}
+}
+
+async function deleteNotice(key){
+  if(!confirm('이 공지를 삭제하시겠습니까?')) return;
+  try{
+    await db.ref('game_notice/'+key).remove();
+    toast('공지가 삭제됐습니다.');
+    loadNotices();
+  }catch(e){toast('삭제 실패: '+e.message);}
+}
 
 // ── AUTH ──
 async function doAdminLogin(){
