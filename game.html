@@ -74,12 +74,20 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .game-body{
   flex:1;
   display:flex;
+  flex-direction:column;
   align-items:center;
   justify-content:center;
   padding:12px;
   overflow:hidden;
   min-height:0;
   background:var(--surface);
+  gap:0;
+}
+
+#notice-banner-wrap{
+  width:100%;
+  max-width:860px;
+  flex-shrink:0;
 }
 
 .canvas-card{
@@ -159,7 +167,46 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
 .fb-ok-msg{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}
 .fb-ok-sub{font-size:12px;color:var(--text3);}
 
-.mobile-controls{display:none;gap:16px;padding:8px 12px;background:var(--bg);border-top:1px solid var(--border);justify-content:center;flex-shrink:0;}
+/* ── NOTICE BANNER ── */
+.notice-banner{
+  display:none;
+  background:#fff7ed;
+  border:1.5px solid #fb923c;
+  border-radius:8px;
+  padding:9px 14px;
+  margin:0 0 8px 0;
+  cursor:pointer;
+  transition:background .15s;
+  position:relative;
+}
+.notice-banner:hover{background:#fff0dc;}
+.notice-banner.visible{display:block;}
+.notice-banner-row{display:flex;align-items:center;gap:8px;}
+.notice-banner-icon{font-size:18px;flex-shrink:0;}
+.notice-banner-label{font-size:13px;font-weight:700;color:#c2410c;}
+.notice-banner-title{font-size:12px;color:#92400e;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.notice-n-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  background:#ef4444;color:#fff;
+  font-size:10px;font-weight:700;
+  width:18px;height:18px;border-radius:50%;
+  margin-left:4px;flex-shrink:0;
+  vertical-align:middle;
+}
+.notice-n-badge.hidden{display:none;}
+
+/* ── NOTICE MODAL ── */
+#notice-modal{position:fixed;inset:0;z-index:280;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);padding:20px;}
+#notice-modal.show{display:flex;}
+.notice-panel{background:var(--bg);border:1px solid var(--border);border-radius:12px;width:100%;max-width:420px;box-shadow:0 8px 30px rgba(0,0,0,.14);overflow:hidden;}
+.notice-panel-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:#fff7ed;}
+.notice-panel-head-title{font-size:14px;font-weight:700;color:#c2410c;}
+.notice-close{width:26px;height:26px;border:none;background:var(--surface);border-radius:6px;cursor:pointer;font-size:14px;color:var(--text2);display:flex;align-items:center;justify-content:center;}
+.notice-close:hover{background:var(--border);}
+.notice-panel-body{padding:18px 16px;}
+.notice-panel-post-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:10px;}
+.notice-panel-content{font-size:13px;color:var(--text2);line-height:1.8;white-space:pre-wrap;word-break:break-word;}
+gap:16px;padding:8px 12px;background:var(--bg);border-top:1px solid var(--border);justify-content:center;flex-shrink:0;}
 .ctrl-btn{width:70px;height:54px;border:2px solid var(--border2);border-radius:10px;background:var(--surface);color:var(--text);font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none;border-bottom:4px solid var(--border2);touch-action:none;}
 .ctrl-btn:active{background:var(--border);transform:scale(0.95);}
 @media(max-width:680px){
@@ -280,6 +327,17 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   </div>
 
   <div class="game-body">
+    <!-- 공지 배너 -->
+    <div id="notice-banner-wrap" style="width:100%;max-width:860px;padding:0 0 0 0;">
+      <div id="notice-banner" class="notice-banner" onclick="openNoticeModal()">
+        <div class="notice-banner-row">
+          <span class="notice-banner-icon">⚠️</span>
+          <span class="notice-banner-label" id="notice-banner-label">안읽은 공지가 있어요!</span>
+          <span class="notice-n-badge" id="notice-n-badge">N</span>
+        </div>
+        <div class="notice-banner-title" id="notice-banner-title"></div>
+      </div>
+    </div>
     <div class="canvas-card">
       <div class="hud">
         <div class="hstat"><span class="hlabel">점수</span><span class="hval" id="hud-score">0</span></div>
@@ -399,6 +457,20 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
         <button class="gd-btn gd-btn-prev" id="gd-prev" onclick="guidePrev()">이전</button>
         <button class="gd-btn gd-btn-next" id="gd-next" onclick="guideNext()">다음</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTICE MODAL -->
+<div id="notice-modal">
+  <div class="notice-panel">
+    <div class="notice-panel-head">
+      <span class="notice-panel-head-title">📢 공지사항</span>
+      <button class="notice-close" onclick="closeNoticeModal()">✕</button>
+    </div>
+    <div class="notice-panel-body">
+      <div class="notice-panel-post-title" id="notice-modal-title"></div>
+      <div class="notice-panel-content" id="notice-modal-content"></div>
     </div>
   </div>
 </div>
@@ -531,12 +603,92 @@ function enterGame(){
   document.getElementById('tb-nick').textContent=currentUser.nick;
   document.getElementById('hud-best').textContent=currentUser.bestScore;
   loadRanking();
+  loadNotice();
   initCanvas();
   initGame();
-  if(!sessionStorage.getItem('jogame_guide_done'))setTimeout(()=>openGuide(false),300);
+  const guideKey='jogame_guide_done_'+currentUser.nick;
+  if(!localStorage.getItem(guideKey))setTimeout(()=>openGuide(false),300);
 }
 
-/* ── RANKING ── */
+/* ── NOTICE ── */
+let currentNotice = null;
+
+function getNoticeReadKey(){
+  if(!currentUser) return null;
+  return 'jogame_notice_read_'+currentUser.nick;
+}
+
+function loadNotice(){
+  db.ref('game_notice').on('value', snap => {
+    const data = snap.val();
+    // 활성화된 공지 찾기 (hidden !== true)
+    let notice = null;
+    if(data){
+      const entries = Object.entries(data);
+      for(const [key, val] of entries){
+        if(!val.hidden){
+          notice = {...val, key};
+          break;
+        }
+      }
+    }
+    currentNotice = notice;
+    updateNoticeBanner();
+  });
+}
+
+function updateNoticeBanner(){
+  const banner = document.getElementById('notice-banner');
+  const label = document.getElementById('notice-banner-label');
+  const titleEl = document.getElementById('notice-banner-title');
+  const badge = document.getElementById('notice-n-badge');
+
+  if(!currentNotice){
+    banner.classList.remove('visible');
+    return;
+  }
+
+  banner.classList.add('visible');
+  titleEl.textContent = currentNotice.title || '';
+
+  const readKey = getNoticeReadKey();
+  const readId = readKey ? localStorage.getItem(readKey) : null;
+  const isRead = readId === currentNotice.key;
+
+  if(isRead){
+    label.textContent = '공지';
+    badge.classList.add('hidden');
+  } else {
+    label.textContent = '안읽은 공지가 있어요!';
+    badge.classList.remove('hidden');
+  }
+}
+
+function openNoticeModal(){
+  if(!currentNotice) return;
+  // 읽음 처리
+  const readKey = getNoticeReadKey();
+  if(readKey) localStorage.setItem(readKey, currentNotice.key);
+  // 조회자 기록
+  if(currentUser){
+    db.ref('game_notice/'+currentNotice.key+'/viewers/'+currentUser.nick.replace(/[.#$[\]]/g,'_')).set({
+      nick: currentUser.nick,
+      viewedAt: Date.now()
+    });
+  }
+  document.getElementById('notice-modal-title').textContent = currentNotice.title || '';
+  document.getElementById('notice-modal-content').textContent = currentNotice.content || '';
+  document.getElementById('notice-modal').classList.add('show');
+  updateNoticeBanner();
+}
+function closeNoticeModal(){
+  document.getElementById('notice-modal').classList.remove('show');
+}
+document.getElementById('notice-modal').addEventListener('click',e=>{
+  if(e.target===document.getElementById('notice-modal'))closeNoticeModal();
+});
+
+
 let allUsersData={};
 function loadRanking(){
   // Load both ranking and user data to get isAdmin flag reliably
@@ -628,7 +780,10 @@ function openGuide(){guidePage=1;updateGuideUI();document.getElementById('guide-
 function closeGuide(){document.getElementById('guide-modal').classList.remove('show');stopFireworks();}
 function guideNext(){if(guidePage<GUIDE_TOTAL){guidePage++;updateGuideUI();}}
 function guidePrev(){if(guidePage>1){guidePage--;updateGuideUI();}}
-function guideStartGame(){sessionStorage.setItem('jogame_guide_done','1');closeGuide();beginGame();}
+function guideStartGame(){
+  if(currentUser)localStorage.setItem('jogame_guide_done_'+currentUser.nick,'1');
+  closeGuide();beginGame();
+}
 function updateGuideUI(){
   for(let i=1;i<=GUIDE_TOTAL;i++){const el=document.getElementById('gd-p'+i);if(el)el.classList.toggle('active',i===guidePage);}
   const dots=document.getElementById('gd-dots');dots.innerHTML='';
