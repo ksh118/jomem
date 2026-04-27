@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>조밈 관리자 패널</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+<style>
+:root{
+  --bg:#fff;--surface:#f7f7f5;--border:#e8e8e4;--border2:#d4d4ce;
+  --text:#37352f;--text2:#787774;--text3:#b3b0aa;
+  --accent:#2383e2;--danger:#e03e3e;--success:#16a34a;
+  --purple:#7c3aed;
+  --gold:#d97706;--silver:#71717a;--bronze:#92400e;
+  --r:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans KR',sans-serif;background:#f0f0ee;color:var(--text);font-size:14px;min-height:100vh;}
+
+/* LOGIN */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.login-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:32px 28px;width:100%;max-width:360px;box-shadow:0 4px 20px rgba(0,0,0,.08);}
+.login-logo{text-align:center;margin-bottom:24px;}
+.login-logo .badge{display:inline-block;background:var(--purple);color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:10px;}
+.login-logo h1{font-size:20px;font-weight:700;}
+.login-logo p{font-size:12px;color:var(--text2);margin-top:4px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px;}
+.field input{width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r);font-size:14px;font-family:inherit;outline:none;transition:border-color .15s;}
+.field input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(35,131,226,.15);}
+.btn-main{display:block;width:100%;padding:10px;background:var(--purple);color:#fff;border:none;border-radius:var(--r);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;}
+.btn-main:hover{background:#6d28d9;}
+.err{background:#fff5f5;border:1px solid #fecaca;border-radius:var(--r);padding:8px 11px;font-size:12px;color:var(--danger);margin-top:8px;display:none;}
+
+/* ADMIN PANEL */
+#admin-panel{display:none;min-height:100vh;flex-direction:column;}
+#admin-panel.on{display:flex;}
+.admin-topbar{background:var(--bg);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50;}
+.admin-topbar .logo{font-size:15px;font-weight:700;}
+.admin-badge{display:inline-block;background:var(--purple);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:12px;}
+.admin-topbar .tb-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.admin-topbar .tb-nick{font-size:12px;color:var(--text2);font-weight:500;}
+.logout-btn{font-size:12px;color:var(--text3);background:none;border:none;cursor:pointer;font-family:inherit;}
+.logout-btn:hover{color:var(--danger);}
+
+.admin-body{flex:1;padding:24px;max-width:900px;margin:0 auto;width:100%;}
+.section{background:var(--bg);border:1px solid var(--border);border-radius:10px;margin-bottom:20px;overflow:hidden;}
+.section-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.section-head h2{font-size:14px;font-weight:600;}
+.section-meta{font-size:12px;color:var(--text3);}
+.section-body{padding:0;}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:11px;font-weight:600;color:var(--text3);text-align:left;padding:9px 16px;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--surface);}
+td{padding:10px 16px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fafaf9;}
+.rank-num{font-weight:700;font-size:12px;color:var(--text3);font-family:'Courier New',monospace;}
+.rank-medal{font-size:16px;}
+.nick-cell{display:flex;align-items:center;gap:8px;}
+.admin-tag{display:inline-block;background:var(--purple);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;letter-spacing:0.3px;white-space:nowrap;}
+.score-val{font-family:'Courier New',monospace;font-weight:700;font-size:13px;}
+.score-val.gold{color:var(--gold);}
+.score-val.silver{color:var(--silver);}
+.score-val.bronze{color:var(--bronze);}
+
+/* ACTIONS */
+.act-btns{display:flex;gap:6px;align-items:center;}
+.btn-sm{padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;border:1px solid transparent;white-space:nowrap;}
+.btn-edit{background:var(--surface);color:var(--text);border-color:var(--border2);}
+.btn-edit:hover{background:var(--border);}
+.btn-admin-on{background:#ede9fe;color:var(--purple);border-color:#c4b5fd;}
+.btn-admin-on:hover{background:#ddd6fe;}
+.btn-admin-off{background:#fce7f3;color:#9d174d;border-color:#fbcfe8;}
+.btn-admin-off:hover{background:#fce7f3;opacity:.8;}
+.btn-del{background:#fff5f5;color:var(--danger);border-color:#fecaca;}
+.btn-del:hover{background:#fee2e2;}
+
+/* EDIT ROW */
+.edit-row td{background:#f0f7ff !important;padding:10px 16px;}
+.edit-row input{padding:5px 8px;border:1px solid var(--border2);border-radius:4px;font-family:inherit;font-size:13px;outline:none;}
+.edit-row input:focus{border-color:var(--accent);}
+.btn-save{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-save:hover{background:#1a6fc0;}
+.btn-cancel{background:var(--surface);color:var(--text2);border-color:var(--border);}
+.btn-cancel:hover{background:var(--border);}
+
+/* FEEDBACK */
+.fb-item{padding:14px 18px;border-bottom:1px solid var(--border);}
+.fb-item:last-child{border-bottom:none;}
+.fb-item-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.fb-nick{font-size:12px;font-weight:700;color:var(--text);}
+.fb-admin-tag{display:inline-block;background:var(--purple);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;}
+.fb-time{font-size:11px;color:var(--text3);margin-left:auto;}
+.fb-text{font-size:13px;color:var(--text);line-height:1.6;white-space:pre-wrap;word-break:break-all;}
+.fb-del-btn{font-size:11px;color:var(--danger);background:none;border:1px solid #fecaca;border-radius:4px;padding:2px 8px;cursor:pointer;font-family:inherit;margin-left:8px;}
+.fb-del-btn:hover{background:#fee2e2;}
+
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#222;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:999;white-space:nowrap;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.loading{padding:40px;text-align:center;color:var(--text3);font-size:13px;}
+.empty{padding:40px;text-align:center;color:var(--text3);font-size:13px;line-height:1.8;}
+
+/* STAT CARDS */
+.stats-row{display:flex;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);}
+.stat-card{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
+.stat-label{font-size:11px;color:var(--text3);font-weight:500;margin-bottom:4px;}
+.stat-val{font-size:20px;font-weight:700;font-family:'Courier New',monospace;}
+.stat-val.purple{color:var(--purple);}
+.stat-val.gold{color:var(--gold);}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="badge">🛡️ 관리자 전용</div>
+      <h1>조밈 관리자</h1>
+      <p>관리자 계정으로 로그인하세요</p>
+    </div>
+    <div class="field"><label>닉네임</label><input type="text" id="adm-nick" placeholder="관리자 닉네임" autocomplete="off"></div>
+    <div class="field"><label>비밀번호</label><input type="password" id="adm-pw" placeholder="비밀번호" maxlength="8" inputmode="numeric"></div>
+    <div class="err" id="adm-err"></div>
+    <button class="btn-main" onclick="doAdminLogin()">로그인</button>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel">
+  <div class="admin-topbar">
+    <span class="logo">jomeme</span>
+    <span class="admin-badge">관리자 패널</span>
+    <div class="tb-right">
+      <span class="tb-nick" id="adm-tb-nick"></span>
+      <button class="logout-btn" onclick="doAdminLogout()">로그아웃</button>
+    </div>
+  </div>
+
+  <div class="admin-body">
+
+    <!-- STATS -->
+    <div class="section">
+      <div class="section-head">
+        <h2>📊 현황</h2>
+        <span class="section-meta" id="last-updated">로딩 중…</span>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">전체 회원 수</div>
+          <div class="stat-val purple" id="stat-users">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">랭킹 등록 수</div>
+          <div class="stat-val" id="stat-ranks">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">최고 점수</div>
+          <div class="stat-val gold" id="stat-top">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">관리자 수</div>
+          <div class="stat-val purple" id="stat-admins">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RANKING TABLE -->
+    <div class="section">
+      <div class="section-head">
+        <h2>🏆 점수 랭킹 (높은 순)</h2>
+        <button class="btn-sm btn-edit" onclick="loadData()">🔄 새로고침</button>
+      </div>
+      <div class="section-body">
+        <div class="table-wrap">
+          <table id="rank-table">
+            <thead>
+              <tr>
+                <th style="width:44px;">순위</th>
+                <th>닉네임</th>
+                <th style="width:120px;">점수</th>
+                <th style="width:200px;">작업</th>
+              </tr>
+            </thead>
+            <tbody id="rank-tbody">
+              <tr><td colspan="4" class="loading">로딩 중…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS TABLE -->
+    <div class="section">
+      <div class="section-head">
+        <h2>👤 전체 회원 목록</h2>
+        <span class="section-meta" id="users-meta"></span>
+      </div>
+      <div class="section-body">
+        <div class="table-wrap">
+          <table id="users-table">
+            <thead>
+              <tr>
+                <th style="width:44px;">#</th>
+                <th>닉네임</th>
+                <th style="width:120px;">최고 점수</th>
+                <th style="width:160px;">가입일</th>
+                <th style="width:200px;">작업</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody">
+              <tr><td colspan="5" class="loading">로딩 중…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- FEEDBACK SECTION -->
+    <div class="section">
+      <div class="section-head">
+        <h2>💬 버그신고 및 피드백</h2>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="section-meta" id="feedback-meta">로딩 중…</span>
+          <button class="btn-sm btn-edit" onclick="loadFeedback()">🔄 새로고침</button>
+        </div>
+      </div>
+      <div class="section-body" id="feedback-list">
+        <div class="loading">로딩 중…</div>
+      </div>
+    </div>
+
+  </div><!-- /admin-body -->
+</div><!-- /admin-panel -->
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyDIl0-jomcfA8ykz-nYK_rYaLb-IE_yICc",
+  authDomain:"codet-597c7.firebaseapp.com",
+  databaseURL:"https://codet-597c7-default-rtdb.firebaseio.com",
+  projectId:"codet-597c7",
+  storageBucket:"codet-597c7.firebasestorage.app",
+  messagingSenderId:"619578457920",
+  appId:"1:619578457920:web:52d98e7430f9b9820104a5"
+});
+const db = firebase.database();
+
+let adminUser = null;
+let allUsers = {};   // nick -> userData
+let rankingData = []; // [{nick, score, isAdmin}]
+let editingRow = null;
+
+// ── AUTH ──
+async function doAdminLogin(){
+  const nick = document.getElementById('adm-nick').value.trim();
+  const pw = document.getElementById('adm-pw').value.trim();
+  if(!nick || !pw) return showErr('adm-err','닉네임과 비밀번호를 입력해주세요.');
+  try{
+    const snap = await db.ref('game_users/'+nick).once('value');
+    if(!snap.exists()) return showErr('adm-err','닉네임을 찾을 수 없습니다.');
+    const d = snap.val();
+    if(d.pw !== pw) return showErr('adm-err','비밀번호가 틀렸습니다.');
+    if(!d.isAdmin) return showErr('adm-err','관리자 권한이 없는 계정입니다.');
+    adminUser = {nick, ...d};
+    localStorage.setItem('jogame_admin', JSON.stringify({nick, pw}));
+    document.getElementById('login-screen').style.display = 'none';
+    const panel = document.getElementById('admin-panel');
+    panel.classList.add('on');
+    document.getElementById('adm-tb-nick').textContent = nick + ' (관리자)';
+    loadData();
+  } catch(e){ showErr('adm-err','오류: '+e.message); }
+}
+
+function doAdminLogout(){
+  adminUser = null;
+  localStorage.removeItem('jogame_admin');
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('admin-panel').classList.remove('on');
+}
+
+// 자동 로그인 (저장된 관리자 세션 복구)
+window.addEventListener('DOMContentLoaded', async () => {
+  const saved = localStorage.getItem('jogame_admin');
+  if(!saved) return;
+  try{
+    const {nick, pw} = JSON.parse(saved);
+    const snap = await db.ref('game_users/'+nick).once('value');
+    if(snap.exists()){
+      const d = snap.val();
+      if(d.pw === pw && d.isAdmin){
+        adminUser = {nick, ...d};
+        document.getElementById('login-screen').style.display = 'none';
+        const panel = document.getElementById('admin-panel');
+        panel.classList.add('on');
+        document.getElementById('adm-tb-nick').textContent = nick + ' (관리자)';
+        loadData();
+      } else {
+        localStorage.removeItem('jogame_admin');
+      }
+    }
+  }catch(e){ localStorage.removeItem('jogame_admin'); }
+});
+
+function showErr(id, msg){
+  const el = document.getElementById(id);
+  el.style.display = 'block'; el.textContent = msg;
+  setTimeout(()=> el.style.display='none', 4000);
+}
+
+// ── DATA ──
+async function loadData(){
+  document.getElementById('rank-tbody').innerHTML = '<tr><td colspan="4" class="loading">로딩 중…</td></tr>';
+  document.getElementById('users-tbody').innerHTML = '<tr><td colspan="5" class="loading">로딩 중…</td></tr>';
+  try{
+    const [usersSnap, rankSnap] = await Promise.all([
+      db.ref('game_users').once('value'),
+      db.ref('game_ranking').orderByChild('score').limitToLast(200).once('value')
+    ]);
+
+    // Users
+    allUsers = usersSnap.val() || {};
+
+    // Ranking
+    rankingData = [];
+    const rd = rankSnap.val();
+    if(rd){
+      Object.values(rd).forEach(v => {
+        const userInfo = allUsers[v.nick] || {};
+        rankingData.push({...v, isAdmin: !!userInfo.isAdmin});
+      });
+      rankingData.sort((a,b) => b.score - a.score);
+    }
+
+    updateStats();
+    renderRankTable();
+    renderUsersTable();
+    loadFeedback();
+
+    const now = new Date();
+    document.getElementById('last-updated').textContent =
+      `마지막 업데이트: ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+
+  } catch(e){ toast('데이터 로드 실패: '+e.message); }
+}
+
+function updateStats(){
+  const userCount = Object.keys(allUsers).length;
+  const adminCount = Object.values(allUsers).filter(u=>u.isAdmin).length;
+  const topScore = rankingData.length ? rankingData[0].score : 0;
+  document.getElementById('stat-users').textContent = userCount;
+  document.getElementById('stat-ranks').textContent = rankingData.length;
+  document.getElementById('stat-top').textContent = topScore.toLocaleString();
+  document.getElementById('stat-admins').textContent = adminCount;
+  document.getElementById('users-meta').textContent = '총 '+userCount+'명';
+}
+
+// ── RANK TABLE ──
+function renderRankTable(){
+  const tbody = document.getElementById('rank-tbody');
+  if(!rankingData.length){
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">랭킹 데이터가 없습니다.</td></tr>';
+    return;
+  }
+  const medals = ['🥇','🥈','🥉'];
+  tbody.innerHTML = rankingData.slice(0,100).map((item, i) => {
+    const top = i < 3;
+    const numHtml = top
+      ? `<span class="rank-medal">${medals[i]}</span>`
+      : `<span class="rank-num">${i+1}</span>`;
+    const scoreClass = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    const adminBadge = item.isAdmin ? `<span class="admin-tag">관리자</span>` : '';
+    return `<tr id="rrank-row-${i}">
+      <td>${numHtml}</td>
+      <td><div class="nick-cell">${esc(item.nick)}${adminBadge}</div></td>
+      <td><span class="score-val ${scoreClass}">${item.score.toLocaleString()}</span></td>
+      <td>
+        <div class="act-btns">
+          <button class="btn-sm btn-edit" onclick="editRankRow(${i})">✏️ 수정</button>
+          ${item.isAdmin
+            ? `<button class="btn-sm btn-admin-off" data-toggle-admin data-nick="${esc(item.nick)}" data-set="false">🛡️ 관리자 해제</button>`
+            : `<button class="btn-sm btn-admin-on" data-toggle-admin data-nick="${esc(item.nick)}" data-set="true">🛡️ 관리자 지정</button>`
+          }
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function editRankRow(i){
+  if(editingRow !== null) cancelEdit();
+  editingRow = {type:'rank', idx:i};
+  const item = rankingData[i];
+  const row = document.getElementById(`rrank-row-${i}`);
+  row.classList.add('edit-row');
+  const medals = ['🥇','🥈','🥉'];
+  const top = i < 3;
+  const numHtml = top ? `<span class="rank-medal">${medals[i]}</span>` : `<span class="rank-num">${i+1}</span>`;
+  const adminBadge = item.isAdmin ? `<span class="admin-tag">관리자</span>` : '';
+  row.innerHTML = `
+    <td>${numHtml}</td>
+    <td><div class="nick-cell">${esc(item.nick)}${adminBadge}</div></td>
+    <td><input type="number" id="edit-score" value="${item.score}" min="0" style="width:90px;"></td>
+    <td>
+      <div class="act-btns">
+        <button class="btn-sm btn-save" onclick="saveRankEdit(${i})">저장</button>
+        <button class="btn-sm btn-cancel" onclick="cancelEdit()">취소</button>
+      </div>
+    </td>`;
+}
+
+async function saveRankEdit(i){
+  const item = rankingData[i];
+  const newScore = parseInt(document.getElementById('edit-score').value);
+  if(isNaN(newScore) || newScore < 0) return toast('올바른 점수를 입력하세요.');
+  try{
+    const key = item.nick.replace(/[.#$[\]]/g,'_');
+    await db.ref('game_ranking/'+key).update({score: newScore});
+    await db.ref('game_users/'+item.nick).update({bestScore: newScore});
+    toast(`${item.nick}의 점수가 ${newScore.toLocaleString()}으로 변경됐습니다.`);
+    editingRow = null;
+    loadData();
+  } catch(e){ toast('저장 실패: '+e.message); }
+}
+
+function cancelEdit(){
+  editingRow = null;
+  renderRankTable();
+  renderUsersTable();
+}
+
+// ── USERS TABLE ──
+function renderUsersTable(){
+  const tbody = document.getElementById('users-tbody');
+  const users = Object.entries(allUsers).sort((a,b)=>(b[1].bestScore||0)-(a[1].bestScore||0));
+  if(!users.length){
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">회원이 없습니다.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = users.map(([nick, data], i) => {
+    const adminBadge = data.isAdmin ? `<span class="admin-tag">관리자</span>` : '';
+    const createdAt = data.createdAt ? new Date(data.createdAt).toLocaleDateString('ko-KR') : '—';
+    return `<tr id="urow-${i}">
+      <td><span class="rank-num">${i+1}</span></td>
+      <td><div class="nick-cell">${esc(nick)}${adminBadge}</div></td>
+      <td><span class="score-val">${(data.bestScore||0).toLocaleString()}</span></td>
+      <td style="font-size:12px;color:var(--text3);">${createdAt}</td>
+      <td>
+        <div class="act-btns">
+          <button class="btn-sm btn-edit" onclick="editUserRow(${i},'${escAttr(nick)}')">✏️ 수정</button>
+          ${data.isAdmin
+            ? `<button class="btn-sm btn-admin-off" data-toggle-admin data-nick="${esc(nick)}" data-set="false">🛡️ 관리자 해제</button>`
+            : `<button class="btn-sm btn-admin-on" data-toggle-admin data-nick="${esc(nick)}" data-set="true">🛡️ 관리자 지정</button>`
+          }
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function editUserRow(i, nick){
+  if(editingRow !== null) cancelEdit();
+  editingRow = {type:'user', idx:i, nick};
+  const data = allUsers[nick];
+  const row = document.getElementById(`urow-${i}`);
+  row.classList.add('edit-row');
+  const adminBadge = data.isAdmin ? `<span class="admin-tag">관리자</span>` : '';
+  const createdAt = data.createdAt ? new Date(data.createdAt).toLocaleDateString('ko-KR') : '—';
+  row.innerHTML = `
+    <td><span class="rank-num">${i+1}</span></td>
+    <td><div class="nick-cell">${esc(nick)}${adminBadge}</div></td>
+    <td><input type="number" id="edit-uscore" value="${data.bestScore||0}" min="0" style="width:90px;"></td>
+    <td style="font-size:12px;color:var(--text3);">${createdAt}</td>
+    <td>
+      <div class="act-btns">
+        <button class="btn-sm btn-save" onclick="saveUserEdit('${escAttr(nick)}')">저장</button>
+        <button class="btn-sm btn-cancel" onclick="cancelEdit()">취소</button>
+      </div>
+    </td>`;
+}
+
+async function saveUserEdit(nick){
+  const newScore = parseInt(document.getElementById('edit-uscore').value);
+  if(isNaN(newScore) || newScore < 0) return toast('올바른 점수를 입력하세요.');
+  try{
+    await db.ref('game_users/'+nick).update({bestScore: newScore});
+    const key = nick.replace(/[.#$[\]]/g,'_');
+    // Check if user has a ranking entry
+    const rSnap = await db.ref('game_ranking/'+key).once('value');
+    if(rSnap.exists()){
+      await db.ref('game_ranking/'+key).update({score: newScore});
+    } else {
+      // Create ranking entry if score > 0
+      if(newScore > 0) await db.ref('game_ranking/'+key).set({nick, score: newScore});
+    }
+    toast(`${nick}의 점수가 ${newScore.toLocaleString()}으로 변경됐습니다.`);
+    editingRow = null;
+    loadData();
+  } catch(e){ toast('저장 실패: '+e.message); }
+}
+
+// ── ADMIN TOGGLE ──
+async function toggleAdmin(nick, setAdmin){
+  if(!confirm(`${nick} 님을 ${setAdmin ? '관리자로 지정' : '관리자에서 해제'}하시겠습니까?`)) return;
+  try{
+    if(setAdmin){
+      await db.ref('game_users/'+nick+'/isAdmin').set(true);
+    } else {
+      await db.ref('game_users/'+nick+'/isAdmin').remove();
+    }
+    // Also update ranking entry with isAdmin flag
+    const key = nick.replace(/[.#$[\]]/g,'_');
+    const rSnap = await db.ref('game_ranking/'+key).once('value');
+    if(rSnap.exists()){
+      if(setAdmin){
+        await db.ref('game_ranking/'+key+'/isAdmin').set(true);
+      } else {
+        await db.ref('game_ranking/'+key+'/isAdmin').remove();
+      }
+    }
+    toast(setAdmin ? `${nick}님이 관리자로 지정됐습니다. 🛡️` : `${nick}님의 관리자 권한이 해제됐습니다.`);
+    loadData();
+  } catch(e){ toast('오류: '+e.message); }
+}
+
+// Delegated click handler for admin toggle buttons (data attribute 방식으로 nick 전달)
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('[data-toggle-admin]');
+  if(!btn) return;
+  const nick = btn.dataset.nick;
+  const setAdmin = btn.dataset.set === 'true';
+  if(nick !== undefined) toggleAdmin(nick, setAdmin);
+});
+
+// ── FEEDBACK ──
+let feedbackData = {}; // key -> {nick, text, createdAt}
+
+async function loadFeedback(){
+  document.getElementById('feedback-list').innerHTML='<div class="loading">로딩 중…</div>';
+  try{
+    const snap = await db.ref('game_feedback').orderByChild('createdAt').once('value');
+    feedbackData = snap.val() || {};
+    renderFeedback();
+  } catch(e){ document.getElementById('feedback-list').innerHTML='<div class="loading">로드 실패</div>'; }
+}
+
+function renderFeedback(){
+  const container = document.getElementById('feedback-list');
+  const entries = Object.entries(feedbackData).sort((a,b)=>b[1].createdAt - a[1].createdAt);
+  document.getElementById('feedback-meta').textContent = '총 '+entries.length+'개';
+  if(!entries.length){
+    container.innerHTML='<div class="empty">아직 접수된 피드백이 없습니다.</div>';
+    return;
+  }
+  container.innerHTML = entries.map(([key, fb])=>{
+    const userInfo = allUsers[fb.nick] || {};
+    const adminBadge = userInfo.isAdmin ? `<span class="fb-admin-tag">관리자</span>` : '';
+    const d = new Date(fb.createdAt);
+    const dateStr = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} `
+      + `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+    // nick might have changed — show current nick from allUsers if different
+    const storedNick = fb.nick;
+    return `<div class="fb-item">
+      <div class="fb-item-head">
+        <span class="fb-nick">${esc(storedNick)}</span>${adminBadge}
+        <span class="fb-time">${dateStr}</span>
+        <button class="fb-del-btn" onclick="deleteFeedback('${escAttr(key)}')">삭제</button>
+      </div>
+      <div class="fb-text">${esc(fb.text)}</div>
+    </div>`;
+  }).join('');
+}
+
+async function deleteFeedback(key){
+  if(!confirm('이 피드백을 삭제하시겠습니까?')) return;
+  try{
+    await db.ref('game_feedback/'+key).remove();
+    toast('피드백이 삭제됐습니다.');
+    loadFeedback();
+  } catch(e){ toast('삭제 실패: '+e.message); }
+}
+
+// ── UTILS ──
+function esc(t){ const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
+function escAttr(t){ return t.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=> el.classList.remove('show'), 2800);
+}
+
+// Enter key on login
+document.getElementById('adm-pw').addEventListener('keydown', e => { if(e.key==='Enter') doAdminLogin(); });
+document.getElementById('adm-nick').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('adm-pw').focus(); });
+</script>
+</body>
+</html>
