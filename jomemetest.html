@@ -1,0 +1,457 @@
+cat > /home/claude/t3.html << 'HTMLEOF'
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>마크 대회 공지 - 조밈</title>
+<link rel="icon" href="https://i.ibb.co/7JqdNgxn/image.png" type="image/png">
+<meta property="og:title" content="마크 대회 공지 - 조밈">
+<meta property="og:description" content="5월 2일(토) 오후 4시 생방송 | PVP, 야생 실력">
+<meta property="og:image" content="https://i.ibb.co/7JqdNgxn/image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://i.ibb.co/7JqdNgxn/image.png">
+<style>
+:root{
+  --bg:#ffffff;--bg2:#f7f7f5;--bg3:#ebebea;
+  --text:#111111;--text2:#444440;--text3:#7a7a72;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --accent:#d4793a;--accent-bg:#fdf3e7;--accent-text:#7c3e0e;
+  --nav-bg:rgba(255,255,255,0.94);
+  --gold-bg:#fdf6dc;--gold-text:#6e5000;--gold-border:rgba(180,140,0,0.22);
+  --silver-bg:#f3f3f1;--silver-text:#444;--silver-border:rgba(0,0,0,0.09);
+  --bronze-bg:#fdeee3;--bronze-text:#6e3000;--bronze-border:rgba(160,70,0,0.16);
+  --btn-bg:#f2f2f0;--btn-hover:#e6e6e2;
+  --modal-bg:#ffffff;--sb:rgba(0,0,0,0.11);
+  --danger-bg:#fdf0f0;--danger:#9b2c2c;
+  --win-bg:#f0f8f0;--win:#1a5c1a;--win-b:rgba(0,100,0,0.14);
+  --dc-bg:#f7f7f5;--code-bg:#f0f0ee;
+}
+[data-theme="dark"]{
+  --bg:#191917;--bg2:#222220;--bg3:#2c2c2a;
+  --text:#eaeae4;--text2:#c4c4bc;--text3:#909088;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.16);
+  --accent:#f0a060;--accent-bg:#3a1e06;--accent-text:#f5b880;
+  --nav-bg:rgba(25,25,23,0.95);
+  --gold-bg:#272000;--gold-text:#f0d060;--gold-border:rgba(200,160,0,0.22);
+  --silver-bg:#262624;--silver-text:#d0d0c8;--silver-border:rgba(255,255,255,0.1);
+  --bronze-bg:#271400;--bronze-text:#f0a060;--bronze-border:rgba(200,90,10,0.2);
+  --btn-bg:#2c2c2a;--btn-hover:#363634;
+  --modal-bg:#191917;--sb:rgba(255,255,255,0.13);
+  --danger-bg:#3a1010;--danger:#f08080;
+  --win-bg:#0e2a0e;--win:#7ad07a;--win-b:rgba(0,180,0,0.15);
+  --dc-bg:#222220;--code-bg:#2c2c2a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+  background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;
+  transition:background .25s,color .25s;overflow-x:hidden;
+}
+
+/* ── NAV ── */
+nav{
+  position:sticky;top:0;z-index:200;
+  background:var(--nav-bg);border-bottom:1px solid var(--border);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px;height:50px;
+}
+.nav-l{display:flex;align-items:center;gap:8px}
+.nav-logo{width:24px;height:24px;border-radius:6px;object-fit:cover}
+.nav-ttl{font-size:14px;font-weight:700;color:var(--text)}
+.tbtn{
+  width:32px;height:32px;border-radius:8px;border:1px solid var(--border2);
+  background:transparent;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;color:var(--text3);transition:background .15s,color .15s;
+}
+.tbtn:hover{background:var(--bg3);color:var(--text)}
+
+/* ── WRAP ── */
+.wrap{max-width:520px;margin:0 auto;padding:22px 16px 72px}
+
+/* ── HERO IMAGE ── */
+.hero{
+  border-radius:16px;overflow:hidden;
+  box-shadow:0 6px 28px rgba(0,0,0,.16);
+  margin-bottom:20px;
+}
+.hero img{width:100%;display:block}
+
+/* ── BADGE + TITLE ── */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--accent-bg);color:var(--accent-text);
+  border:1px solid rgba(212,121,58,.22);border-radius:20px;
+  padding:3px 10px;font-size:11.5px;font-weight:700;
+  letter-spacing:.04em;margin-bottom:7px;
+}
+.title{font-size:28px;font-weight:900;letter-spacing:-.6px;line-height:1.2;margin-bottom:16px}
+
+/* ── INFO ROW ── */
+.info-row{display:flex;gap:8px;margin-bottom:20px}
+.info-card{
+  flex:1;display:flex;align-items:center;gap:10px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:12px 13px;
+}
+.ic-em{font-size:18px;flex-shrink:0}
+.ic-lbl{font-size:10.5px;color:var(--text3);font-weight:600;letter-spacing:.02em;margin-bottom:2px}
+.ic-val{font-size:13.5px;font-weight:700;color:var(--text);line-height:1.2}
+
+/* ── TIMER ── */
+.sec-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:9px}
+.timer-box{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:14px;padding:16px 12px;margin-bottom:20px;
+}
+.tgrid{display:flex;justify-content:center;align-items:center;gap:8px}
+.tunit{display:flex;flex-direction:column;align-items:center;gap:4px}
+.tnum{
+  font-size:32px;font-weight:900;letter-spacing:-.02em;
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:10px;padding:7px 10px;min-width:58px;
+  text-align:center;line-height:1;color:var(--text);
+  font-variant-numeric:tabular-nums;
+  transition:background .25s,border-color .25s;
+}
+.tsep{font-size:26px;font-weight:900;color:var(--text3);margin-bottom:18px}
+.tlbl{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.04em}
+.tended{font-size:16px;font-weight:700;color:var(--accent);text-align:center;padding:4px 0}
+
+/* ── PRIZES ── */
+.prize-list{display:flex;flex-direction:column;gap:7px;margin-bottom:20px}
+.prow{
+  display:flex;align-items:center;gap:12px;
+  border-radius:12px;padding:13px 15px;border:1px solid transparent;
+}
+.p1{background:var(--gold-bg);border-color:var(--gold-border)}
+.p2{background:var(--silver-bg);border-color:var(--silver-border)}
+.p3{background:var(--bronze-bg);border-color:var(--bronze-border)}
+.pmed{font-size:22px;width:30px;text-align:center;flex-shrink:0}
+.prank{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:1px}
+.pname{font-size:15px;font-weight:800;line-height:1}
+.p1 .pname{color:var(--gold-text)}
+.p2 .pname{color:var(--silver-text)}
+.p3 .pname{color:var(--bronze-text)}
+
+/* ── YOUTUBE LINK ── */
+.yt-link{
+  display:flex;align-items:center;gap:12px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:13px 15px;margin-bottom:20px;
+  text-decoration:none;color:var(--text);
+  transition:background .14s,transform .15s cubic-bezier(.34,1.4,.64,1),box-shadow .15s;
+}
+.yt-link:hover{background:var(--bg3);transform:translateY(-2px);box-shadow:0 5px 18px rgba(0,0,0,.09)}
+.yt-ico{width:34px;height:34px;border-radius:8px;background:#ff0000;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.yt-lbl{font-size:11px;color:var(--text3);font-weight:600;margin-bottom:2px}
+.yt-txt{font-size:14px;font-weight:700}
+
+/* ── APPLY BTN ── */
+.apply{
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  width:100%;padding:16px;
+  background:var(--accent);color:#fff;
+  border:none;border-radius:14px;
+  font-size:16px;font-weight:800;cursor:pointer;
+  text-decoration:none;
+  box-shadow:0 4px 20px rgba(212,121,58,.32);
+  transition:transform .18s cubic-bezier(.34,1.5,.64,1),box-shadow .18s;
+  margin-bottom:10px;
+}
+.apply:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(212,121,58,.42)}
+.apply:active{transform:translateY(0);box-shadow:none}
+
+/* ── 3 MANUAL BUTTONS ── */
+.mbtns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:0}
+.mbtn{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;padding:13px 6px;
+  background:var(--btn-bg);color:var(--text2);
+  border:1px solid var(--border2);border-radius:12px;
+  font-size:12.5px;font-weight:700;cursor:pointer;line-height:1.3;
+  transition:background .14s,transform .15s cubic-bezier(.34,1.4,.64,1),box-shadow .15s,color .14s;
+  text-align:center;
+}
+.mbtn:hover{background:var(--btn-hover);transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.09);color:var(--text)}
+.mbtn:active{transform:translateY(0);box-shadow:none}
+.mico{font-size:20px;line-height:1}
+
+/* ── FOOTER ── */
+.footer{text-align:center;font-size:11.5px;color:var(--text3);margin-top:28px;padding-top:18px;border-top:1px solid var(--border)}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0);transition:background .3s}
+.overlay.on{display:block;background:rgba(0,0,0,.48)}
+.sheet{
+  position:fixed;bottom:0;left:0;right:0;z-index:501;
+  background:var(--modal-bg);border-radius:22px 22px 0 0;
+  max-height:88vh;overflow-y:auto;padding:0 0 40px;
+  transform:translateY(100%);
+  transition:transform .36s cubic-bezier(.4,0,.2,1),background .25s;
+  scrollbar-width:none;
+}
+.sheet::-webkit-scrollbar{display:none}
+.sheet.on{transform:translateY(0)}
+.sh-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:12px auto 0}
+.sh-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:15px 18px 12px;border-bottom:1px solid var(--border);
+  position:sticky;top:0;background:var(--modal-bg);z-index:5;
+  transition:background .25s;
+}
+.sh-ttl{font-size:17px;font-weight:700}
+.sh-close{
+  width:30px;height:30px;border-radius:8px;border:none;
+  background:var(--btn-bg);color:var(--text3);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:300;line-height:1;
+  transition:background .14s,color .14s;
+}
+.sh-close:hover{background:var(--btn-hover);color:var(--text)}
+.sh-body{padding:18px}
+
+/* ── MODAL CONTENT ── */
+.ms{margin-bottom:24px}
+.mt{font-size:14.5px;font-weight:700;margin-bottom:9px;padding-bottom:8px;border-bottom:2px solid var(--sb);color:var(--text)}
+.rl{list-style:none;padding:0}
+.rl li{display:flex;align-items:flex-start;gap:9px;padding:6px 8px;border-radius:7px;font-size:14px;font-weight:500;transition:background .12s}
+.rl li:hover{background:var(--bg3)}
+.rx{width:16px;height:16px;border-radius:4px;background:var(--danger-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:3px}
+.rx svg{width:9px;height:9px;stroke:var(--danger)}
+.nb{display:flex;align-items:flex-start;gap:9px;background:var(--accent-bg);border:1px solid rgba(212,121,58,.2);border-radius:10px;padding:11px 13px;font-size:13px;color:var(--accent-text);margin-bottom:14px}
+.db{background:var(--danger-bg);border:1px solid rgba(155,44,44,.16);border-radius:10px;padding:11px 13px;font-size:13px;color:var(--danger);margin-top:4px}
+.step{display:flex;gap:12px;margin-bottom:14px}
+.snum{width:23px;height:23px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:2px}
+.sbody h4{font-size:13.5px;font-weight:700;margin-bottom:3px}
+.sbody p{font-size:13px;color:var(--text3)}
+.dc-btn{
+  display:block;text-decoration:none;
+  background:var(--dc-bg);border:1px solid var(--border);
+  border-left:3px solid #5865F2;border-radius:0 9px 9px 0;
+  padding:11px 13px;margin:9px 0;
+  transition:background .13s,transform .13s;cursor:pointer;
+}
+.dc-btn:hover{background:var(--btn-hover);transform:translateX(2px)}
+.dc-ttl{font-size:13.5px;font-weight:700;color:#5865F2;margin-bottom:2px}
+.dc-sub{font-size:12px;color:var(--text3);margin-bottom:5px}
+.dc-url{font-size:12px;color:#5865F2;display:flex;align-items:center;gap:5px}
+
+@media(max-width:420px){
+  .info-row{flex-direction:column}
+  .tnum{font-size:26px;min-width:50px;padding:6px 8px}
+  .tsep{font-size:22px}
+  .title{font-size:24px}
+  .mbtns{gap:6px}
+  .mbtn{padding:11px 4px;font-size:12px}
+  .mico{font-size:18px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-l">
+    <img class="nav-logo" src="https://i.ibb.co/7JqdNgxn/image.png" alt="조밈">
+    <span class="nav-ttl">마크 대회 공지</span>
+  </div>
+  <button class="tbtn" onclick="toggleTheme()">
+    <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+    </svg>
+  </button>
+</nav>
+
+<div class="wrap">
+
+  <!-- 이미지 -->
+  <div class="hero"><img id="heroImg" alt="마크 대회 인원 모집"></div>
+
+  <!-- 배지 + 제목 -->
+  <div class="badge">🎮 마인크래프트 대회</div>
+  <div class="title">마크 대회 개최 안내 🔥</div>
+
+  <!-- 일정 / 종목 -->
+  <div class="info-row">
+    <div class="info-card">
+      <span class="ic-em">📅</span>
+      <div>
+        <div class="ic-lbl">일정</div>
+        <div class="ic-val">5월 2일 (토)<br>오후 4시 생방송</div>
+      </div>
+    </div>
+    <div class="info-card">
+      <span class="ic-em">🎮</span>
+      <div>
+        <div class="ic-lbl">종목</div>
+        <div class="ic-val">PVP<br>야생 실력</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 타이머 -->
+  <div class="sec-lbl">⏱ 대회까지 남은 시간</div>
+  <div class="timer-box">
+    <div id="timerWrap" class="tgrid">
+      <div class="tunit"><div class="tnum" id="tD">00</div><div class="tlbl">일</div></div>
+      <div class="tsep">:</div>
+      <div class="tunit"><div class="tnum" id="tH">00</div><div class="tlbl">시간</div></div>
+      <div class="tsep">:</div>
+      <div class="tunit"><div class="tnum" id="tM">00</div><div class="tlbl">분</div></div>
+      <div class="tsep">:</div>
+      <div class="tunit"><div class="tnum" id="tS">00</div><div class="tlbl">초</div></div>
+    </div>
+  </div>
+
+  <!-- 상품 -->
+  <div class="sec-lbl">🏆 우승 상품</div>
+  <div class="prize-list">
+    <div class="prow p1"><span class="pmed">🥇</span><div><div class="prank">1등</div><div class="pname">치킨</div></div></div>
+    <div class="prow p2"><span class="pmed">🥈</span><div><div class="prank">2등</div><div class="pname">햄버거 세트</div></div></div>
+    <div class="prow p3"><span class="pmed">🥉</span><div><div class="prank">3등</div><div class="pname">햄버거 세트</div></div></div>
+  </div>
+
+  <!-- 유튜브 -->
+  <a class="yt-link" href="http://youtube.com/post/UgkxcLBXoo2NUKrB8sVUz3SJ8YR9XuqbSBpy?si=To3sJKmidawypRDt" target="_blank" rel="noopener">
+    <div class="yt-ico">
+      <svg width="17" height="13" viewBox="0 0 24 18" fill="white"><path d="M23.5 2.7S23.2.8 22.4.1C21.4-.9 20.3-.9 19.8-.8 16.5 0 12 0 12 0s-4.5 0-7.8.2C3.7-.9 2.6-.9 1.6.1.8.8.5 2.7.5 2.7S0 4.9 0 7.1v2.1c0 2.2.5 4.4.5 4.4s.3 1.9 1.1 2.6c1 1 2.4.9 3 1C6.1 17.4 12 17.5 12 17.5s4.5 0 7.8-.3c.5-.1 1.6-.1 2.6-1.1.8-.7 1.1-2.6 1.1-2.6S24 11.3 24 9.1V7c0-2.2-.5-4.3-.5-4.3zM9.5 12V5l6.5 3.5L9.5 12z"/></svg>
+    </div>
+    <div>
+      <div class="yt-lbl">자세한 사항은</div>
+      <div class="yt-txt">조밈 유튜브 게시물을 확인하세요 →</div>
+    </div>
+  </a>
+
+  <!-- 신청 버튼 -->
+  <a class="apply" href="https://docs.google.com/forms/d/e/1FA..." target="_blank" rel="noopener">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+    신청하기 (구글 폼)
+  </a>
+
+  <!-- 설명서 3버튼 -->
+  <div class="mbtns">
+    <button class="mbtn" onclick="openM('chat')"><span class="mico">💬</span>채팅 규칙</button>
+    <button class="mbtn" onclick="openM('part')"><span class="mico">🔒</span>참여 규칙</button>
+    <button class="mbtn" onclick="openM('howto')"><span class="mico">📖</span>참여 안내서</button>
+  </div>
+
+  <div class="footer">사진의 저작권은 조밈에게 있습니다.</div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="ov" onclick="closeM()"></div>
+<div class="sheet" id="sh">
+  <div class="sh-handle"></div>
+  <div class="sh-head">
+    <span class="sh-ttl" id="shTtl"></span>
+    <button class="sh-close" onclick="closeM()">×</button>
+  </div>
+  <div class="sh-body" id="shBody"></div>
+</div>
+
+<script>
+document.getElementById('heroImg').src='TOURNAMENT_IMG_SRC';
+
+// TIMER
+function pad(n){return String(n).padStart(2,'0')}
+function tick(){
+  const diff=new Date('2025-05-02T07:00:00Z')-new Date();
+  if(diff<=0){document.getElementById('timerWrap').innerHTML='<div class="tended">🎉 대회가 시작되었습니다!</div>';return;}
+  document.getElementById('tD').textContent=pad(Math.floor(diff/86400000));
+  document.getElementById('tH').textContent=pad(Math.floor(diff%86400000/3600000));
+  document.getElementById('tM').textContent=pad(Math.floor(diff%3600000/60000));
+  document.getElementById('tS').textContent=pad(Math.floor(diff%60000/1000));
+}
+tick();setInterval(tick,1000);
+
+// MODAL DATA
+const M={
+  chat:{ttl:'💬 채팅 규칙',html:`
+<div class="ms"><div class="mt">부적절한 언행 금지</div><ul class="rl">
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>특정 커뮤니티 용어 및 말투</li>
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>과한 욕설 (적절하게는 가능)</li>
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>반말 사용</li>
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>징징대기</li>
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>싸울 시 잘잘못 관계없이 모두 밴</li>
+</ul></div>
+<div class="ms"><div class="mt">타스트리머 / 타유튜버 언급 자제</div><ul class="rl">
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>홍보성 멘트</li>
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>뜬금없이 언급</li>
+</ul></div>
+<div class="ms"><div class="mt">과한 친목 금지</div><ul class="rl">
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>시청자끼리 서로 닉 언급</li>
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>사적인 쪽지 및 디엠</li>
+</ul></div>
+<div class="ms"><div class="mt">일기 및 무지성 요청 금지</div><ul class="rl">
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>도능 해주세요! / 딴 거 해요!</li>
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>저 오늘 ~~ 했어요</li>
+</ul></div>
+<div class="db">이 외에도 관리자 판단 하에 선 넘으면 즉시 처벌<br>디스코드 내에서도 규칙을 지켜주세요</div>`},
+  part:{ttl:'🔒 참여 규칙',html:`
+<div class="nb"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>컨텐츠 참여 시, 방송 음성을 반드시 청취하시며 참여해 주세요!</span></div>
+<div class="ms"><div class="mt">친목 금지</div><ul class="rl">
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>게임 내에서 귓속말 주고받기</li>
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>채팅으로 닉 언급 및 대화</li>
+</ul></div>
+<div class="ms"><div class="mt">비매너 금지</div><ul class="rl">
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>아무리 경쟁이라도 민폐가 되는 행위</li>
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>티밍 및 맵 탈주</li>
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>특정 플레이어 저격</li>
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>조밈 저격 (따라다니는 행위)</li>
+</ul></div>
+<div class="ms"><div class="mt">핵 사용 금지</div><ul class="rl">
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>편의성 모드를 제외한 비정상 모드</li>
+<li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>이벤트 중 핵 사용 시 탈락</li>
+</ul></div>
+<div class="db">이 외에도 관리자 판단 하에 선 넘으면 즉시 처벌</div>`},
+  howto:{ttl:'📖 참여 안내서',html:`
+<div class="ms"><div class="mt">시참 방법</div>
+<div class="step"><div class="snum">1</div><div class="sbody"><h4>조밈 디스코드 서버 참가하기</h4>
+<a class="dc-btn" href="https://discord.com/invite/mjbFrt7Dsw" target="_blank" rel="noopener">
+<div class="dc-ttl">조밈 Discord 서버에 가입하세요!</div>
+<div class="dc-sub">아래 링크를 눌러 바로 입장하세요.</div>
+<div class="dc-url"><svg width="12" height="12" viewBox="0 0 24 24" fill="#5865F2"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>discord.com/invite/mjbFrt7Dsw</div>
+</a></div></div>
+<div class="step"><div class="snum">2</div><div class="sbody"><h4>'역할' 채널에서 '시참 참여하기' 버튼 클릭</h4></div></div>
+<div class="step"><div class="snum">3</div><div class="sbody"><h4>'서버주소' 채널에서 서버주소 확인하기</h4><p>정확한 주소와 버전을 사용해야 합니다</p></div></div>
+</div>
+<div class="nb"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>규칙을 반드시 필독 후에 참여 해주세요!!</span></div>`}
+};
+
+function openM(type){
+  document.getElementById('shTtl').textContent=M[type].ttl;
+  document.getElementById('shBody').innerHTML=M[type].html;
+  document.getElementById('ov').classList.add('on');
+  const s=document.getElementById('sh');
+  s.classList.add('on');s.scrollTop=0;
+  document.body.style.overflow='hidden';
+}
+function closeM(){
+  document.getElementById('ov').classList.remove('on');
+  document.getElementById('sh').classList.remove('on');
+  document.body.style.overflow='';
+}
+
+// THEME
+function toggleTheme(){
+  const d=document.documentElement.getAttribute('data-theme')==='dark';
+  const t=d?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('jomim-theme',t);
+  setIcon(t);
+}
+function setIcon(t){
+  document.getElementById('themeIcon').innerHTML=t==='dark'
+    ?'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
+    :'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+}
+(function(){
+  const t=localStorage.getItem('jomim-theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');
+  document.documentElement.setAttribute('data-theme',t);setIcon(t);
+})();
+</script>
+</body>
+</html>
+HTMLEOF
+echo "done"
