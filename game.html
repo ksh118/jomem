@@ -16,6 +16,36 @@
   --gold:#d97706;--silver:#71717a;--bronze:#92400e;
   --mono:'Courier New',monospace;--r:6px;
 }
+body.dark{
+  --bg:#0f1117;--surface:#1a1d27;--border:#2a2d3a;--border2:#353848;
+  --text:#e2e4ef;--text2:#8b8fa8;--text3:#545870;
+  --accent:#5b9ef4;--danger:#f87272;
+  --gold:#f6b93b;--silver:#9ba3c0;--bronze:#c4813a;
+}
+body.dark .notice-banner{background:#1e1a10;border-color:#b45309;}
+body.dark .notice-banner:hover{background:#2a2210;}
+body.dark .notice-banner-label{color:#fbbf24;}
+body.dark .notice-banner-title{color:#d97706;}
+body.dark .notice-panel-head{background:#1a1505;}
+body.dark .notice-panel-head-title{color:#fbbf24;}
+body.dark .notice{background:#1e1a10;border-color:#b45309;color:#fbbf24;}
+body.dark .ri.r1{background:#1e1c0a;}
+body.dark .ri.r2{background:#151515;}
+body.dark .ri.r3{background:#1a1309;}
+body.dark .ri.me{background:#0d1a2e;}
+body.dark .auth-card{box-shadow:0 1px 2px rgba(0,0,0,.3),0 4px 12px rgba(0,0,0,.4);}
+body.dark .rank-panel{box-shadow:0 8px 30px rgba(0,0,0,.5);}
+body.dark .gd-panel{box-shadow:0 12px 40px rgba(0,0,0,.5);}
+body.dark .fb-panel{box-shadow:0 8px 30px rgba(0,0,0,.5);}
+body.dark .notice-panel{box-shadow:0 8px 30px rgba(0,0,0,.5);}
+
+.theme-btn{
+  width:30px;height:30px;border-radius:7px;border:1px solid var(--border2);
+  background:transparent;cursor:pointer;display:flex;align-items:center;
+  justify-content:center;color:var(--text2);transition:background .15s,color .15s;
+  flex-shrink:0;
+}
+.theme-btn:hover{background:var(--surface);color:var(--text);}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;}
 body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
@@ -121,6 +151,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   overflow:hidden;
   flex-shrink:0;
 }
+body.dark .canvas-wrap{background:#06070f;}
 .canvas-wrap canvas{
   position:absolute;
   top:0;left:0;
@@ -321,6 +352,11 @@ gap:16px;padding:8px 12px;background:var(--bg);border-top:1px solid var(--border
     <span class="tb-title">조밈 게임</span>
     <button class="guide-btn" onclick="openGuide(true)">📖 게임 가이드</button>
     <div class="tb-right">
+      <button class="theme-btn" id="theme-btn" onclick="toggleDark()" title="다크/라이트 전환">
+        <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
       <span class="user-chip" id="tb-nick">-</span>
       <button class="logout-btn" onclick="doLogout()">로그아웃</button>
     </div>
@@ -441,7 +477,29 @@ gap:16px;padding:8px 12px;background:var(--bg);border-top:1px solid var(--border
         <div class="gd-title">팬텀 (새)</div>
         <div class="gd-desc">하늘을 나는 팬텀도 있습니다!<br><strong>점프(↑)</strong>하거나 <strong>숙이기(↓)</strong>로 피하세요!</div>
       </div>
-      <div class="gd-page firework-page" id="gd-p6">
+      <div class="gd-page" id="gd-p6">
+        <div class="gd-icon" style="font-size:32px;margin-bottom:4px;">🌙☀️</div>
+        <div class="gd-title">다크 / 라이트 모드</div>
+        <div class="gd-desc" style="margin-bottom:14px;">
+          오른쪽 위 버튼으로 모드를 변경할 수 있어요!
+        </div>
+        <!-- 버튼 미리보기 -->
+        <div style="display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:10px 18px;margin-bottom:12px;">
+          <span style="font-size:12px;color:var(--text2);font-family:var(--mono);">현재 버튼</span>
+          <div style="width:1px;height:16px;background:var(--border2);"></div>
+          <div style="width:30px;height:30px;border-radius:7px;border:1.5px solid var(--border2);background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--text2);">
+            <svg id="gd-preview-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          </div>
+          <button class="gd-btn gd-btn-next" style="margin:0;padding:5px 14px;font-size:11px;" onclick="toggleDark();updateGdPreviewIcon();">전환해보기</button>
+        </div>
+        <div style="font-size:11px;color:var(--text3);text-align:center;line-height:1.7;">
+          🌙 다크모드 → 게임 배경이 <strong>밤하늘</strong>로 변경<br>
+          ☀️ 라이트모드 → 게임 배경이 <strong>낮 하늘</strong>로 변경
+        </div>
+      </div>
+      <div class="gd-page firework-page" id="gd-p7">
         <canvas id="firework-canvas"></canvas>
         <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:14px;">
           <div class="gd-icon">🎉</div>
@@ -540,6 +598,7 @@ function loadRankingForMobile(){
 }
 
 window.addEventListener('DOMContentLoaded',async()=>{
+  applyDarkPref();
   checkMobileAccess();
   
   const saved=localStorage.getItem('jogame_user');
@@ -774,7 +833,7 @@ function closeRank(){
 document.getElementById('rank-modal').addEventListener('click',e=>{if(e.target===document.getElementById('rank-modal'))closeRank();});
 
 /* ── GUIDE ── */
-const GUIDE_TOTAL=6;
+const GUIDE_TOTAL=7;
 let guidePage=1,fwRaf=null;
 function openGuide(){guidePage=1;updateGuideUI();document.getElementById('guide-modal').classList.add('show');stopFireworks();}
 function closeGuide(){document.getElementById('guide-modal').classList.remove('show');stopFireworks();}
@@ -791,6 +850,7 @@ function updateGuideUI(){
   document.getElementById('gd-prev').style.visibility=guidePage===1?'hidden':'visible';
   const nb=document.getElementById('gd-next');nb.style.display=guidePage===GUIDE_TOTAL?'none':'';nb.textContent='다음';
   if(guidePage===GUIDE_TOTAL)startFireworks();else stopFireworks();
+  updateGdPreviewIcon();
 }
 document.getElementById('guide-modal').addEventListener('click',e=>{if(e.target===document.getElementById('guide-modal'))closeGuide();});
 
@@ -913,28 +973,96 @@ function reset(){
   document.getElementById('speed-disp').textContent='';
 }
 
+let isDark=false;
+function updateThemeIcon(dark){
+  const icon=document.getElementById('themeIcon');
+  if(!icon)return;
+  if(dark){
+    icon.innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+  } else {
+    icon.innerHTML='<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+  }
+}
+function updateGdPreviewIcon(){
+  const el=document.getElementById('gd-preview-icon');
+  if(!el)return;
+  if(isDark){
+    el.innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+  } else {
+    el.innerHTML='<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+  }
+}
+function toggleDark(){
+  isDark=!isDark;
+  document.body.classList.toggle('dark',isDark);
+  localStorage.setItem('jogame_dark',isDark?'1':'');
+  updateThemeIcon(isDark);
+}
+function applyDarkPref(){
+  const saved=localStorage.getItem('jogame_dark');
+  if(saved==='1'){isDark=true;document.body.classList.add('dark');updateThemeIcon(true);}
+}
+
 function drawBg(){
-  const g=ctx.createLinearGradient(0,0,0,GY);
-  g.addColorStop(0,'#5bc8f5');g.addColorStop(0.65,'#87CEEB');g.addColorStop(1,'#b0e0f7');
-  ctx.fillStyle=g;ctx.fillRect(0,0,LW,GY);
-  ctx.fillStyle='#fff9a0';ctx.shadowColor='#ffe87c';ctx.shadowBlur=18;
-  ctx.fillRect(720,18,34,34);ctx.shadowBlur=0;
-  ctx.fillStyle='#ffe87c';
-  ctx.fillRect(733,10,8,6);ctx.fillRect(733,48,8,6);
-  ctx.fillRect(712,26,6,8);ctx.fillRect(750,26,6,8);
+  if(isDark){
+    // 밤하늘 배경
+    const g=ctx.createLinearGradient(0,0,0,GY);
+    g.addColorStop(0,'#06070f');g.addColorStop(0.5,'#0d1433');g.addColorStop(1,'#1a1f4a');
+    ctx.fillStyle=g;ctx.fillRect(0,0,LW,GY);
+    // 별들
+    const starPositions=[
+      [40,12,1.2],[90,28,0.8],[150,8,1.5],[200,35,0.9],[260,14,1.1],
+      [320,22,0.7],[380,10,1.3],[430,30,1.0],[490,18,0.8],[550,8,1.4],
+      [600,25,0.9],[650,12,1.2],[700,32,0.7],[740,8,1.1],[780,20,0.9],
+      [70,45,0.6],[130,50,1.0],[200,55,0.7],[280,42,1.1],[360,48,0.8],
+      [450,50,1.2],[530,38,0.6],[620,52,0.9],[710,44,1.0],[770,50,0.7],
+      [30,35,0.5],[110,18,0.8],[190,25,0.6],[350,30,0.7],[500,28,0.8],
+    ];
+    const t=Date.now()/1200;
+    starPositions.forEach(([sx,sy,sr],i)=>{
+      const twinkle=0.5+0.5*Math.sin(t+i*1.3);
+      ctx.globalAlpha=0.4+0.6*twinkle;
+      ctx.fillStyle='#ffffff';
+      ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);ctx.fill();
+    });
+    ctx.globalAlpha=1;
+    // 달
+    ctx.fillStyle='#f5e8b0';ctx.shadowColor='#ffe87c';ctx.shadowBlur=14;
+    ctx.beginPath();ctx.arc(726,24,16,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#dfd4a0';ctx.shadowBlur=0;
+    // 달 크레이터
+    ctx.beginPath();ctx.arc(720,18,4,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(730,28,3,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+  } else {
+    // 낮 배경
+    const g=ctx.createLinearGradient(0,0,0,GY);
+    g.addColorStop(0,'#5bc8f5');g.addColorStop(0.65,'#87CEEB');g.addColorStop(1,'#b0e0f7');
+    ctx.fillStyle=g;ctx.fillRect(0,0,LW,GY);
+    ctx.fillStyle='#fff9a0';ctx.shadowColor='#ffe87c';ctx.shadowBlur=18;
+    ctx.fillRect(720,18,34,34);ctx.shadowBlur=0;
+    ctx.fillStyle='#ffe87c';
+    ctx.fillRect(733,10,8,6);ctx.fillRect(733,48,8,6);
+    ctx.fillRect(712,26,6,8);ctx.fillRect(750,26,6,8);
+  }
 }
 function drawGround(){
   const bw=16;
+  const g1=isDark?'#1a3a20':'#5a9e38';
+  const g2=isDark?'#142e18':'#4d8c2f';
+  const g3=isDark?'#24522a':'#78c44a';
+  const d1=isDark?'#3d2c1a':'#9b6b3a';
+  const d2=isDark?'#2e2010':'#8B5E32';
   for(let x=0;x<LW;x+=bw){
-    ctx.fillStyle=(Math.floor((x+gOff)/bw)%2===0)?'#5a9e38':'#4d8c2f';
+    ctx.fillStyle=(Math.floor((x+gOff)/bw)%2===0)?g1:g2;
     ctx.fillRect(x,GY,bw,8);
   }
-  ctx.fillStyle='#78c44a';
+  ctx.fillStyle=g3;
   for(let x=0;x<LW;x+=bw)ctx.fillRect(x+1,GY,bw-2,3);
   for(let row=0;row<3;row++){
     const dy=GY+8+row*11;
     for(let x=0;x<LW;x+=bw){
-      ctx.fillStyle=((Math.floor((x+gOff)/bw)+row)%2===0)?'#9b6b3a':'#8B5E32';
+      ctx.fillStyle=((Math.floor((x+gOff)/bw)+row)%2===0)?d1:d2;
       ctx.fillRect(x,dy,bw,11);
       ctx.strokeStyle='rgba(0,0,0,0.12)';ctx.lineWidth=0.5;ctx.strokeRect(x,dy,bw,11);
     }
@@ -944,7 +1072,7 @@ function drawClouds(){
   const bw=16;
   const sh=[[1,0],[2,0],[3,0],[0,1],[1,1],[2,1],[3,1],[4,1],[0,2],[1,2],[2,2],[3,2],[4,2]];
   clouds.forEach(c=>{
-    ctx.fillStyle='#ffffffd0';
+    ctx.fillStyle=isDark?'#1e2a5080':'#ffffffd0';
     sh.forEach(([bx,by])=>ctx.fillRect(c.x+bx*bw,c.y+by*(bw*0.6),bw,bw*0.6));
   });
 }
