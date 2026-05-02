@@ -3,96 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>페이지를 찾을 수 없습니다 | JOMEME</title>
+    <title>404 - 페이지를 찾을 수 없습니다</title>
     <style>
-        /* 기본 스타일 초기화 */
-        body, html {
+        body {
             margin: 0;
             padding: 0;
-            height: 100%;
-            overflow: hidden; /* 스크롤 방지 */
-            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-        }
-
-        /* 배경 이미지 설정 */
-        .bg-image {
-            background-image: url('https://i.ibb.co/6ndz1xH/1733221375990.jpg');
-            background-size: cover; /* 이미지가 화면을 가득 채우도록 */
-            background-position: center; /* 이미지 중앙 맞춤 */
-            background-repeat: no-repeat;
-            filter: blur(8px); /* 배경 blur 효과 (글씨가 더 잘 보이게) */
-            -webkit-filter: blur(8px);
-            height: 100%;
-            width: 100%;
-            position: absolute;
-            z-index: -1; /* 글씨보다 뒤에 배치 */
-            transform: scale(1.1); /* blur 효과로 인한 가장자리 흰 선 방지 */
-        }
-
-        /* 콘텐츠 스타일 */
-        .content {
-            background-color: rgba(0,0,0, 0.6); /* 반투명 검은색 배경 오버레이 */
-            color: white;
-            font-weight: bold;
-            border: 3px solid #f1f1f1;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 2;
-            width: 80%;
-            max-width: 500px;
-            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #ffffff; /* 배경색 (흰색) */
+            font-family: 'Pretendard', sans-serif;
             text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            padding: 20px;
+        }
+
+        /* 상단 이미지 스타일 */
+        .error-image {
+            width: 100%;
+            max-width: 400px; /* 이미지 최대 크기 조절 */
+            height: auto;
             border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         h1 {
-            font-size: 72px;
-            margin: 0 0 20px 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-size: 48px;
+            color: #333;
+            margin: 0;
         }
 
         p {
-            font-size: 20px;
-            margin-bottom: 30px;
+            font-size: 18px;
+            color: #666;
+            margin: 15px 0 30px 0;
             line-height: 1.6;
         }
 
-        /* 버튼 스타일 */
-        .home-button {
+        /* 홈으로 가기 버튼 */
+        .btn {
             display: inline-block;
-            background-color: #ffcc00; /* 노란색 버튼 */
-            color: #333;
+            padding: 12px 25px;
+            background-color: #000;
+            color: #fff;
             text-decoration: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            border-radius: 50px;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border-radius: 8px;
+            font-weight: bold;
+            transition: opacity 0.2s;
         }
 
-        .home-button:hover {
-            background-color: #ffdd44;
-            transform: translateY(-2px); /* 마우스 올렸을 때 살짝 올라가는 효과 */
-        }
-
-        .home-button:active {
-            transform: translateY(1px); /* 클릭했을 때 효과 */
+        .btn:hover {
+            opacity: 0.8;
         }
     </style>
 </head>
 <body>
 
-    <!-- 배경 이미지 레이어 -->
-    <div class="bg-image"></div>
+    <div class="container">
+        <!-- 상단에 사진 배치 -->
+        <img src="https://i.ibb.co/6ndz1xH/1733221375990.jpg" alt="Error Image" class="error-image">
 
-    <!-- 콘텐츠 레이어 -->
-    <div class="content">
+        <!-- 아래에 404 메시지 배치 -->
         <h1>404</h1>
-        <p>죄송합니다.<br>요청하신 페이지를 찾을 수 없습니다.</p>
-        <a href="/" class="home-button">홈으로 돌아가기</a>
+        <p>요청하신 페이지를 찾을 수 없습니다.<br>입력하신 주소가 맞는지 다시 한번 확인해 주세요.</p>
+        
+        <a href="/" class="btn">메인으로 돌아가기</a>
     </div>
 
 </body>
