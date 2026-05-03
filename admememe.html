@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스킨 관리 - 조밈 게임</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+<style>
+:root{
+  --bg:#fff;--surface:#f7f7f5;--border:#e8e8e4;--border2:#d4d4ce;
+  --text:#37352f;--text2:#787774;--text3:#b3b0aa;
+  --accent:#2383e2;--danger:#e03e3e;--success:#16a34a;--r:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--surface);color:var(--text);min-height:100vh;padding:24px 16px 60px;}
+.page-wrap{max-width:580px;margin:0 auto;}
+.page-header{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
+.page-header-icon{font-size:32px;}
+.page-title{font-size:22px;font-weight:700;}
+.page-sub{font-size:13px;color:var(--text2);margin-top:2px;}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--border);padding:4px;border-radius:10px;}
+.tab-btn{flex:1;padding:9px;border:none;border-radius:7px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;background:transparent;color:var(--text2);transition:background .15s,color .15s;}
+.tab-btn.active{background:var(--bg);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* Card */
+.card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:16px;}
+.card-title{font-size:15px;font-weight:600;margin-bottom:18px;}
+
+/* Fields */
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;}
+.field input[type=text]{width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--r);font-size:14px;font-family:inherit;color:var(--text);background:var(--bg);outline:none;transition:border-color .15s,box-shadow .15s;}
+.field input[type=text]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(35,131,226,.12);}
+.field input::placeholder{color:var(--text3);}
+.field-hint{font-size:11px;color:var(--text3);margin-top:4px;line-height:1.5;}
+.imgbb-notice{background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--r);padding:10px 13px;font-size:12px;color:#1e40af;line-height:1.7;margin-bottom:12px;}
+.imgbb-notice a{color:var(--accent);font-weight:600;}
+
+/* Live preview */
+.skin-preview-card{border:1px solid var(--border);border-radius:10px;padding:14px;display:none;align-items:center;gap:14px;background:var(--surface);margin-top:12px;}
+.skin-preview-card.show{display:flex;}
+.skin-preview-img{width:64px;height:64px;object-fit:contain;border:1px solid var(--border);border-radius:8px;background:var(--bg);}
+.sk-pname{font-size:14px;font-weight:700;color:var(--text);}
+.sk-pauthor{font-size:12px;color:var(--text2);margin-top:2px;}
+.sk-pbadge{display:inline-block;background:#dcfce7;color:#166534;font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;margin-top:5px;}
+
+/* Error / loading */
+.err-box{background:#fff5f5;border:1px solid #fecaca;border-radius:var(--r);padding:10px 13px;font-size:12px;color:var(--danger);display:none;margin-top:10px;line-height:1.5;}
+.loading-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:10px;display:none;}
+.loading-bar.show{display:block;}
+.loading-bar-inner{height:100%;background:var(--accent);border-radius:2px;animation:la 1.2s ease-in-out infinite;}
+@keyframes la{0%{width:0%;margin-left:0}50%{width:70%;margin-left:15%}100%{width:0%;margin-left:100%}}
+
+/* Buttons */
+.submit-btn{display:block;width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:background .15s;margin-top:4px;}
+.submit-btn:hover{background:#1a6fc0;}
+.submit-btn:disabled{background:#a0c4f0;cursor:not-allowed;}
+.submit-btn:active{transform:scale(.98);}
+
+/* Success */
+.success-card{background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:28px 20px;text-align:center;display:none;}
+.success-card.show{display:block;}
+.success-again{background:#16a34a;color:#fff;border:none;border-radius:var(--r);padding:10px 24px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;margin-top:16px;}
+.success-again:hover{background:#15803d;}
+
+/* Manage tab header */
+.manage-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:10px;}
+.manage-header-left .mh-title{font-size:15px;font-weight:600;}
+.manage-header-left .mh-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+.manage-header-right{display:flex;gap:8px;flex-shrink:0;}
+.refresh-btn{font-size:11px;color:var(--accent);background:none;border:1px solid var(--accent);border-radius:4px;padding:4px 10px;cursor:pointer;font-family:inherit;font-weight:600;}
+.refresh-btn:hover{background:#eff6ff;}
+.save-order-btn{font-size:12px;font-weight:700;font-family:inherit;color:#fff;background:var(--success);border:none;border-radius:6px;padding:5px 14px;cursor:pointer;display:none;}
+.save-order-btn.show{display:block;}
+.save-order-btn:hover{background:#15803d;}
+.save-order-btn:disabled{background:#86efac;cursor:not-allowed;}
+
+/* 3-column skin grid */
+.sk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+
+.sk-item{
+  border:2px solid var(--border);border-radius:10px;background:var(--bg);
+  padding:14px 10px 10px;display:flex;flex-direction:column;align-items:center;gap:5px;
+  position:relative;cursor:grab;
+  transition:border-color .15s,box-shadow .15s,opacity .2s,transform .1s;
+  user-select:none;-webkit-user-select:none;
+}
+.sk-item:active{cursor:grabbing;}
+.sk-item.dragging{opacity:0.35;transform:scale(0.97);}
+.sk-item.drag-over{border-color:var(--accent);background:#eff6ff;box-shadow:0 0 0 3px rgba(35,131,226,.18);}
+
+.sk-drag-handle{
+  position:absolute;top:5px;left:7px;
+  font-size:14px;color:var(--text3);cursor:grab;line-height:1;
+}
+.sk-del-btn{
+  position:absolute;top:5px;right:5px;
+  width:20px;height:20px;background:#fee2e2;border:none;border-radius:4px;
+  color:#dc2626;font-size:10px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-weight:700;
+}
+.sk-del-btn:hover{background:#fecaca;}
+
+.sk-item img{width:56px;height:56px;object-fit:contain;border-radius:6px;background:var(--surface);margin-top:2px;}
+.sk-item-name{font-size:11px;font-weight:700;color:var(--text);text-align:center;line-height:1.3;word-break:break-all;}
+.sk-item-author{font-size:10px;color:var(--text3);text-align:center;}
+.sk-item-order{font-size:9px;color:var(--accent);background:#eff6ff;border-radius:3px;padding:1px 6px;font-weight:700;}
+
+.sk-empty{text-align:center;padding:36px;font-size:13px;color:var(--text3);line-height:1.8;grid-column:1/-1;}
+
+/* Toast */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);background:#1a1a18;color:#fff;font-size:13px;font-weight:600;padding:10px 22px;border-radius:24px;opacity:0;transition:opacity .22s,transform .22s;pointer-events:none;z-index:999;white-space:nowrap;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+<div class="page-wrap">
+  <div class="page-header">
+    <span class="page-header-icon">🎨</span>
+    <div>
+      <div class="page-title">스킨 관리</div>
+      <div class="page-sub">조밈 게임 캐릭터 스킨을 등록하고 순서를 바꿀 수 있어요</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-btn-upload" onclick="switchTab('upload')">➕ 스킨 업로드</button>
+    <button class="tab-btn" id="tab-btn-manage" onclick="switchTab('manage')">📋 목록 &amp; 순서 변경</button>
+  </div>
+
+  <!-- ── UPLOAD TAB ── -->
+  <div class="tab-content active" id="tab-upload">
+    <div class="card" id="upload-form-card">
+      <div class="card-title">✏️ 스킨 정보 입력</div>
+
+      <div class="field">
+        <label>스킨 이름 <span style="color:var(--danger)">*</span></label>
+        <input type="text" id="skin-name" placeholder="예: 귀여운 고양이" maxlength="20">
+        <div class="field-hint">최대 20자</div>
+      </div>
+
+      <div class="field">
+        <label>만든 사람 <span style="color:var(--danger)">*</span></label>
+        <input type="text" id="skin-author" placeholder="예: 홍길동" maxlength="12">
+        <div class="field-hint">최대 12자</div>
+      </div>
+
+      <div class="field">
+        <label>캐릭터 이미지 URL <span style="color:var(--danger)">*</span></label>
+        <div class="imgbb-notice">
+          💡 <a href="https://imgbb.com" target="_blank">imgbb.com</a>에 이미지를 무료로 업로드한 후 <strong>Direct link</strong>를 복사해서 붙여넣으세요!<br>
+          GIF · PNG · JPG 모두 가능 · 배경 없는 이미지 추천 🌟
+        </div>
+        <input type="text" id="skin-url" placeholder="https://i.ibb.co/...">
+        <div class="skin-preview-card" id="live-preview">
+          <img class="skin-preview-img" id="live-preview-img" src="" alt="preview">
+          <div>
+            <div class="sk-pname" id="live-preview-name">스킨 이름</div>
+            <div class="sk-pauthor" id="live-preview-author">by 만든사람</div>
+            <div class="sk-pbadge">미리보기</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="err-box" class="err-box"></div>
+      <div class="loading-bar" id="loading-bar"><div class="loading-bar-inner"></div></div>
+      <button class="submit-btn" id="submit-btn" onclick="submitSkin()">🚀 스킨 등록하기</button>
+    </div>
+
+    <div class="success-card" id="success-card">
+      <div style="font-size:48px;margin-bottom:12px;">🎉</div>
+      <div style="font-size:18px;font-weight:700;color:#166534;margin-bottom:6px;">등록 완료!</div>
+      <div style="font-size:13px;color:#15803d;line-height:1.6;">스킨이 성공적으로 등록됐어요!<br>게임에서 <strong>🎨 스킨 변경</strong> 버튼으로 확인해보세요.</div>
+      <button class="success-again" onclick="resetForm()">+ 다른 스킨 추가하기</button>
+    </div>
+  </div>
+
+  <!-- ── MANAGE TAB ── -->
+  <div class="tab-content" id="tab-manage">
+    <div class="card">
+      <div class="manage-header">
+        <div class="manage-header-left">
+          <div class="mh-title">📋 등록된 스킨 목록</div>
+          <div class="mh-sub">카드를 드래그해서 순서를 변경하세요</div>
+        </div>
+        <div class="manage-header-right">
+          <button class="refresh-btn" onclick="loadSkinList()">↺ 새로고침</button>
+          <button class="save-order-btn" id="save-order-btn" onclick="saveOrder()">💾 순서 저장</button>
+        </div>
+      </div>
+      <div class="sk-grid" id="skin-grid">
+        <div class="sk-empty">불러오는 중…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyDIl0-jomcfA8ykz-nYK_rYaLb-IE_yICc",
+  authDomain:"codet-597c7.firebaseapp.com",
+  databaseURL:"https://codet-597c7-default-rtdb.firebaseio.com",
+  projectId:"codet-597c7",
+  storageBucket:"codet-597c7.firebasestorage.app",
+  messagingSenderId:"619578457920",
+  appId:"1:619578457920:web:52d98e7430f9b9820104a5"
+});
+const db = firebase.database();
+
+function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+
+/* ── TOAST ── */
+let toastTimer;
+function toast(msg, dur=2200){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'), dur);
+}
+
+/* ── TAB SWITCH ── */
+function switchTab(name){
+  ['upload','manage'].forEach(t=>{
+    document.getElementById('tab-btn-'+t).classList.toggle('active', t===name);
+    document.getElementById('tab-'+t).classList.toggle('active', t===name);
+  });
+  if(name==='manage') loadSkinList();
+}
+
+/* ── UPLOAD TAB ── */
+document.getElementById('skin-url').addEventListener('input', updateLivePreview);
+document.getElementById('skin-name').addEventListener('input', ()=>{
+  document.getElementById('live-preview-name').textContent =
+    document.getElementById('skin-name').value.trim() || '스킨 이름';
+});
+document.getElementById('skin-author').addEventListener('input', ()=>{
+  document.getElementById('live-preview-author').textContent =
+    'by '+(document.getElementById('skin-author').value.trim() || '만든사람');
+});
+
+function updateLivePreview(){
+  const url = document.getElementById('skin-url').value.trim();
+  const p = document.getElementById('live-preview');
+  const img = document.getElementById('live-preview-img');
+  if(!url){ p.classList.remove('show'); return; }
+  img.onerror = ()=>p.classList.remove('show');
+  img.onload  = ()=>p.classList.add('show');
+  img.src = url;
+}
+
+function showErr(msg){ const b=document.getElementById('err-box'); b.style.display='block'; b.textContent=msg; }
+function hideErr(){ document.getElementById('err-box').style.display='none'; }
+function setLoading(v){
+  document.getElementById('loading-bar').classList.toggle('show', v);
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=v; btn.textContent=v?'등록 중…':'🚀 스킨 등록하기';
+}
+
+async function submitSkin(){
+  hideErr();
+  const name   = document.getElementById('skin-name').value.trim();
+  const author = document.getElementById('skin-author').value.trim();
+  const url    = document.getElementById('skin-url').value.trim();
+  if(!name)   return showErr('스킨 이름을 입력해주세요.');
+  if(!author) return showErr('만든 사람을 입력해주세요.');
+  if(!url)    return showErr('이미지 URL을 입력해주세요.');
+  if(!url.startsWith('http')) return showErr('올바른 URL 형식이 아닙니다. (https://로 시작)');
+  setLoading(true);
+  try{
+    // 현재 최대 order 값 가져오기
+    const snap = await db.ref('game_skins').once('value');
+    let maxOrder = 0;
+    if(snap.val()){
+      Object.values(snap.val()).forEach(v=>{
+        if(typeof v.order==='number' && v.order > maxOrder) maxOrder = v.order;
+      });
+    }
+    await db.ref('game_skins').push({
+      name, author, imageUrl: url,
+      createdAt: Date.now(), hidden: false, order: maxOrder + 1
+    });
+    setLoading(false);
+    document.getElementById('upload-form-card').style.display='none';
+    document.getElementById('success-card').classList.add('show');
+  } catch(e){ setLoading(false); showErr('등록 실패: '+e.message); }
+}
+
+function resetForm(){
+  ['skin-name','skin-author','skin-url'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('live-preview').classList.remove('show');
+  document.getElementById('live-preview-name').textContent = '스킨 이름';
+  document.getElementById('live-preview-author').textContent = 'by 만든사람';
+  hideErr();
+  document.getElementById('upload-form-card').style.display='block';
+  document.getElementById('success-card').classList.remove('show');
+}
+
+/* ── MANAGE TAB ── */
+let skinList = [];   // [{key, data}]
+let dragSrcIdx = null;
+
+function loadSkinList(){
+  const grid = document.getElementById('skin-grid');
+  grid.innerHTML = '<div class="sk-empty">불러오는 중…</div>';
+  document.getElementById('save-order-btn').classList.remove('show');
+
+  db.ref('game_skins').once('value', snap=>{
+    skinList = [];
+    const d = snap.val();
+    if(d){
+      Object.entries(d).forEach(([key,val])=>{
+        skinList.push({key, data: val});
+      });
+      // order 필드 없는 항목 포함해서 정렬
+      skinList.sort((a,b)=>{
+        const ao = typeof a.data.order==='number' ? a.data.order : 999999;
+        const bo = typeof b.data.order==='number' ? b.data.order : 999999;
+        if(ao !== bo) return ao - bo;
+        return (a.data.createdAt||0) - (b.data.createdAt||0);
+      });
+    }
+    renderGrid();
+  });
+}
+
+function renderGrid(){
+  const grid = document.getElementById('skin-grid');
+  if(!skinList.length){
+    grid.innerHTML='<div class="sk-empty">등록된 스킨이 없습니다.</div>';
+    return;
+  }
+  grid.innerHTML = skinList.map((item, i)=>`
+    <div class="sk-item" draggable="true" data-idx="${i}"
+      ondragstart="onDragStart(event,${i})"
+      ondragover="onDragOver(event,${i})"
+      ondragleave="onDragLeave(event)"
+      ondrop="onDrop(event,${i})"
+      ondragend="onDragEnd(event)">
+      <span class="sk-drag-handle" title="드래그로 순서 변경">⠿</span>
+      <button class="sk-del-btn" onclick="deleteSkin('${item.key}',event)" title="삭제">✕</button>
+      <img src="${esc(item.data.imageUrl||'')}" alt="${esc(item.data.name||'')}"
+           onerror="this.style.opacity='0.15'">
+      <div class="sk-item-name">${esc(item.data.name||'이름없음')}</div>
+      <div class="sk-item-author">by ${esc(item.data.author||'?')}</div>
+      <div class="sk-item-order"># ${i+1}</div>
+    </div>
+  `).join('');
+}
+
+/* drag & drop */
+function onDragStart(e, idx){
+  dragSrcIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(()=>{
+    const el = document.querySelector(`.sk-item[data-idx="${idx}"]`);
+    if(el) el.classList.add('dragging');
+  }, 0);
+}
+function onDragOver(e, idx){
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  if(idx === dragSrcIdx) return;
+  document.querySelectorAll('.sk-item').forEach(el=>el.classList.remove('drag-over'));
+  e.currentTarget.classList.add('drag-over');
+}
+function onDragLeave(e){
+  e.currentTarget.classList.remove('drag-over');
+}
+function onDrop(e, toIdx){
+  e.preventDefault();
+  if(dragSrcIdx === null || dragSrcIdx === toIdx) return;
+  const moved = skinList.splice(dragSrcIdx, 1)[0];
+  skinList.splice(toIdx, 0, moved);
+  document.getElementById('save-order-btn').classList.add('show');
+  renderGrid();
+}
+function onDragEnd(e){
+  document.querySelectorAll('.sk-item').forEach(el=>{
+    el.classList.remove('dragging','drag-over');
+  });
+  dragSrcIdx = null;
+}
+
+/* save order */
+async function saveOrder(){
+  const btn = document.getElementById('save-order-btn');
+  btn.disabled = true; btn.textContent = '저장 중…';
+  try{
+    const updates = {};
+    skinList.forEach((item, i)=>{
+      updates['game_skins/'+item.key+'/order'] = i + 1;
+    });
+    await db.ref().update(updates);
+    btn.disabled = false; btn.textContent = '💾 순서 저장';
+    btn.classList.remove('show');
+    toast('✅ 순서가 저장됐어요!');
+    loadSkinList();
+  } catch(e){
+    btn.disabled = false; btn.textContent = '💾 순서 저장';
+    toast('❌ 저장 실패: '+e.message, 3500);
+  }
+}
+
+/* delete */
+async function deleteSkin(key, e){
+  e.stopPropagation();
+  if(!confirm('이 스킨을 삭제할까요?')) return;
+  try{
+    await db.ref('game_skins/'+key).remove();
+    toast('🗑 스킨이 삭제됐어요.');
+    loadSkinList();
+  } catch(e){ toast('❌ 삭제 실패: '+e.message, 3500); }
+}
+
+// 페이지 로드 시 스킨 목록 미리 로드
+loadSkinList();
+</script>
+</body>
+</html>
