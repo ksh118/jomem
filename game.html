@@ -198,6 +198,31 @@ body.dark .canvas-wrap{background:#06070f;}
 .fb-ok-msg{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;}
 .fb-ok-sub{font-size:12px;color:var(--text3);}
 
+/* ── SKIN MODAL ── */
+#skin-modal{position:fixed;inset:0;z-index:250;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);padding:20px;}
+#skin-modal.show{display:flex;}
+.sk-panel{background:var(--bg);border:1px solid var(--border);border-radius:12px;width:100%;max-width:460px;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 8px 30px rgba(0,0,0,.12);overflow:hidden;}
+.sk-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.sk-title{font-size:14px;font-weight:600;}
+.sk-close{width:26px;height:26px;border:none;background:var(--surface);border-radius:6px;cursor:pointer;font-size:14px;color:var(--text2);display:flex;align-items:center;justify-content:center;}
+.sk-close:hover{background:var(--border);}
+.sk-list{overflow-y:auto;flex:1;padding:14px 14px 8px;}
+.sk-list::-webkit-scrollbar{width:4px;}
+.sk-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.sk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.sk-card{border:2px solid var(--border);border-radius:10px;background:var(--surface);cursor:pointer;overflow:hidden;transition:border-color .15s,transform .1s;display:flex;flex-direction:column;align-items:center;padding:10px 8px 8px;}
+.sk-card:hover{border-color:var(--accent);transform:translateY(-1px);}
+.sk-card.active{border-color:var(--accent);background:#eff6ff;}
+body.dark .sk-card.active{background:#0d1a2e;}
+.sk-card-img{width:56px;height:56px;object-fit:contain;display:block;margin-bottom:6px;}
+.sk-card-name{font-size:11px;font-weight:600;color:var(--text);text-align:center;line-height:1.3;word-break:break-word;}
+.sk-card-author{font-size:10px;color:var(--text3);text-align:center;margin-top:2px;}
+.sk-card-badge{display:inline-block;background:var(--accent);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;margin-bottom:4px;}
+.sk-empty{text-align:center;padding:36px;font-size:13px;color:var(--text3);line-height:1.8;}
+.sk-footer{padding:10px 14px;border-top:1px solid var(--border);background:var(--bg);flex-shrink:0;}
+.sk-apply-btn{display:block;width:100%;padding:9px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;}
+.sk-apply-btn:hover{background:#1a6fc0;}
+
 /* ── NOTICE BANNER ── */
 .notice-banner{
   display:none;
@@ -412,6 +437,7 @@ gap:16px;padding:8px 12px;background:var(--bg);border-top:1px solid var(--border
         <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
           <span id="speed-disp" style="font-family:var(--mono);color:var(--text3);font-size:10px;"></span>
           <button class="feedback-btn" onclick="openFeedback()">💬 버그신고 및 피드백</button>
+          <button class="feedback-btn" onclick="openSkinModal()" style="margin-left:4px;">🎨 스킨 변경</button>
         </div>
       </div>
 
@@ -419,6 +445,22 @@ gap:16px;padding:8px 12px;background:var(--bg);border-top:1px solid var(--border
         <button class="ctrl-btn" id="btn-duck" aria-label="숙이기">↓</button>
         <button class="ctrl-btn" id="btn-jump" aria-label="점프">↑</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- SKIN MODAL -->
+<div id="skin-modal">
+  <div class="sk-panel">
+    <div class="sk-head">
+      <span class="sk-title">🎨 스킨 변경</span>
+      <button class="sk-close" onclick="closeSkinModal()">✕</button>
+    </div>
+    <div class="sk-list">
+      <div class="sk-grid" id="skin-grid"><div class="sk-empty">스킨을 불러오는 중…</div></div>
+    </div>
+    <div class="sk-footer">
+      <button class="sk-apply-btn" onclick="applySkin()">✅ 선택한 스킨 적용하기</button>
     </div>
   </div>
 </div>
@@ -663,10 +705,12 @@ function enterGame(){
   document.getElementById('hud-best').textContent=currentUser.bestScore;
   loadRanking();
   loadNotice();
+  loadSkins();
   initCanvas();
   initGame();
   const guideKey='jogame_guide_done_'+currentUser.nick;
   if(!localStorage.getItem(guideKey))setTimeout(()=>openGuide(false),300);
+  setTimeout(initSkinFromStorage,600);
 }
 
 /* ── NOTICE ── */
@@ -913,6 +957,87 @@ document.getElementById('feedback-modal').addEventListener('click',e=>{if(e.targ
 document.getElementById('fb-text').addEventListener('keydown',e=>e.stopPropagation());
 document.getElementById('fb-text').addEventListener('keyup',e=>e.stopPropagation());
 document.getElementById('fb-text').addEventListener('keypress',e=>e.stopPropagation());
+
+/* ── SKIN ── */
+let skinsData=[];
+let selectedSkinId=null;
+let pendingSkinId=null;
+
+const DEFAULT_SKIN={
+  id:'__default__',
+  name:'조밈 (기본)',
+  author:'관리자',
+  imageUrl:'https://i.ibb.co/VpNG3CG5/5.gif',
+  isDefault:true
+};
+
+function loadSkins(){
+  db.ref('game_skins').on('value',snap=>{
+    skinsData=[DEFAULT_SKIN];
+    const d=snap.val();
+    if(d){
+      const entries=Object.entries(d)
+        .filter(([,val])=>!val.hidden)
+        .map(([key,val])=>({id:key,...val}))
+        .sort((a,b)=>{
+          const ao=typeof a.order==='number'?a.order:999999;
+          const bo=typeof b.order==='number'?b.order:999999;
+          if(ao!==bo)return ao-bo;
+          return (a.createdAt||0)-(b.createdAt||0);
+        });
+      skinsData.push(...entries);
+    }
+  });
+}
+
+function openSkinModal(){
+  const saved=localStorage.getItem('jogame_skin_id')||'__default__';
+  selectedSkinId=saved;
+  pendingSkinId=saved;
+  renderSkins();
+  document.getElementById('skin-modal').classList.add('show');
+}
+function closeSkinModal(){document.getElementById('skin-modal').classList.remove('show');}
+document.getElementById('skin-modal').addEventListener('click',e=>{if(e.target===document.getElementById('skin-modal'))closeSkinModal();});
+
+function renderSkins(){
+  const grid=document.getElementById('skin-grid');
+  if(!skinsData.length){grid.innerHTML='<div class="sk-empty">등록된 스킨이 없습니다.</div>';return;}
+  grid.innerHTML=skinsData.map(sk=>`
+    <div class="sk-card${pendingSkinId===sk.id?' active':''}" onclick="selectSkin('${sk.id}')">
+      ${sk.isDefault?'<span class="sk-card-badge">기본</span>':''}
+      <img class="sk-card-img" src="${esc(sk.imageUrl)}" alt="${esc(sk.name)}" onerror="this.src='https://via.placeholder.com/56'">
+      <div class="sk-card-name">${esc(sk.name)}</div>
+      <div class="sk-card-author">by ${esc(sk.author||'알수없음')}</div>
+    </div>
+  `).join('');
+}
+
+function selectSkin(id){
+  pendingSkinId=id;
+  renderSkins();
+}
+
+function applySkin(){
+  const sk=skinsData.find(s=>s.id===pendingSkinId)||DEFAULT_SKIN;
+  selectedSkinId=pendingSkinId;
+  localStorage.setItem('jogame_skin_id',selectedSkinId);
+  playerImg.src=sk.imageUrl;
+  closeSkinModal();
+}
+
+function initSkinFromStorage(){
+  const saved=localStorage.getItem('jogame_skin_id');
+  if(!saved||saved==='__default__')return;
+  // wait for skins to load then apply
+  const tryApply=()=>{
+    const sk=skinsData.find(s=>s.id===saved);
+    if(sk){playerImg.src=sk.imageUrl;}
+    else if(skinsData.length>1){}
+    else setTimeout(tryApply,200);
+  };
+  setTimeout(tryApply,400);
+}
 
 /* ── IMAGES ── */
 function loadImg(src){const i=new Image();i.src=src;return i;}
