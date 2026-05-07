@@ -1232,15 +1232,18 @@ function resizeCanvas(){
 }
 
 /* ── GAME LOGIC ── */
-const GY=228,GRAV=0.68,JUMP_F=-15,DX=65,DW=60,DH=60;
+const GY=228,GRAV=0.68,JUMP_F=-15,DX=65,DW=60,DH=60,FAST_FALL=2.6;
 let gameRunning=false,gameStarted=false;
 let frame=0,score=0,speed=5,raf,gOff=0;
-let dino={y:GY-DH,vy:0,jumping:false,ducking:false};
+// onGround: 실제 땅에 닿아있는지 (루프에서 매 프레임 갱신)
+let dino={y:GY-DH,vy:0,jumping:false,ducking:false,onGround:true,fastFall:false};
+// 입력 큐: 루프 시작 시 처리 → 프레임 타이밍 어긋남 없음
+let inputQueue=[];
 let obstacles=[],cooldown=85;
 let clouds=[{x:180,y:22,spd:0.55},{x:460,y:38,spd:0.38},{x:680,y:15,spd:0.48}];
 
 function initGame(){reset();document.getElementById('start-ov').classList.add('show');document.getElementById('go-ov').classList.remove('show');drawFrame();}
-function reset(){dino={y:GY-DH,vy:0,jumping:false,ducking:false};obstacles=[];cooldown=85;score=0;frame=0;speed=5;gOff=0;currentScore=0;document.getElementById('hud-score').textContent='0';document.getElementById('speed-disp').textContent='';}
+function reset(){dino={y:GY-DH,vy:0,jumping:false,ducking:false,onGround:true,fastFall:false};inputQueue=[];obstacles=[];cooldown=85;score=0;frame=0;speed=5;gOff=0;currentScore=0;document.getElementById('hud-score').textContent='0';document.getElementById('speed-disp').textContent='';}
 
 let isDark=false;
 function updateThemeIcon(dark){
@@ -1318,12 +1321,43 @@ function hits(o){
 function drawFrame(){ctx.clearRect(0,0,LW,LH);drawBg();drawClouds();drawGround();obstacles.forEach(drawObs);drawDino();}
 
 function loop(){
-  if(!gameRunning)return;frame++;speed=Math.min(5+(frame/300)+Math.pow(frame/1200,2),22);currentScore=score=Math.floor(frame/6);
+  if(!gameRunning)return;
+
+  // ── 입력 큐 처리 (매 프레임 맨 먼저) ──
+  while(inputQueue.length){
+    const cmd=inputQueue.shift();
+    if(cmd==='jump'){
+      if(dino.onGround){
+        dino.vy=JUMP_F;dino.jumping=true;dino.ducking=false;dino.fastFall=false;dino.onGround=false;
+      }
+    } else if(cmd==='duck'){
+      if(dino.onGround){dino.ducking=true;}
+      else{dino.fastFall=true;}  // 공중에서 ↓ → 빠른 낙하
+    } else if(cmd==='unduck'){
+      dino.ducking=false;dino.fastFall=false;
+    }
+  }
+
+  frame++;speed=Math.min(5+(frame/300)+Math.pow(frame/1200,2),22);currentScore=score=Math.floor(frame/6);
   document.getElementById('hud-score').textContent=score;document.getElementById('speed-disp').textContent='x'+speed.toFixed(1);
   if(frame%60===0)updateHudRank(score);gOff=(gOff+speed)%800;
   clouds.forEach(c=>{c.x-=c.spd;if(c.x<-100)c.x=LW+20;});
-  if(!dino.ducking){dino.vy+=GRAV;dino.y+=dino.vy;if(dino.y>=GY-DH){dino.y=GY-DH;dino.vy=0;dino.jumping=false;}}
-  else dino.y=GY-DH*0.62;
+
+  // ── 물리 ──
+  if(dino.ducking && dino.onGround){
+    // 땅에서 숙이기: y 고정
+    dino.y=GY-DH*0.62; dino.vy=0;
+  } else {
+    // 공중 (점프 or 낙하)
+    const grav=dino.fastFall?FAST_FALL:GRAV;
+    dino.vy+=grav; dino.y+=dino.vy;
+    if(dino.y>=GY-DH){
+      dino.y=GY-DH; dino.vy=0; dino.jumping=false; dino.fastFall=false; dino.onGround=true;
+      // 착지 시 ↓ 키가 눌려있으면 즉시 숙이기 적용
+      if(duckHeld) dino.ducking=true;
+    }
+  }
+
   cooldown--;
   if(cooldown<=0){spawnObsGroup();cooldown=Math.max(55,120-Math.floor(speed*5))+Math.floor(Math.random()*60);}
   obstacles=obstacles.filter(o=>o.x>-200);
