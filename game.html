@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>조밈 게임</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+<style>
+/* ───── TOSS DESIGN TOKENS ───── */
+:root {
+  --bg: #F2F4F6;
+  --surface: #FFFFFF;
+  --surface2: #F9FAFB;
+  --border: #E5E8EB;
+  --border2: #D1D6DB;
+  --text: #191F28;
+  --text2: #4E5968;
+  --text3: #8B95A1;
+  --text4: #B0B8C1;
+
+  /* 조밈 대표 블루 (Toss Blue 계열) */
+  --accent: #3182F6;
+  --accent-hover: #1B64DA;
+  --accent-light: #EBF3FE;
+  --accent-glow: rgba(49,130,246,0.18);
+
+  --danger: #F04452;
+  --success: #00B493;
+  --warning: #FF8A00;
+
+  --gold: #F4B429;
+  --silver: #8B95A1;
+  --bronze: #C97A3A;
+
+  --r: 12px;
+  --r-lg: 20px;
+  --r-xl: 24px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.04);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06);
+  --mono: 'Noto Sans KR', sans-serif;
+}
+body.dark {
+  --bg: #0E1117;
+  --surface: #1A1D27;
+  --surface2: #21253A;
+  --border: #2A2D3E;
+  --border2: #353A50;
+  --text: #F2F4F6;
+  --text2: #8B95A1;
+  --text3: #4E5968;
+  --text4: #353A50;
+  --accent: #4D9EFF;
+  --accent-hover: #3182F6;
+  --accent-light: #0D2040;
+  --accent-glow: rgba(77,158,255,0.20);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.5);
+}
+body.dark .notice-banner { background: #1A1400; border-color: #FF8A00; }
+body.dark .notice-banner-label { color: #FFB342; }
+body.dark .notice-banner-title { color: #CC7800; }
+body.dark .notice-panel-head { background: #1A1400; }
+body.dark .notice-panel-head-title { color: #FFB342; }
+body.dark .ri.r1 { background: #1A1500; }
+body.dark .ri.r2 { background: #151515; }
+body.dark .ri.r3 { background: #1A1200; }
+body.dark .ri.me { background: var(--accent-light); }
+body.dark .sk-card.active { background: var(--accent-light); }
+body.dark .canvas-wrap { background: #06070f; }
+
+/* ───── RESET ───── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body {
+  font-family: 'Noto Sans KR', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ───── SCROLLBAR ───── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ───── THEME TOGGLE ───── */
+.theme-btn {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text2);
+  transition: all .2s cubic-bezier(.34,1.56,.64,1);
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+.theme-btn:hover { background: var(--bg); color: var(--text); transform: scale(1.05); }
+.theme-btn:active { transform: scale(.95); }
+
+/* ───── MOBILE WARNING ───── */
+#mobile-warning {
+  display: none; position: fixed; inset: 0;
+  background: var(--bg); z-index: 9999;
+  flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px 24px; gap: 24px;
+}
+#mobile-warning.show { display: flex; }
+.warning-icon { font-size: 64px; animation: float 2.5s ease-in-out infinite; }
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.warning-content { text-align: center; max-width: 320px; }
+.warning-content h1 { font-size: 24px; font-weight: 800; margin-bottom: 10px; color: var(--text); }
+.warning-content p { font-size: 14px; color: var(--text2); line-height: 1.8; margin-bottom: 6px; }
+.warning-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+.warning-btn {
+  padding: 12px 24px; border: none; border-radius: var(--r);
+  font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit;
+  transition: all .2s; letter-spacing: -.3px;
+}
+.warning-btn-rank { background: var(--accent); color: #fff; }
+.warning-btn-rank:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 12px var(--accent-glow); }
+
+/* ───── AUTH SCREEN ───── */
+#auth-screen {
+  position: fixed; inset: 0; overflow-y: auto;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  background: var(--bg);
+}
+.auth-wrap { width: 100%; max-width: 360px; animation: slideUp .4s cubic-bezier(.34,1.56,.64,1); }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.auth-logo { text-align: center; margin-bottom: 32px; }
+.auth-logo img { width: 64px; height: 64px; display: block; margin: 0 auto 14px; object-fit: contain; border-radius: 18px; }
+.auth-logo h1 { font-size: 24px; font-weight: 800; letter-spacing: -1px; }
+.auth-logo p { font-size: 13px; color: var(--text3); margin-top: 4px; }
+
+.auth-card {
+  background: var(--surface);
+  border-radius: var(--r-xl);
+  padding: 28px 24px;
+  box-shadow: var(--shadow-md);
+}
+.card-title { font-size: 18px; font-weight: 800; margin-bottom: 22px; letter-spacing: -.5px; }
+
+.field { margin-bottom: 14px; }
+.field label {
+  display: block; font-size: 12px; font-weight: 600;
+  color: var(--text3); margin-bottom: 7px; letter-spacing: .3px;
+  text-transform: uppercase;
+}
+.field input {
+  width: 100%; padding: 13px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  font-size: 15px; font-family: inherit; color: var(--text);
+  background: var(--bg);
+  outline: none;
+  transition: border-color .2s, box-shadow .2s, background .2s;
+  font-weight: 500;
+}
+.field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+  background: var(--surface);
+}
+.field input::placeholder { color: var(--text4); font-weight: 400; }
+.field-hint { font-size: 11px; color: var(--text4); margin-top: 5px; padding-left: 2px; }
+
+.notice-auth {
+  background: #FFF9F0; border: 1.5px solid #FFD88A;
+  border-radius: var(--r); padding: 10px 13px;
+  font-size: 12px; color: #8B5E00;
+  margin-bottom: 14px; line-height: 1.7;
+}
+body.dark .notice-auth { background: #1A1200; border-color: #B87A00; color: #FFB342; }
+
+.btn-main {
+  display: block; width: 100%; padding: 15px;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: var(--r);
+  font-size: 15px; font-weight: 700; font-family: inherit;
+  cursor: pointer; margin-top: 8px;
+  transition: all .2s cubic-bezier(.34,1.56,.64,1);
+  letter-spacing: -.3px;
+}
+.btn-main:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); }
+.btn-main:active { transform: scale(.98) translateY(0); }
+
+.err {
+  background: #FFF2F3; border: 1.5px solid #FFCDD0;
+  border-radius: var(--r); padding: 10px 13px;
+  font-size: 12px; color: var(--danger);
+  margin-top: 10px; display: none; animation: shake .3s ease;
+}
+body.dark .err { background: #1A0509; border-color: #7A1520; }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.auth-switch {
+  text-align: center; margin-top: 18px;
+  font-size: 13px; color: var(--text3);
+}
+.auth-switch button {
+  background: none; border: none; color: var(--accent);
+  cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600;
+  transition: color .15s;
+}
+.auth-switch button:hover { color: var(--accent-hover); }
+
+/* ───── GAME SCREEN ───── */
+#game-screen { display: none; position: fixed; inset: 0; flex-direction: column; }
+#game-screen.on { display: flex; }
+
+/* ── TOPBAR ── */
+.topbar {
+  height: 52px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 16px; gap: 10px;
+  flex-shrink: 0;
+  background: var(--surface);
+  z-index: 50;
+  box-shadow: 0 1px 0 var(--border);
+}
+.tb-logo {
+  font-size: 16px; font-weight: 900;
+  letter-spacing: -1px; color: var(--text);
+  white-space: nowrap;
+  background: linear-gradient(135deg, var(--accent), #8B5CF6);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.tb-sep { width: 1px; height: 16px; background: var(--border); flex-shrink: 0; }
+.tb-title { font-size: 13px; color: var(--text3); white-space: nowrap; font-weight: 500; }
+.guide-btn {
+  font-size: 12px; color: var(--accent);
+  background: var(--accent-light); border: none;
+  border-radius: 8px; padding: 5px 10px;
+  cursor: pointer; font-family: inherit; font-weight: 700;
+  white-space: nowrap; flex-shrink: 0;
+  transition: all .2s;
+  letter-spacing: -.2px;
+}
+.guide-btn:hover { background: var(--accent); color: #fff; transform: translateY(-1px); }
+.tb-right { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.user-chip {
+  font-size: 12px; font-weight: 700;
+  color: var(--text2); background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 20px; padding: 4px 12px;
+  white-space: nowrap; letter-spacing: -.2px;
+}
+.logout-btn {
+  font-size: 12px; color: var(--text3);
+  background: none; border: none; cursor: pointer; font-family: inherit;
+  padding: 4px 8px; border-radius: 8px;
+  transition: all .15s; font-weight: 500;
+}
+.logout-btn:hover { color: var(--danger); background: #FFF2F3; }
+
+/* ── GAME BODY ── */
+.game-body {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 14px; overflow: hidden; min-height: 0;
+  background: var(--bg); gap: 0;
+}
+#notice-banner-wrap { width: 100%; max-width: 880px; flex-shrink: 0; }
+
+/* ── CANVAS CARD ── */
+.canvas-card {
+  width: 100%; max-width: 880px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+  display: flex; flex-direction: column;
+  background: var(--surface);
+  transition: box-shadow .2s;
+}
+.canvas-card:hover { box-shadow: var(--shadow-lg); }
+
+/* ── HUD ── */
+.hud {
+  display: flex; align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface); gap: 14px; flex-shrink: 0;
+}
+.hstat { display: flex; align-items: center; gap: 6px; }
+.hlabel { font-size: 11px; color: var(--text3); font-weight: 600; white-space: nowrap; letter-spacing: .2px; }
+.hval { font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: -1px; }
+.hval.gold { color: var(--gold); }
+.hval.blue { color: var(--accent); }
+.hsep { width: 1px; height: 14px; background: var(--border); flex-shrink: 0; }
+.hud-right { margin-left: auto; }
+.rank-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 6px 13px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px; background: var(--bg);
+  font-size: 12px; font-weight: 700; color: var(--text2);
+  cursor: pointer; font-family: inherit; white-space: nowrap;
+  transition: all .2s; letter-spacing: -.2px;
+}
+.rank-btn:hover {
+  background: var(--accent); color: #fff; border-color: var(--accent);
+  box-shadow: 0 4px 12px var(--accent-glow); transform: translateY(-1px);
+}
+.rank-btn:active { transform: translateY(0); }
+
+/* ── CANVAS ── */
+.canvas-wrap {
+  position: relative; width: 100%; padding-bottom: 33.75%;
+  background: #87CEEB; overflow: hidden; flex-shrink: 0;
+}
+body.dark .canvas-wrap { background: #06070f; }
+.canvas-wrap canvas { position: absolute; top: 0; left: 0; }
+
+/* ── OVERLAYS ── */
+.overlay {
+  position: absolute; inset: 0;
+  background: rgba(14,17,27,0.88);
+  display: none; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px; z-index: 10;
+  backdrop-filter: blur(2px);
+}
+.overlay.show { display: flex; animation: fadeIn .25s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.ov-tag {
+  font-size: 10px; font-weight: 800;
+  letter-spacing: 4px; color: var(--text3);
+  text-transform: uppercase;
+}
+.ov-score {
+  font-size: 48px; font-weight: 900;
+  color: #fff; letter-spacing: -3px; line-height: 1;
+}
+.ov-sub { font-size: 12px; color: var(--text3); font-weight: 500; }
+.ov-rank { font-size: 13px; font-weight: 700; color: var(--accent); }
+.new-rec-badge {
+  display: none;
+  background: var(--gold); color: #1A1200;
+  border-radius: 8px; padding: 4px 14px;
+  font-size: 11px; font-weight: 800; letter-spacing: 1px;
+  animation: pop .4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes pop {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.ov-btns { display: flex; gap: 8px; margin-top: 4px; }
+.mc-btn {
+  padding: 10px 20px; border-radius: var(--r);
+  font-size: 13px; font-weight: 700; font-family: inherit;
+  cursor: pointer; border: none; letter-spacing: -.2px;
+  transition: all .2s cubic-bezier(.34,1.56,.64,1);
+}
+.mc-btn-p { background: var(--accent); color: #fff; }
+.mc-btn-p:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 6px 16px var(--accent-glow); }
+.mc-btn-p:active { transform: translateY(0); }
+.mc-btn-g { background: rgba(255,255,255,.1); color: #ccc; border: 1px solid rgba(255,255,255,.15); }
+.mc-btn-g:hover { background: rgba(255,255,255,.2); color: #fff; transform: translateY(-2px); }
+
+#start-ov .ov-logo {
+  font-size: 22px; font-weight: 900; color: #fff;
+  letter-spacing: -1.5px;
+}
+#start-ov .ov-dino { width: 52px; height: 52px; object-fit: contain; }
+
+/* ── HINT BAR ── */
+.canvas-hint {
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+  display: flex; justify-content: space-between; align-items: center;
+  flex-shrink: 0;
+}
+.canvas-hint span { font-size: 11px; color: var(--text4); font-weight: 500; }
+.feedback-btn {
+  font-size: 11px; color: var(--text3);
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 4px 10px;
+  cursor: pointer; font-family: inherit; font-weight: 600;
+  white-space: nowrap; flex-shrink: 0;
+  transition: all .15s; letter-spacing: -.2px;
+}
+.feedback-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ── MOBILE CONTROLS ── */
+.mobile-controls {
+  display: none;
+  gap: 16px; padding: 10px 14px;
+  background: var(--surface); border-top: 1px solid var(--border);
+  justify-content: center; flex-shrink: 0;
+}
+.ctrl-btn {
+  width: 76px; height: 56px;
+  border: 2px solid var(--border);
+  border-bottom: 4px solid var(--border2);
+  border-radius: 14px; background: var(--bg);
+  color: var(--text2); font-size: 22px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  user-select: none; -webkit-user-select: none; touch-action: none;
+  transition: all .1s; font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+.ctrl-btn:active { background: var(--border); transform: scale(.95); border-bottom-width: 2px; }
+
+@media (max-width:680px) {
+  .mobile-controls { display: flex; }
+  .kb-hint { display: none; }
+  .game-body { padding: 8px; }
+}
+
+/* ───── NOTICE BANNER ───── */
+.notice-banner {
+  display: none;
+  background: #FFFBF0; border: 1.5px solid #FFD88A;
+  border-radius: var(--r); padding: 10px 14px;
+  margin: 0 0 10px; cursor: pointer;
+  transition: all .2s; box-shadow: var(--shadow-sm);
+}
+.notice-banner:hover { background: #FFF4D0; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.notice-banner.visible { display: block; animation: slideDown .3s ease; }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+.notice-banner-row { display: flex; align-items: center; gap: 8px; }
+.notice-banner-icon { font-size: 17px; flex-shrink: 0; }
+.notice-banner-label { font-size: 13px; font-weight: 700; color: #CC7800; }
+.notice-banner-title { font-size: 12px; color: #8B5E00; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+.notice-n-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--danger); color: #fff;
+  font-size: 10px; font-weight: 800;
+  width: 18px; height: 18px; border-radius: 50%;
+  margin-left: 4px; flex-shrink: 0;
+}
+.notice-n-badge.hidden { display: none; }
+
+/* ───── MODAL BASE ───── */
+.toss-modal {
+  position: fixed; inset: 0; z-index: 200;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.45); backdrop-filter: blur(6px); padding: 20px;
+}
+.toss-modal.show { display: flex; animation: fadeIn .2s ease; }
+.toss-panel {
+  background: var(--surface);
+  border-radius: var(--r-xl);
+  width: 100%; max-width: 420px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: slideUp .3s cubic-bezier(.34,1.56,.64,1);
+}
+.panel-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.panel-title { font-size: 16px; font-weight: 800; letter-spacing: -.5px; }
+.panel-close {
+  width: 30px; height: 30px;
+  border: none; background: var(--bg);
+  border-radius: 8px; cursor: pointer;
+  font-size: 15px; color: var(--text3);
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s; font-weight: 700;
+}
+.panel-close:hover { background: var(--border); color: var(--text); }
+
+/* ───── FEEDBACK MODAL ───── */
+#feedback-modal { z-index: 250; }
+.fb-body { padding: 20px; }
+.fb-main-title { font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 4px; letter-spacing: -.4px; }
+.fb-sub { font-size: 13px; color: var(--text3); margin-bottom: 16px; font-weight: 500; }
+.fb-textarea {
+  width: 100%; height: 110px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border); border-radius: var(--r);
+  font-size: 14px; font-family: inherit; color: var(--text);
+  background: var(--bg);
+  resize: none; outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  line-height: 1.7;
+}
+.fb-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+.fb-submit {
+  display: block; width: 100%; margin-top: 12px; padding: 13px;
+  background: var(--accent); color: #fff; border: none;
+  border-radius: var(--r); font-size: 14px; font-weight: 700;
+  font-family: inherit; cursor: pointer; letter-spacing: -.3px;
+  transition: all .2s;
+}
+.fb-submit:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); }
+.fb-ok { text-align: center; padding: 32px 20px; display: none; }
+.fb-ok-icon { font-size: 44px; margin-bottom: 12px; animation: pop .4s cubic-bezier(.34,1.56,.64,1); }
+.fb-ok-msg { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 4px; letter-spacing: -.5px; }
+.fb-ok-sub { font-size: 13px; color: var(--text3); font-weight: 500; }
+
+/* ───── SKIN MODAL ───── */
+#skin-modal { z-index: 250; }
+.sk-panel { max-height: 82vh; display: flex; flex-direction: column; }
+.sk-list { overflow-y: auto; flex: 1; padding: 16px 16px 8px; }
+.sk-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+.sk-card {
+  border: 2px solid var(--border); border-radius: 14px;
+  background: var(--bg); cursor: pointer; overflow: hidden;
+  transition: all .2s cubic-bezier(.34,1.56,.64,1);
+  display: flex; flex-direction: column; align-items: center;
+  padding: 12px 8px 10px;
+}
+.sk-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.sk-card.active { border-color: var(--accent); background: var(--accent-light); box-shadow: 0 0 0 1px var(--accent); }
+.sk-card-img { width: 56px; height: 56px; object-fit: contain; display: block; margin-bottom: 8px; }
+.sk-card-name { font-size: 11px; font-weight: 700; color: var(--text); text-align: center; line-height: 1.3; word-break: break-word; }
+.sk-card-author { font-size: 10px; color: var(--text4); text-align: center; margin-top: 3px; font-weight: 500; }
+.sk-card-badge {
+  display: inline-block; background: var(--accent); color: #fff;
+  font-size: 9px; font-weight: 800; padding: 2px 6px;
+  border-radius: 4px; margin-bottom: 5px; letter-spacing: .3px;
+}
+.sk-empty { text-align: center; padding: 40px; font-size: 13px; color: var(--text3); line-height: 1.8; font-weight: 500; }
+.sk-footer { padding: 12px 16px; border-top: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+.sk-apply-btn {
+  display: block; width: 100%; padding: 13px;
+  background: var(--accent); color: #fff; border: none;
+  border-radius: var(--r); font-size: 14px; font-weight: 700;
+  font-family: inherit; cursor: pointer; letter-spacing: -.3px;
+  transition: all .2s;
+}
+.sk-apply-btn:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); }
+
+/* ───── NOTICE MODAL ───── */
+#notice-modal { z-index: 280; }
+.notice-panel-head { background: #FFFBF0; }
+body.dark .notice-panel-head { background: #1A1200; }
+.notice-panel-head-title { font-size: 16px; font-weight: 800; color: #CC7800; letter-spacing: -.4px; }
+.notice-panel-body { padding: 20px; }
+.notice-panel-post-title { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 12px; letter-spacing: -.5px; }
+.notice-panel-content { font-size: 14px; color: var(--text2); line-height: 1.9; white-space: pre-wrap; word-break: break-word; font-weight: 500; }
+
+/* ───── RANKING MODAL ───── */
+#rank-modal { z-index: 200; }
+.rank-panel { max-height: 82vh; display: flex; flex-direction: column; }
+.rp-list { overflow-y: auto; flex: 1; }
+.ri {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 20px; border-bottom: 1px solid var(--border);
+  transition: background .15s;
+}
+.ri:last-child { border-bottom: none; }
+.ri:hover { background: var(--bg); }
+.ri.r1 { background: #FFFBF0; }
+.ri.r2 { background: #FAFAFA; }
+.ri.r3 { background: #FFF8F2; }
+.ri.me { background: var(--accent-light); }
+.ri-num { font-size: 11px; color: var(--text3); width: 22px; text-align: center; font-weight: 700; }
+.ri-medal { font-size: 18px; width: 22px; text-align: center; }
+.ri-nick { flex: 1; font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: -.3px; }
+.me-dot { display: inline-block; width: 5px; height: 5px; background: var(--accent); border-radius: 50%; margin-left: 5px; vertical-align: middle; }
+.ri-score { font-size: 13px; font-weight: 800; color: var(--text3); letter-spacing: -1px; }
+.ri.r1 .ri-score { color: var(--gold); }
+.ri.r2 .ri-score { color: var(--silver); }
+.ri.r3 .ri-score { color: var(--bronze); }
+.ri.me .ri-score { color: var(--accent); }
+.rp-empty { text-align: center; padding: 40px; font-size: 14px; color: var(--text3); line-height: 1.9; font-weight: 500; }
+
+/* ───── GUIDE MODAL ───── */
+#guide-modal {
+  position: fixed; inset: 0; z-index: 300;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.6); backdrop-filter: blur(8px); padding: 16px;
+}
+#guide-modal.show { display: flex; animation: fadeIn .2s ease; }
+.gd-panel {
+  background: var(--surface); border-radius: var(--r-xl);
+  width: 100%; max-width: 400px; overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  animation: slideUp .3s cubic-bezier(.34,1.56,.64,1);
+}
+.gd-pages { overflow: hidden; }
+.gd-page {
+  display: none; flex-direction: column;
+  align-items: center; padding: 32px 26px 20px;
+  text-align: center; gap: 14px;
+  min-height: 270px; justify-content: center;
+}
+.gd-page.active { display: flex; animation: fadeIn .25s ease; }
+.gd-page.firework-page { position: relative; overflow: hidden; }
+#firework-canvas { position: absolute; inset: 0; pointer-events: none; }
+.gd-icon { font-size: 48px; line-height: 1; animation: float 2s ease-in-out infinite; }
+.gd-title { font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -.6px; }
+.gd-desc { font-size: 14px; color: var(--text2); line-height: 1.9; font-weight: 500; }
+.gd-key {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 8px; padding: 5px 13px;
+  font-size: 13px; font-weight: 700; color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+.gd-imgs { display: flex; gap: 22px; align-items: flex-end; justify-content: center; }
+.gd-imgs img { object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0,0,0,.15)); }
+.gd-foot {
+  border-top: 1px solid var(--border);
+  padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface2);
+}
+.gd-dots { display: flex; gap: 7px; }
+.gd-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border2); transition: all .25s cubic-bezier(.34,1.56,.64,1); }
+.gd-dot.active { background: var(--accent); transform: scale(1.3); }
+.gd-nav { display: flex; gap: 8px; }
+.gd-btn { padding: 8px 20px; border-radius: var(--r); font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; border: none; transition: all .2s; letter-spacing: -.2px; }
+.gd-btn-next { background: var(--accent); color: #fff; }
+.gd-btn-next:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 12px var(--accent-glow); }
+.gd-btn-prev { background: var(--bg); color: var(--text2); border: 1.5px solid var(--border); }
+.gd-btn-prev:hover { background: var(--border); color: var(--text); }
+.gd-btn-start { background: var(--accent); color: #fff; padding: 11px 28px; font-size: 14px; border-radius: var(--r); }
+.gd-btn-start:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 6px 20px var(--accent-glow); }
+</style>
+</head>
+<body>
+
+<!-- MOBILE WARNING -->
+<div id="mobile-warning">
+  <div class="warning-icon">💻</div>
+  <div class="warning-content">
+    <h1>모바일 미지원</h1>
+    <p>조밈 게임은 데스크탑에서<br>즐길 수 있어요.</p>
+    <p style="font-size:12px;color:var(--text4);margin-top:8px;">PC 브라우저로 접속해주세요</p>
+    <div class="warning-btns">
+      <button class="warning-btn warning-btn-rank" onclick="openMobileRank()">🏆 랭킹 보기</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-wrap">
+    <div class="auth-logo">
+      <img src="https://i.ibb.co/VpNG3CG5/5.gif" alt="조밈 캐릭터">
+      <h1>조밈 게임</h1>
+      <p>랭킹에 이름을 남겨보세요</p>
+    </div>
+    <div class="auth-card" id="signup-card">
+      <div class="card-title">새 계정 만들기</div>
+      <div class="field">
+        <label>닉네임</label>
+        <input type="text" id="reg-nick" placeholder="닉네임을 입력하세요" maxlength="12" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>비밀번호</label>
+        <input type="password" id="reg-pw" placeholder="숫자 2~8자리" maxlength="8" inputmode="numeric" pattern="[0-9]*">
+        <div class="field-hint">숫자만 입력 가능합니다</div>
+      </div>
+      <div class="notice-auth">⚠️ 닉네임은 한 번 설정하면 변경이 불가능합니다.</div>
+      <div class="err" id="reg-err"></div>
+      <button class="btn-main" onclick="doRegister()">계정 만들고 시작하기</button>
+      <div class="auth-switch">이미 계정이 있으신가요? <button onclick="showLogin()">로그인</button></div>
+    </div>
+    <div class="auth-card" id="login-card" style="display:none;">
+      <div class="card-title">로그인</div>
+      <div class="field">
+        <label>닉네임</label>
+        <input type="text" id="log-nick" placeholder="닉네임을 입력하세요" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>비밀번호</label>
+        <input type="password" id="log-pw" placeholder="비밀번호" maxlength="8" inputmode="numeric" pattern="[0-9]*">
+      </div>
+      <div class="err" id="log-err"></div>
+      <button class="btn-main" onclick="doLogin()">로그인</button>
+      <div class="auth-switch">계정이 없으신가요? <button onclick="showSignup()">회원가입</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="game-screen">
+  <div class="topbar">
+    <span class="tb-logo">jomeme</span>
+    <div class="tb-sep"></div>
+    <span class="tb-title">조밈 게임</span>
+    <button class="guide-btn" onclick="openGuide(true)">📖 가이드</button>
+    <div class="tb-right">
+      <button class="theme-btn" id="theme-btn" onclick="toggleDark()" title="다크/라이트 전환">
+        <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <span class="user-chip" id="tb-nick">-</span>
+      <button class="logout-btn" onclick="doLogout()">로그아웃</button>
+    </div>
+  </div>
+
+  <div class="game-body">
+    <div id="notice-banner-wrap">
+      <div id="notice-banner" class="notice-banner" onclick="openNoticeModal()">
+        <div class="notice-banner-row">
+          <span class="notice-banner-icon">📢</span>
+          <span class="notice-banner-label" id="notice-banner-label">안읽은 공지가 있어요!</span>
+          <span class="notice-n-badge" id="notice-n-badge">N</span>
+        </div>
+        <div class="notice-banner-title" id="notice-banner-title"></div>
+      </div>
+    </div>
+
+    <div class="canvas-card">
+      <!-- HUD -->
+      <div class="hud">
+        <div class="hstat">
+          <span class="hlabel">점수</span>
+          <span class="hval" id="hud-score">0</span>
+        </div>
+        <div class="hsep"></div>
+        <div class="hstat">
+          <span class="hlabel">최고기록</span>
+          <span class="hval gold" id="hud-best">0</span>
+        </div>
+        <div class="hsep"></div>
+        <div class="hstat">
+          <span class="hlabel">등수</span>
+          <span class="hval blue" id="hud-rank">—</span>
+        </div>
+        <div class="hud-right">
+          <button class="rank-btn" onclick="openRank()">🏆 랭킹</button>
+        </div>
+      </div>
+
+      <!-- CANVAS -->
+      <div class="canvas-wrap" id="canvas-wrap">
+        <canvas id="game-canvas"></canvas>
+        <div class="overlay show" id="start-ov">
+          <img class="ov-dino" src="https://i.ibb.co/VpNG3CG5/5.gif" alt="">
+          <div class="ov-logo">조밈 게임</div>
+          <div class="ov-btns" style="margin-top:8px;">
+            <button class="mc-btn mc-btn-p" onclick="beginGame()">▶ 시작하기</button>
+            <button class="mc-btn mc-btn-g" onclick="openRank()">🏆 랭킹</button>
+          </div>
+        </div>
+        <div class="overlay" id="go-ov">
+          <div class="ov-tag">GAME OVER</div>
+          <div class="ov-score" id="go-score">0</div>
+          <div class="ov-sub" id="go-best-txt">최고 기록: 0</div>
+          <div class="new-rec-badge" id="new-rec">🏆 NEW RECORD!</div>
+          <div class="ov-rank" id="go-rank-txt">—</div>
+          <div class="ov-btns">
+            <button class="mc-btn mc-btn-p" onclick="restartGame()">다시 시작</button>
+            <button class="mc-btn mc-btn-g" onclick="openRank()">🏆 랭킹</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- HINT BAR -->
+      <div class="canvas-hint">
+        <span class="kb-hint">스페이스 / ↑ 점프 &nbsp;·&nbsp; ↓ 숙이기</span>
+        <div style="display:flex;align-items:center;gap:7px;flex-shrink:0;">
+          <span id="speed-disp" style="color:var(--text4);font-size:11px;font-weight:600;letter-spacing:-0.5px;"></span>
+          <button class="feedback-btn" onclick="openFeedback()">💬 피드백</button>
+          <button class="feedback-btn" onclick="openSkinModal()">🎨 스킨</button>
+          <button class="feedback-btn" onclick="window.open('https://forms.gle/CrfrpsE29yKCuS568','_blank')">✏️ 스킨 신청</button>
+        </div>
+      </div>
+
+      <!-- MOBILE CONTROLS -->
+      <div class="mobile-controls">
+        <button class="ctrl-btn" id="btn-duck" aria-label="숙이기">↓</button>
+        <button class="ctrl-btn" id="btn-jump" aria-label="점프">↑</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SKIN MODAL -->
+<div id="skin-modal" class="toss-modal">
+  <div class="toss-panel sk-panel">
+    <div class="panel-head">
+      <span class="panel-title">🎨 스킨 변경</span>
+      <button class="panel-close" onclick="closeSkinModal()">✕</button>
+    </div>
+    <div class="sk-list">
+      <div class="sk-grid" id="skin-grid"><div class="sk-empty">스킨을 불러오는 중…</div></div>
+    </div>
+    <div class="sk-footer">
+      <button class="sk-apply-btn" onclick="applySkin()">선택한 스킨 적용하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- RANKING MODAL -->
+<div id="rank-modal" class="toss-modal">
+  <div class="toss-panel rank-panel">
+    <div class="panel-head">
+      <span class="panel-title">🏆 TOP 100 랭킹</span>
+      <button class="panel-close" onclick="closeRank()">✕</button>
+    </div>
+    <div class="rp-list" id="rank-list"><div class="rp-empty">로딩 중…</div></div>
+  </div>
+</div>
+
+<!-- GUIDE MODAL -->
+<div id="guide-modal">
+  <div class="gd-panel">
+    <div class="gd-pages">
+      <div class="gd-page active" id="gd-p1">
+        <div class="gd-icon">🎮</div>
+        <div class="gd-title">조밈 게임에 오신 것을 환영합니다!</div>
+        <div class="gd-desc">게임 방법을 설명드릴게요.<br>다음 버튼을 눌러 확인해보세요.</div>
+        <div style="font-size:11px;color:var(--text4);font-weight:600;letter-spacing:.3px;text-transform:uppercase;">게임 가이드</div>
+      </div>
+      <div class="gd-page" id="gd-p2">
+        <div class="gd-icon">⬆️</div>
+        <div class="gd-title">점프</div>
+        <div class="gd-desc">장애물을 넘으려면 점프하세요!<br><br>
+          <span class="gd-key">스페이스</span> &nbsp;또는&nbsp; <span class="gd-key">↑ 위쪽 화살표</span><br><br>
+          <span style="font-size:12px;color:var(--text3);">화면 클릭으로도 가능해요!</span>
+        </div>
+      </div>
+      <div class="gd-page" id="gd-p3">
+        <div class="gd-icon">⬇️</div>
+        <div class="gd-title">숙이기</div>
+        <div class="gd-desc">낮은 장애물을 피하려면 숙이세요!<br><br>
+          <span class="gd-key">↓ 아래쪽 화살표</span><br><br>
+          <span style="font-size:12px;color:var(--text3);">방향키로만 숙일 수 있어요!</span>
+        </div>
+      </div>
+      <div class="gd-page" id="gd-p4">
+        <div class="gd-imgs">
+          <img src="https://i.ibb.co/0y2gkKMz/Begging-Tame-Wolf-removebg-preview-2.png" width="50" height="58" alt="뽀삐">
+          <svg width="40" height="60" viewBox="0 0 40 60">
+            <rect x="12" y="34" width="14" height="26" fill="#9b7b4a"/>
+            <rect x="2" y="6" width="36" height="32" fill="#4a9e2f"/>
+            <rect x="8" y="0" width="24" height="12" fill="#3d8526"/>
+          </svg>
+        </div>
+        <div class="gd-title">지상 장애물</div>
+        <div class="gd-desc">뽀삐와 나무가 달려옵니다.<br><strong>점프(↑)</strong>하여 피하세요!</div>
+      </div>
+      <div class="gd-page" id="gd-p5">
+        <img src="https://i.ibb.co/Q3z3Wn4N/6.gif" width="88" height="66" alt="팬텀" style="object-fit:contain;">
+        <div class="gd-title">팬텀 (새)</div>
+        <div class="gd-desc">하늘을 나는 팬텀도 있어요!<br><strong>점프(↑)</strong>하거나 <strong>숙이기(↓)</strong>로 피하세요!</div>
+      </div>
+      <div class="gd-page" id="gd-p6">
+        <div class="gd-icon" style="font-size:34px;animation:none;">🌙☀️</div>
+        <div class="gd-title">다크 / 라이트 모드</div>
+        <div class="gd-desc" style="margin-bottom:8px;">오른쪽 위 버튼으로 모드를 변경할 수 있어요!</div>
+        <div style="display:flex;align-items:center;gap:12px;background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:12px 20px;margin-bottom:10px;">
+          <span style="font-size:12px;color:var(--text3);font-weight:600;">현재 버튼</span>
+          <div style="width:1px;height:18px;background:var(--border);"></div>
+          <div style="width:36px;height:36px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--text2);">
+            <svg id="gd-preview-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          </div>
+          <button class="gd-btn gd-btn-next" style="margin:0;padding:6px 14px;font-size:12px;" onclick="toggleDark();updateGdPreviewIcon();">전환해보기</button>
+        </div>
+        <div style="font-size:12px;color:var(--text3);text-align:center;line-height:1.8;font-weight:500;">
+          🌙 다크모드 → 배경이 <strong>밤하늘</strong>로 변경<br>
+          ☀️ 라이트모드 → 배경이 <strong>낮 하늘</strong>로 변경
+        </div>
+      </div>
+      <div class="gd-page firework-page" id="gd-p7">
+        <canvas id="firework-canvas"></canvas>
+        <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:16px;">
+          <div class="gd-icon">🎉</div>
+          <div class="gd-title">이제 게임을 시작해보세요!</div>
+          <div class="gd-desc">열심히 달려서 랭킹 1위를 노려보세요! 🏆</div>
+          <button class="gd-btn gd-btn-start" onclick="guideStartGame()">▶ 시작하기</button>
+        </div>
+      </div>
+    </div>
+    <div class="gd-foot">
+      <div class="gd-dots" id="gd-dots"></div>
+      <div class="gd-nav">
+        <button class="gd-btn gd-btn-prev" id="gd-prev" onclick="guidePrev()">이전</button>
+        <button class="gd-btn gd-btn-next" id="gd-next" onclick="guideNext()">다음</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTICE MODAL -->
+<div id="notice-modal" class="toss-modal" style="z-index:280;">
+  <div class="toss-panel">
+    <div class="panel-head notice-panel-head">
+      <span class="panel-title notice-panel-head-title">📢 공지사항</span>
+      <button class="panel-close" onclick="closeNoticeModal()">✕</button>
+    </div>
+    <div class="notice-panel-body">
+      <div class="notice-panel-post-title" id="notice-modal-title"></div>
+      <div class="notice-panel-content" id="notice-modal-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FEEDBACK MODAL -->
+<div id="feedback-modal" class="toss-modal">
+  <div class="toss-panel">
+    <div class="panel-head">
+      <span class="panel-title">💬 피드백</span>
+      <button class="panel-close" onclick="closeFeedback()">✕</button>
+    </div>
+    <div class="fb-body" id="fb-form-area">
+      <div class="fb-main-title">버그 및 피드백을 남겨주세요.</div>
+      <div class="fb-sub">적극 반영할게요 😊</div>
+      <textarea class="fb-textarea" id="fb-text" placeholder="불편한 점이나 제안사항을 자유롭게 적어주세요!"></textarea>
+      <button class="fb-submit" onclick="submitFeedback()">제출하기</button>
+    </div>
+    <div class="fb-ok" id="fb-ok-area">
+      <div class="fb-ok-icon">✅</div>
+      <div class="fb-ok-msg">피드백이 전달됐어요!</div>
+      <div class="fb-ok-sub">소중한 의견 감사합니다 🙏</div>
+    </div>
+  </div>
+</div>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyDIl0-jomcfA8ykz-nYK_rYaLb-IE_yICc",
+  authDomain:"codet-597c7.firebaseapp.com",
+  databaseURL:"https://codet-597c7-default-rtdb.firebaseio.com",
+  projectId:"codet-597c7",
+  storageBucket:"codet-597c7.firebasestorage.app",
+  messagingSenderId:"619578457920",
+  appId:"1:619578457920:web:52d98e7430f9b9820104a5"
+});
+const db=firebase.database();
+let currentUser=null,rankingData=[],currentScore=0;
+
+function isMobile(){return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);}
+function checkMobileAccess(){
+  if(isMobile()){
+    document.getElementById('mobile-warning').classList.add('show');
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('game-screen').style.display='none';
+    loadRankingForMobile();
+  }
+}
+function openMobileRank(){
+  document.getElementById('mobile-warning').classList.remove('show');
+  document.getElementById('rank-modal').classList.add('show');
+}
+function loadRankingForMobile(){
+  db.ref('game_ranking').orderByChild('score').limitToLast(100).on('value',snap=>{
+    rankingData=[];const d=snap.val();
+    if(d){Object.values(d).forEach(v=>rankingData.push(v));rankingData.sort((a,b)=>b.score-a.score);}
+    renderRanking();
+  });
+}
+
+window.addEventListener('DOMContentLoaded',async()=>{
+  applyDarkPref();checkMobileAccess();
+  const saved=localStorage.getItem('jogame_user');
+  if(saved&&!isMobile()){
+    try{
+      const{nick,pw}=JSON.parse(saved);
+      const snap=await db.ref('game_users/'+nick).once('value');
+      if(snap.exists()&&snap.val().pw===pw){currentUser={nick,bestScore:snap.val().bestScore||0};enterGame();return;}
+    }catch(e){}
+    localStorage.removeItem('jogame_user');
+  }
+});
+
+function showErr(id,msg){const el=document.getElementById(id);el.style.display='block';el.textContent=msg;setTimeout(()=>el.style.display='none',4000);}
+function showLogin(){document.getElementById('signup-card').style.display='none';document.getElementById('login-card').style.display='block';}
+function showSignup(){document.getElementById('login-card').style.display='none';document.getElementById('signup-card').style.display='block';}
+
+async function doRegister(){
+  const nick=document.getElementById('reg-nick').value.trim();
+  const pw=document.getElementById('reg-pw').value.trim();
+  if(!nick)return showErr('reg-err','닉네임을 입력해주세요.');
+  if(nick.length>12)return showErr('reg-err','닉네임은 최대 12자입니다.');
+  if(!/^\d+$/.test(pw))return showErr('reg-err','비밀번호는 숫자만 입력 가능합니다.');
+  if(pw.length<2||pw.length>8)return showErr('reg-err','비밀번호는 2~8자리 숫자입니다.');
+  try{
+    const snap=await db.ref('game_users/'+nick).once('value');
+    if(snap.exists())return showErr('reg-err','이미 사용 중인 닉네임입니다.');
+    await db.ref('game_users/'+nick).set({pw,bestScore:0,createdAt:Date.now()});
+    localStorage.setItem('jogame_user',JSON.stringify({nick,pw}));
+    currentUser={nick,bestScore:0};enterGame();
+  }catch(e){showErr('reg-err','오류: '+e.message);}
+}
+async function doLogin(){
+  const nick=document.getElementById('log-nick').value.trim();
+  const pw=document.getElementById('log-pw').value.trim();
+  if(!nick||!pw)return showErr('log-err','닉네임과 비밀번호를 입력해주세요.');
+  try{
+    const snap=await db.ref('game_users/'+nick).once('value');
+    if(!snap.exists())return showErr('log-err','닉네임을 찾을 수 없습니다.');
+    const d=snap.val();
+    if(d.pw!==pw)return showErr('log-err','비밀번호가 틀렸습니다.');
+    localStorage.setItem('jogame_user',JSON.stringify({nick,pw}));
+    currentUser={nick,bestScore:d.bestScore||0};enterGame();
+  }catch(e){showErr('log-err','오류: '+e.message);}
+}
+function doLogout(){
+  localStorage.removeItem('jogame_user');currentUser=null;
+  cancelAnimationFrame(raf);gameRunning=false;gameStarted=false;
+  document.getElementById('game-screen').style.display='none';
+  document.getElementById('game-screen').classList.remove('on');
+  document.getElementById('auth-screen').style.display='flex';
+  showSignup();
+}
+function enterGame(){
+  document.getElementById('auth-screen').style.display='none';
+  const gs=document.getElementById('game-screen');
+  gs.style.display='flex';gs.classList.add('on');
+  document.getElementById('tb-nick').textContent=currentUser.nick;
+  document.getElementById('hud-best').textContent=currentUser.bestScore;
+  loadRanking();loadNotice();loadSkins();initCanvas();initGame();
+  const guideKey='jogame_guide_done_'+currentUser.nick;
+  if(!localStorage.getItem(guideKey))setTimeout(()=>openGuide(false),300);
+  setTimeout(initSkinFromStorage,600);
+}
+
+/* ── NOTICE ── */
+let currentNotice=null;
+function getNoticeReadKey(){if(!currentUser)return null;return 'jogame_notice_read_'+currentUser.nick;}
+function loadNotice(){
+  db.ref('game_notice').on('value',snap=>{
+    const data=snap.val();let notice=null;
+    if(data){const entries=Object.entries(data);for(const[key,val]of entries){if(!val.hidden){notice={...val,key};break;}}}
+    currentNotice=notice;updateNoticeBanner();
+  });
+}
+function updateNoticeBanner(){
+  const banner=document.getElementById('notice-banner');
+  const label=document.getElementById('notice-banner-label');
+  const titleEl=document.getElementById('notice-banner-title');
+  const badge=document.getElementById('notice-n-badge');
+  if(!currentNotice){banner.classList.remove('visible');return;}
+  banner.classList.add('visible');titleEl.textContent=currentNotice.title||'';
+  const readKey=getNoticeReadKey();const readId=readKey?localStorage.getItem(readKey):null;
+  const isRead=readId===currentNotice.key;
+  if(isRead){label.textContent='공지';badge.classList.add('hidden');}
+  else{label.textContent='안읽은 공지가 있어요!';badge.classList.remove('hidden');}
+}
+function openNoticeModal(){
+  if(!currentNotice)return;
+  const readKey=getNoticeReadKey();if(readKey)localStorage.setItem(readKey,currentNotice.key);
+  if(currentUser){db.ref('game_notice/'+currentNotice.key+'/viewers/'+currentUser.nick.replace(/[.#$[\]]/g,'_')).set({nick:currentUser.nick,viewedAt:Date.now()});}
+  document.getElementById('notice-modal-title').textContent=currentNotice.title||'';
+  document.getElementById('notice-modal-content').textContent=currentNotice.content||'';
+  document.getElementById('notice-modal').classList.add('show');
+  updateNoticeBanner();
+}
+function closeNoticeModal(){document.getElementById('notice-modal').classList.remove('show');}
+document.getElementById('notice-modal').addEventListener('click',e=>{if(e.target===document.getElementById('notice-modal'))closeNoticeModal();});
+
+let allUsersData={};
+function loadRanking(){
+  db.ref('game_users').on('value',uSnap=>{
+    allUsersData=uSnap.val()||{};
+    db.ref('game_ranking').orderByChild('score').limitToLast(100).once('value').then(snap=>{
+      rankingData=[];const d=snap.val();
+      if(d){Object.values(d).forEach(v=>{const uInfo=allUsersData[v.nick]||{};rankingData.push({...v,isAdmin:!!uInfo.isAdmin,nick:v.nick});});rankingData.sort((a,b)=>b.score-a.score);}
+      renderRanking();updateHudRank(currentScore);
+    });
+  });
+  db.ref('game_ranking').orderByChild('score').limitToLast(100).on('value',snap=>{
+    rankingData=[];const d=snap.val();
+    if(d){Object.values(d).forEach(v=>{const uInfo=allUsersData[v.nick]||{};rankingData.push({...v,isAdmin:!!uInfo.isAdmin,nick:v.nick});});rankingData.sort((a,b)=>b.score-a.score);}
+    renderRanking();updateHudRank(currentScore);
+  });
+}
+function renderRanking(){
+  const list=document.getElementById('rank-list');
+  if(!rankingData.length){list.innerHTML='<div class="rp-empty">아직 기록이 없어요.<br>첫 번째 주인공이 되세요!</div>';return;}
+  const medals=['🥇','🥈','🥉'],rcs=['r1','r2','r3'];
+  list.innerHTML=rankingData.slice(0,100).map((item,i)=>{
+    const isMe=item.nick===currentUser?.nick,top=i<3;
+    const numHtml=top?`<span class="ri-medal">${medals[i]}</span>`:`<span class="ri-num">${i+1}</span>`;
+    const adminBadge=item.isAdmin?`<span style="display:inline-block;margin-left:5px;background:#6D28D9;color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;letter-spacing:.3px;vertical-align:middle;">관리자</span>`:'';
+    return`<div class="ri ${top?rcs[i]:''} ${isMe?'me':''}">${numHtml}<span class="ri-nick">${esc(item.nick)}${adminBadge}${isMe?'<span class="me-dot"></span>':''}</span><span class="ri-score">${item.score.toLocaleString()}</span></div>`;
+  }).join('');
+}
+function esc(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+function getRankPos(score){let r=1;for(const item of rankingData){if(item.score>score)r++;}return Math.min(r,100);}
+function getEffectiveRankScore(s){const storedBest=getMyStoredBest();const userBest=currentUser?.bestScore||0;return Math.max(s||0,storedBest,userBest);}
+function getMyStoredBest(){if(!currentUser)return 0;const me=rankingData.find(i=>i.nick===currentUser.nick);return me?me.score:0;}
+function updateHudRank(score){const eff=Math.max(score,getMyStoredBest());document.getElementById('hud-rank').textContent=(rankingData.length||score>0)?getRankPos(eff)+'위':'—';}
+async function saveScore(score){
+  if(!currentUser||score<=(currentUser.bestScore||0))return false;
+  currentUser.bestScore=score;
+  await db.ref('game_users/'+currentUser.nick).update({bestScore:score});
+  const key=currentUser.nick.replace(/[.#$[\]]/g,'_');
+  await db.ref('game_ranking/'+key).set({nick:currentUser.nick,score});
+  document.getElementById('hud-best').textContent=score;return true;
+}
+function openRank(){document.getElementById('rank-modal').classList.add('show');}
+function closeRank(){document.getElementById('rank-modal').classList.remove('show');if(isMobile())document.getElementById('mobile-warning').classList.add('show');}
+document.getElementById('rank-modal').addEventListener('click',e=>{if(e.target===document.getElementById('rank-modal'))closeRank();});
+
+/* ── GUIDE ── */
+const GUIDE_TOTAL=7;let guidePage=1,fwRaf=null;
+function openGuide(){guidePage=1;updateGuideUI();document.getElementById('guide-modal').classList.add('show');stopFireworks();}
+function closeGuide(){document.getElementById('guide-modal').classList.remove('show');stopFireworks();}
+function guideNext(){if(guidePage<GUIDE_TOTAL){guidePage++;updateGuideUI();}}
+function guidePrev(){if(guidePage>1){guidePage--;updateGuideUI();}}
+function guideStartGame(){if(currentUser)localStorage.setItem('jogame_guide_done_'+currentUser.nick,'1');closeGuide();beginGame();}
+function updateGuideUI(){
+  for(let i=1;i<=GUIDE_TOTAL;i++){const el=document.getElementById('gd-p'+i);if(el)el.classList.toggle('active',i===guidePage);}
+  const dots=document.getElementById('gd-dots');dots.innerHTML='';
+  for(let i=1;i<=GUIDE_TOTAL;i++){const d=document.createElement('div');d.className='gd-dot'+(i===guidePage?' active':'');dots.appendChild(d);}
+  document.getElementById('gd-prev').style.visibility=guidePage===1?'hidden':'visible';
+  const nb=document.getElementById('gd-next');nb.style.display=guidePage===GUIDE_TOTAL?'none':'';nb.textContent='다음';
+  if(guidePage===GUIDE_TOTAL)startFireworks();else stopFireworks();
+  updateGdPreviewIcon();
+}
+document.getElementById('guide-modal').addEventListener('click',e=>{if(e.target===document.getElementById('guide-modal'))closeGuide();});
+
+/* ── FIREWORKS ── */
+function startFireworks(){
+  const fc=document.getElementById('firework-canvas');
+  const page=document.getElementById('gd-p7');
+  fc.width=page.offsetWidth||400;fc.height=page.offsetHeight||270;
+  const c2=fc.getContext('2d');const parts=[];
+  const colors=['#3182F6','#8B5CF6','#00B493','#F4B429','#F04452','#60A5FA'];
+  function burst(){
+    const x=30+Math.random()*(fc.width-60),y=20+Math.random()*(fc.height*0.55);
+    const col=colors[Math.floor(Math.random()*colors.length)];
+    for(let i=0;i<28;i++){const a=Math.random()*Math.PI*2,sp=1.5+Math.random()*3.5;parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-0.8,alpha:1,col,r:2+Math.random()*2.5});}
+  }
+  let t=0;
+  function loop(){
+    c2.clearRect(0,0,fc.width,fc.height);t++;if(t%34===0)burst();
+    for(let i=parts.length-1;i>=0;i--){
+      const p=parts[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.09;p.alpha-=0.016;
+      if(p.alpha<=0){parts.splice(i,1);continue;}
+      c2.globalAlpha=p.alpha;c2.fillStyle=p.col;c2.beginPath();c2.arc(p.x,p.y,p.r,0,Math.PI*2);c2.fill();
+    }
+    c2.globalAlpha=1;fwRaf=requestAnimationFrame(loop);
+  }
+  burst();burst();loop();
+}
+function stopFireworks(){
+  if(fwRaf){cancelAnimationFrame(fwRaf);fwRaf=null;}
+  const fc=document.getElementById('firework-canvas');
+  if(fc)fc.getContext('2d').clearRect(0,0,fc.width,fc.height);
+}
+
+/* ── FEEDBACK ── */
+function openFeedback(){
+  document.getElementById('fb-text').value='';
+  document.getElementById('fb-form-area').style.display='block';
+  document.getElementById('fb-ok-area').style.display='none';
+  document.getElementById('feedback-modal').classList.add('show');
+  setTimeout(()=>document.getElementById('fb-text').focus(),100);
+}
+function closeFeedback(){document.getElementById('feedback-modal').classList.remove('show');}
+async function submitFeedback(){
+  const text=document.getElementById('fb-text').value.trim();if(!text)return;
+  try{
+    await db.ref('game_feedback').push({nick:currentUser?.nick||'(알수없음)',text,createdAt:Date.now()});
+    document.getElementById('fb-form-area').style.display='none';
+    document.getElementById('fb-ok-area').style.display='block';
+    setTimeout(closeFeedback,2000);
+  }catch(e){alert('전송 실패: '+e.message);}
+}
+document.getElementById('feedback-modal').addEventListener('click',e=>{if(e.target===document.getElementById('feedback-modal'))closeFeedback();});
+document.getElementById('fb-text').addEventListener('keydown',e=>e.stopPropagation());
+document.getElementById('fb-text').addEventListener('keyup',e=>e.stopPropagation());
+document.getElementById('fb-text').addEventListener('keypress',e=>e.stopPropagation());
+
+/* ── SKIN ── */
+let skinsData=[],selectedSkinId=null,pendingSkinId=null;
+const DEFAULT_SKIN={id:'__default__',name:'조밈 (기본)',author:'관리자',imageUrl:'https://i.ibb.co/VpNG3CG5/5.gif',isDefault:true};
+function loadSkins(){
+  db.ref('game_skins').on('value',snap=>{
+    skinsData=[DEFAULT_SKIN];const d=snap.val();
+    if(d){const entries=Object.entries(d).filter(([,val])=>!val.hidden).map(([key,val])=>({id:key,...val})).sort((a,b)=>{const ao=typeof a.order==='number'?a.order:999999;const bo=typeof b.order==='number'?b.order:999999;if(ao!==bo)return ao-bo;return(a.createdAt||0)-(b.createdAt||0);});skinsData.push(...entries);}
+  });
+}
+function openSkinModal(){const saved=localStorage.getItem('jogame_skin_id')||'__default__';selectedSkinId=saved;pendingSkinId=saved;renderSkins();document.getElementById('skin-modal').classList.add('show');}
+function closeSkinModal(){document.getElementById('skin-modal').classList.remove('show');}
+document.getElementById('skin-modal').addEventListener('click',e=>{if(e.target===document.getElementById('skin-modal'))closeSkinModal();});
+function renderSkins(){
+  const grid=document.getElementById('skin-grid');
+  if(!skinsData.length){grid.innerHTML='<div class="sk-empty">등록된 스킨이 없습니다.</div>';return;}
+  grid.innerHTML=skinsData.map(sk=>`<div class="sk-card${pendingSkinId===sk.id?' active':''}" onclick="selectSkin('${sk.id}')">${sk.isDefault?'<span class="sk-card-badge">기본</span>':''}<img class="sk-card-img" src="${esc(sk.imageUrl)}" alt="${esc(sk.name)}" onerror="this.src='https://via.placeholder.com/56'"><div class="sk-card-name">${esc(sk.name)}</div><div class="sk-card-author">by ${esc(sk.author||'알수없음')}</div></div>`).join('');
+}
+function selectSkin(id){pendingSkinId=id;renderSkins();}
+function applySkin(){const sk=skinsData.find(s=>s.id===pendingSkinId)||DEFAULT_SKIN;selectedSkinId=pendingSkinId;localStorage.setItem('jogame_skin_id',selectedSkinId);playerImg.src=sk.imageUrl;closeSkinModal();}
+function initSkinFromStorage(){
+  const saved=localStorage.getItem('jogame_skin_id');if(!saved||saved==='__default__')return;
+  const tryApply=()=>{const sk=skinsData.find(s=>s.id===saved);if(sk){playerImg.src=sk.imageUrl;}else if(skinsData.length>1){}else setTimeout(tryApply,200);};
+  setTimeout(tryApply,400);
+}
+
+/* ── IMAGES ── */
+function loadImg(src){const i=new Image();i.src=src;return i;}
+const playerImg=loadImg('https://i.ibb.co/VpNG3CG5/5.gif');
+const cactusImg=loadImg('https://i.ibb.co/0y2gkKMz/Begging-Tame-Wolf-removebg-preview-2.png');
+const birdImg=loadImg('https://i.ibb.co/Q3z3Wn4N/6.gif');
+
+/* ── CANVAS ── */
+const canvas=document.getElementById('game-canvas');
+const ctx=canvas.getContext('2d');
+const LW=800,LH=270;
+let dpr=1;
+function initCanvas(){
+  resizeCanvas();
+  if(window.ResizeObserver){new ResizeObserver(resizeCanvas).observe(document.getElementById('canvas-wrap'));}
+  else{window.addEventListener('resize',resizeCanvas);}
+}
+function resizeCanvas(){
+  const wrap=document.getElementById('canvas-wrap');const ww=wrap.clientWidth;const wh=wrap.clientHeight;
+  if(!ww||!wh)return;
+  dpr=Math.min(window.devicePixelRatio||1,2);
+  canvas.width=Math.round(ww*dpr);canvas.height=Math.round(wh*dpr);
+  canvas.style.width=ww+'px';canvas.style.height=wh+'px';
+  ctx.setTransform((ww/LW)*dpr,0,0,(wh/LH)*dpr,0,0);
+  if(!gameRunning)drawFrame();
+}
+
+/* ── GAME LOGIC ── */
+const GY=228,GRAV=0.68,JUMP_F=-15,DX=65,DW=60,DH=60;
+let gameRunning=false,gameStarted=false;
+let frame=0,score=0,speed=5,raf,gOff=0;
+let dino={y:GY-DH,vy:0,jumping:false,ducking:false};
+let obstacles=[],cooldown=85;
+let clouds=[{x:180,y:22,spd:0.55},{x:460,y:38,spd:0.38},{x:680,y:15,spd:0.48}];
+
+function initGame(){reset();document.getElementById('start-ov').classList.add('show');document.getElementById('go-ov').classList.remove('show');drawFrame();}
+function reset(){dino={y:GY-DH,vy:0,jumping:false,ducking:false};obstacles=[];cooldown=85;score=0;frame=0;speed=5;gOff=0;currentScore=0;document.getElementById('hud-score').textContent='0';document.getElementById('speed-disp').textContent='';}
+
+let isDark=false;
+function updateThemeIcon(dark){
+  const icon=document.getElementById('themeIcon');if(!icon)return;
+  if(dark){icon.innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';}
+  else{icon.innerHTML='<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';}
+}
+function updateGdPreviewIcon(){
+  const el=document.getElementById('gd-preview-icon');if(!el)return;
+  if(isDark){el.innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';}
+  else{el.innerHTML='<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';}
+}
+function toggleDark(){isDark=!isDark;document.body.classList.toggle('dark',isDark);if(isDark){localStorage.setItem('jogame_dark','1');}else{localStorage.removeItem('jogame_dark');}updateThemeIcon(isDark);}
+function applyDarkPref(){const saved=localStorage.getItem('jogame_dark');if(saved==='1'){isDark=true;document.body.classList.add('dark');updateThemeIcon(true);}}
+
+function drawBg(){
+  if(isDark){
+    const g=ctx.createLinearGradient(0,0,0,GY);g.addColorStop(0,'#06070f');g.addColorStop(0.5,'#0d1433');g.addColorStop(1,'#1a1f4a');ctx.fillStyle=g;ctx.fillRect(0,0,LW,GY);
+    const starPositions=[[40,12,1.2],[90,28,0.8],[150,8,1.5],[200,35,0.9],[260,14,1.1],[320,22,0.7],[380,10,1.3],[430,30,1.0],[490,18,0.8],[550,8,1.4],[600,25,0.9],[650,12,1.2],[700,32,0.7],[740,8,1.1],[780,20,0.9],[70,45,0.6],[130,50,1.0],[200,55,0.7],[280,42,1.1],[360,48,0.8],[450,50,1.2],[530,38,0.6],[620,52,0.9],[710,44,1.0],[770,50,0.7],[30,35,0.5],[110,18,0.8],[190,25,0.6],[350,30,0.7],[500,28,0.8]];
+    const t=Date.now()/1200;
+    starPositions.forEach(([sx,sy,sr],i)=>{const twinkle=0.5+0.5*Math.sin(t+i*1.3);ctx.globalAlpha=0.4+0.6*twinkle;ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);ctx.fill();});
+    ctx.globalAlpha=1;
+    ctx.fillStyle='#f5e8b0';ctx.shadowColor='#ffe87c';ctx.shadowBlur=14;ctx.beginPath();ctx.arc(726,24,16,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#dfd4a0';ctx.shadowBlur=0;ctx.beginPath();ctx.arc(720,18,4,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(730,28,3,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+  }else{
+    const g=ctx.createLinearGradient(0,0,0,GY);g.addColorStop(0,'#5bc8f5');g.addColorStop(0.65,'#87CEEB');g.addColorStop(1,'#b0e0f7');ctx.fillStyle=g;ctx.fillRect(0,0,LW,GY);
+    ctx.fillStyle='#fff9a0';ctx.shadowColor='#ffe87c';ctx.shadowBlur=18;ctx.fillRect(720,18,34,34);ctx.shadowBlur=0;
+    ctx.fillStyle='#ffe87c';ctx.fillRect(733,10,8,6);ctx.fillRect(733,48,8,6);ctx.fillRect(712,26,6,8);ctx.fillRect(750,26,6,8);
+  }
+}
+function drawGround(){
+  const bw=16;const g1=isDark?'#1a3a20':'#5a9e38';const g2=isDark?'#142e18':'#4d8c2f';const g3=isDark?'#24522a':'#78c44a';const d1=isDark?'#3d2c1a':'#9b6b3a';const d2=isDark?'#2e2010':'#8B5E32';
+  for(let x=0;x<LW;x+=bw){ctx.fillStyle=(Math.floor((x+gOff)/bw)%2===0)?g1:g2;ctx.fillRect(x,GY,bw,8);}
+  ctx.fillStyle=g3;for(let x=0;x<LW;x+=bw)ctx.fillRect(x+1,GY,bw-2,3);
+  for(let row=0;row<3;row++){const dy=GY+8+row*11;for(let x=0;x<LW;x+=bw){ctx.fillStyle=((Math.floor((x+gOff)/bw)+row)%2===0)?d1:d2;ctx.fillRect(x,dy,bw,11);ctx.strokeStyle='rgba(0,0,0,0.12)';ctx.lineWidth=0.5;ctx.strokeRect(x,dy,bw,11);}}
+}
+function drawClouds(){
+  const bw=16;const sh=[[1,0],[2,0],[3,0],[0,1],[1,1],[2,1],[3,1],[4,1],[0,2],[1,2],[2,2],[3,2],[4,2]];
+  clouds.forEach(c=>{ctx.fillStyle=isDark?'#1e2a5080':'#ffffffd0';sh.forEach(([bx,by])=>ctx.fillRect(c.x+bx*bw,c.y+by*(bw*0.6),bw,bw*0.6));});
+}
+function drawDino(){
+  const dh=dino.ducking?DH*0.62:DH,dw=dino.ducking?DW*1.3:DW;const dy=dino.ducking?GY-dh:dino.y;
+  if(playerImg.complete&&playerImg.naturalWidth>0)ctx.drawImage(playerImg,DX,dy,dw,dh);
+  else{ctx.fillStyle='#8B6340';ctx.fillRect(DX,dy,dw,dh);}
+}
+function makeCactus(x,v){const s={sm:{w:36,h:46},md:{w:44,h:58},lg:{w:52,h:68}}[v]||{w:44,h:58};return{type:'cactus',x,w:s.w,h:s.h};}
+function makeTree(x){return{type:'tree',x,w:16,trunkH:28+Math.floor(Math.random()*16),leafW:40,leafH:32};}
+function makeBird(x){const ys=[GY-90,GY-110,GY-130];return{type:'bird',x,w:86,h:64,y:ys[Math.floor(Math.random()*ys.length)]};}
+function spawnObsGroup(){
+  if(speed>7&&Math.random()<0.22){obstacles.push(makeBird(LW+20));return;}
+  const roll=Math.random();
+  if(roll<0.25){obstacles.push(makeCactus(LW+20,Math.random()<0.5?'sm':'md'));}
+  else if(roll<0.42){obstacles.push(makeTree(LW+20));}
+  else if(roll<0.60){const o1=makeCactus(LW+20,'sm');const gap=20+Math.floor(Math.random()*12);obstacles.push(o1,makeCactus(LW+20+o1.w+gap,Math.random()<0.6?'sm':'md'));}
+  else if(roll<0.76){const tree=makeTree(LW+20);const gap=22+Math.floor(Math.random()*14);obstacles.push(tree,makeCactus(LW+20+tree.w+gap,'sm'));}
+  else if(roll<0.88){const c=makeCactus(LW+20,'sm');obstacles.push(c,makeBird(LW+20+c.w+110+Math.floor(Math.random()*50)));}
+  else{obstacles.push(makeCactus(LW+20,Math.random()<0.5?'md':'lg'));}
+}
+function drawObs(o){
+  if(o.type==='cactus'){const oy=GY-o.h;if(cactusImg.complete&&cactusImg.naturalWidth>0)ctx.drawImage(cactusImg,o.x,oy,o.w,o.h);else{ctx.fillStyle='#4a9e2f';ctx.fillRect(o.x,oy,o.w,o.h);}}
+  else if(o.type==='tree'){const tx=o.x,ty=GY-o.trunkH,bw=16;for(let row=0;row<Math.ceil(o.trunkH/bw);row++){const by=ty+row*bw;ctx.fillStyle=(row%2===0)?'#9b7b4a':'#8a6b3a';ctx.fillRect(tx,by,bw,Math.min(bw,GY-by));ctx.strokeStyle='rgba(0,0,0,0.15)';ctx.lineWidth=0.5;ctx.strokeRect(tx,by,bw,Math.min(bw,GY-by));}const lx=tx-(o.leafW-bw)/2,ly=ty-o.leafH+8;[[0,1],[1,1],[2,1],[0,0],[1,0],[2,0],[0,2],[1,2],[2,2]].forEach(([bx,by])=>{ctx.fillStyle=(bx+by)%2===0?'#4a9e2f':'#3d8526';ctx.fillRect(lx+bx*(o.leafW/3),ly+by*(o.leafH/3),o.leafW/3,o.leafH/3);});}
+  else if(o.type==='bird'){if(birdImg.complete&&birdImg.naturalWidth>0)ctx.drawImage(birdImg,o.x,o.y,o.w,o.h);else{ctx.fillStyle='#e87d2a';ctx.fillRect(o.x,o.y,o.w,30);}}
+}
+function getHitbox(o){
+  if(o.type==='cactus')return{x:o.x+7,y:GY-o.h+7,w:o.w-14,h:o.h-10};
+  if(o.type==='tree'){const lx=o.x-(o.leafW-16)/2,ly=GY-o.trunkH-o.leafH+8;return{x:lx+5,y:ly,w:o.leafW-10,h:o.trunkH+o.leafH-10};}
+  if(o.type==='bird')return{x:o.x+18,y:o.y+16,w:o.w-36,h:o.h-28};
+  return{x:o.x,y:0,w:0,h:0};
+}
+function hits(o){
+  const dh=dino.ducking?DH*0.62:DH,dw=dino.ducking?DW*1.3:DW;const dy=dino.ducking?GY-dh:dino.y;
+  const dr={x:DX+8,y:dy+8,w:dw-16,h:dh-12};const or=getHitbox(o);
+  return!(dr.x+dr.w<or.x||dr.x>or.x+or.w||dr.y+dr.h<or.y||dr.y>or.y+or.h);
+}
+function drawFrame(){ctx.clearRect(0,0,LW,LH);drawBg();drawClouds();drawGround();obstacles.forEach(drawObs);drawDino();}
+
+function loop(){
+  if(!gameRunning)return;frame++;speed=Math.min(5+(frame/300)+Math.pow(frame/1200,2),22);currentScore=score=Math.floor(frame/6);
+  document.getElementById('hud-score').textContent=score;document.getElementById('speed-disp').textContent='x'+speed.toFixed(1);
+  if(frame%60===0)updateHudRank(score);gOff=(gOff+speed)%800;
+  clouds.forEach(c=>{c.x-=c.spd;if(c.x<-100)c.x=LW+20;});
+  if(!dino.ducking){dino.vy+=GRAV;dino.y+=dino.vy;if(dino.y>=GY-DH){dino.y=GY-DH;dino.vy=0;dino.jumping=false;}}
+  else dino.y=GY-DH*0.62;
+  cooldown--;
+  if(cooldown<=0){spawnObsGroup();cooldown=Math.max(55,120-Math.floor(speed*5))+Math.floor(Math.random()*60);}
+  obstacles=obstacles.filter(o=>o.x>-200);
+  for(const o of obstacles){o.x-=(o.type==='bird'?speed*0.95:speed);if(hits(o)){gameOver();return;}}
+  drawFrame();raf=requestAnimationFrame(loop);
+}
+
+async function gameOver(){
+  gameRunning=false;cancelAnimationFrame(raf);const isNew=await saveScore(score);
+  await new Promise(r=>setTimeout(r,500));
+  const effScore=getEffectiveRankScore(score);const rank=getRankPos(effScore);
+  document.getElementById('go-score').textContent=score.toLocaleString();
+  document.getElementById('go-best-txt').textContent='최고 기록: '+(currentUser?.bestScore||score);
+  document.getElementById('go-rank-txt').textContent='현재 등수 '+rank+'위';
+  document.getElementById('new-rec').style.display=isNew?'block':'none';
+  document.getElementById('go-ov').classList.add('show');
+}
+function beginGame(){document.getElementById('start-ov').classList.remove('show');gameStarted=true;gameRunning=true;reset();raf=requestAnimationFrame(loop);}
+function restartGame(){cancelAnimationFrame(raf);document.getElementById('go-ov').classList.remove('show');reset();gameRunning=true;raf=requestAnimationFrame(loop);}
+
+function jump(){if(!gameStarted||!gameRunning)return;if(!dino.jumping){dino.vy=JUMP_F;dino.jumping=true;dino.ducking=false;}}
+function startDuck(){if(gameRunning&&!dino.jumping)dino.ducking=true;}
+function stopDuck(){dino.ducking=false;}
+
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();if(!gameStarted){beginGame();return;}jump();}
+  if(e.code==='ArrowDown'){e.preventDefault();startDuck();}
+});
+document.addEventListener('keyup',e=>{if(e.code==='ArrowDown')stopDuck();});
+canvas.addEventListener('touchstart',e=>{e.preventDefault();if(!gameStarted){beginGame();return;}jump();},{passive:false});
+canvas.addEventListener('click',()=>{if(!gameStarted){beginGame();return;}jump();});
+const btnJump=document.getElementById('btn-jump');const btnDuck=document.getElementById('btn-duck');
+btnJump.addEventListener('touchstart',e=>{e.preventDefault();if(!gameStarted){beginGame();return;}jump();},{passive:false});
+btnJump.addEventListener('click',()=>{if(!gameStarted){beginGame();return;}jump();});
+btnDuck.addEventListener('touchstart',e=>{e.preventDefault();startDuck();},{passive:false});
+btnDuck.addEventListener('touchend',e=>{e.preventDefault();stopDuck();},{passive:false});
+btnDuck.addEventListener('mousedown',startDuck);btnDuck.addEventListener('mouseup',stopDuck);btnDuck.addEventListener('mouseleave',stopDuck);
+</script>
+</body>
+</html>
