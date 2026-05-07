@@ -98,12 +98,12 @@ body {
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   color: var(--text2);
-  transition: all .2s cubic-bezier(.34,1.56,.64,1);
+  transition: background .15s, color .15s;
   flex-shrink: 0;
   box-shadow: var(--shadow-sm);
 }
-.theme-btn:hover { background: var(--bg); color: var(--text); transform: scale(1.05); }
-.theme-btn:active { transform: scale(.95); }
+.theme-btn:hover { background: var(--bg); color: var(--text); }
+.theme-btn:active { opacity: .8; }
 
 /* ───── MOBILE WARNING ───── */
 #mobile-warning {
@@ -193,11 +193,11 @@ body.dark .notice-auth { background: #1A1200; border-color: #B87A00; color: #FFB
   border: none; border-radius: var(--r);
   font-size: 15px; font-weight: 700; font-family: inherit;
   cursor: pointer; margin-top: 8px;
-  transition: all .2s cubic-bezier(.34,1.56,.64,1);
+  transition: background .15s, box-shadow .15s;
   letter-spacing: -.3px;
 }
-.btn-main:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); }
-.btn-main:active { transform: scale(.98) translateY(0); }
+.btn-main:hover { background: var(--accent-hover); box-shadow: 0 4px 14px var(--accent-glow); }
+.btn-main:active { background: var(--accent-hover); transform: none; }
 
 .err {
   background: #FFF2F3; border: 1.5px solid #FFCDD0;
@@ -239,10 +239,9 @@ body.dark .err { background: #1A0509; border-color: #7A1520; }
 }
 .tb-logo {
   font-size: 16px; font-weight: 900;
-  letter-spacing: -1px; color: var(--text);
+  letter-spacing: -1px;
+  color: var(--accent);
   white-space: nowrap;
-  background: linear-gradient(135deg, var(--accent), #8B5CF6);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
 .tb-sep { width: 1px; height: 16px; background: var(--border); flex-shrink: 0; }
 .tb-title { font-size: 13px; color: var(--text3); white-space: nowrap; font-weight: 500; }
@@ -255,7 +254,7 @@ body.dark .err { background: #1A0509; border-color: #7A1520; }
   transition: all .2s;
   letter-spacing: -.2px;
 }
-.guide-btn:hover { background: var(--accent); color: #fff; transform: translateY(-1px); }
+.guide-btn:hover { background: var(--accent); color: #fff; }
 .tb-right { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .user-chip {
   font-size: 12px; font-weight: 700;
@@ -319,9 +318,9 @@ body.dark .err { background: #1A0509; border-color: #7A1520; }
 }
 .rank-btn:hover {
   background: var(--accent); color: #fff; border-color: var(--accent);
-  box-shadow: 0 4px 12px var(--accent-glow); transform: translateY(-1px);
+  box-shadow: 0 2px 8px var(--accent-glow);
 }
-.rank-btn:active { transform: translateY(0); }
+.rank-btn:active { transform: none; }
 
 /* ── CANVAS ── */
 .canvas-wrap {
@@ -373,10 +372,10 @@ body.dark .canvas-wrap { background: #06070f; }
   transition: all .2s cubic-bezier(.34,1.56,.64,1);
 }
 .mc-btn-p { background: var(--accent); color: #fff; }
-.mc-btn-p:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 6px 16px var(--accent-glow); }
-.mc-btn-p:active { transform: translateY(0); }
+.mc-btn-p:hover { background: var(--accent-hover); box-shadow: 0 4px 12px var(--accent-glow); }
+.mc-btn-p:active { opacity: .9; }
 .mc-btn-g { background: rgba(255,255,255,.1); color: #ccc; border: 1px solid rgba(255,255,255,.15); }
-.mc-btn-g:hover { background: rgba(255,255,255,.2); color: #fff; transform: translateY(-2px); }
+.mc-btn-g:hover { background: rgba(255,255,255,.2); color: #fff; }
 
 #start-ov .ov-logo {
   font-size: 22px; font-weight: 900; color: #fff;
@@ -508,7 +507,7 @@ body.dark .canvas-wrap { background: #06070f; }
   font-family: inherit; cursor: pointer; letter-spacing: -.3px;
   transition: all .2s;
 }
-.fb-submit:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); }
+.fb-submit:hover { background: var(--accent-hover); box-shadow: 0 4px 14px var(--accent-glow); }
 .fb-ok { text-align: center; padding: 32px 20px; display: none; }
 .fb-ok-icon { font-size: 44px; margin-bottom: 12px; animation: pop .4s cubic-bezier(.34,1.56,.64,1); }
 .fb-ok-msg { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 4px; letter-spacing: -.5px; }
@@ -526,7 +525,7 @@ body.dark .canvas-wrap { background: #06070f; }
   display: flex; flex-direction: column; align-items: center;
   padding: 12px 8px 10px;
 }
-.sk-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.sk-card:hover { border-color: var(--accent); box-shadow: var(--shadow-md); }
 .sk-card.active { border-color: var(--accent); background: var(--accent-light); box-shadow: 0 0 0 1px var(--accent); }
 .sk-card-img { width: 56px; height: 56px; object-fit: contain; display: block; margin-bottom: 8px; }
 .sk-card-name { font-size: 11px; font-weight: 700; color: var(--text); text-align: center; line-height: 1.3; word-break: break-word; }
@@ -545,7 +544,7 @@ body.dark .canvas-wrap { background: #06070f; }
   font-family: inherit; cursor: pointer; letter-spacing: -.3px;
   transition: all .2s;
 }
-.sk-apply-btn:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); }
+.sk-apply-btn:hover { background: var(--accent-hover); box-shadow: 0 4px 14px var(--accent-glow); }
 
 /* ───── NOTICE MODAL ───── */
 #notice-modal { z-index: 280; }
@@ -629,11 +628,11 @@ body.dark .notice-panel-head { background: #1A1200; }
 .gd-nav { display: flex; gap: 8px; }
 .gd-btn { padding: 8px 20px; border-radius: var(--r); font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; border: none; transition: all .2s; letter-spacing: -.2px; }
 .gd-btn-next { background: var(--accent); color: #fff; }
-.gd-btn-next:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 12px var(--accent-glow); }
+.gd-btn-next:hover { background: var(--accent-hover); box-shadow: 0 2px 8px var(--accent-glow); }
 .gd-btn-prev { background: var(--bg); color: var(--text2); border: 1.5px solid var(--border); }
 .gd-btn-prev:hover { background: var(--border); color: var(--text); }
 .gd-btn-start { background: var(--accent); color: #fff; padding: 11px 28px; font-size: 14px; border-radius: var(--r); }
-.gd-btn-start:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 6px 20px var(--accent-glow); }
+.gd-btn-start:hover { background: var(--accent-hover); box-shadow: 0 4px 14px var(--accent-glow); }
 </style>
 </head>
 <body>
@@ -835,10 +834,11 @@ body.dark .notice-panel-head { background: #1A1200; }
       </div>
       <div class="gd-page" id="gd-p3">
         <div class="gd-icon">⬇️</div>
-        <div class="gd-title">숙이기</div>
+        <div class="gd-title">숙이기 &amp; 빠른 낙하</div>
         <div class="gd-desc">낮은 장애물을 피하려면 숙이세요!<br><br>
           <span class="gd-key">↓ 아래쪽 화살표</span><br><br>
-          <span style="font-size:12px;color:var(--text3);">방향키로만 숙일 수 있어요!</span>
+          <span style="font-size:13px;color:var(--text2);font-weight:600;">💡 점프 중에 ↓ 누르면?</span><br>
+          <span style="font-size:12px;color:var(--text3);">빠르게 내려와서 착지해요!</span>
         </div>
       </div>
       <div class="gd-page" id="gd-p4">
@@ -1232,18 +1232,15 @@ function resizeCanvas(){
 }
 
 /* ── GAME LOGIC ── */
-const GY=228,GRAV=0.68,JUMP_F=-15,DX=65,DW=60,DH=60,FAST_FALL=2.6;
+const GY=228,GRAV=0.68,JUMP_F=-15,DX=65,DW=60,DH=60,FAST_FALL_GRAV=2.8;
 let gameRunning=false,gameStarted=false;
 let frame=0,score=0,speed=5,raf,gOff=0;
-// onGround: 실제 땅에 닿아있는지 (루프에서 매 프레임 갱신)
-let dino={y:GY-DH,vy:0,jumping:false,ducking:false,onGround:true,fastFall:false};
-// 입력 큐: 루프 시작 시 처리 → 프레임 타이밍 어긋남 없음
-let inputQueue=[];
+let dino={y:GY-DH,vy:0,jumping:false,ducking:false,fastFall:false};
 let obstacles=[],cooldown=85;
 let clouds=[{x:180,y:22,spd:0.55},{x:460,y:38,spd:0.38},{x:680,y:15,spd:0.48}];
 
 function initGame(){reset();document.getElementById('start-ov').classList.add('show');document.getElementById('go-ov').classList.remove('show');drawFrame();}
-function reset(){dino={y:GY-DH,vy:0,jumping:false,ducking:false,onGround:true,fastFall:false};inputQueue=[];obstacles=[];cooldown=85;score=0;frame=0;speed=5;gOff=0;currentScore=0;document.getElementById('hud-score').textContent='0';document.getElementById('speed-disp').textContent='';}
+function reset(){dino={y:GY-DH,vy:0,jumping:false,ducking:false,fastFall:false};obstacles=[];cooldown=85;score=0;frame=0;speed=5;gOff=0;currentScore=0;document.getElementById('hud-score').textContent='0';document.getElementById('speed-disp').textContent='';}
 
 let isDark=false;
 function updateThemeIcon(dark){
@@ -1321,43 +1318,12 @@ function hits(o){
 function drawFrame(){ctx.clearRect(0,0,LW,LH);drawBg();drawClouds();drawGround();obstacles.forEach(drawObs);drawDino();}
 
 function loop(){
-  if(!gameRunning)return;
-
-  // ── 입력 큐 처리 (매 프레임 맨 먼저) ──
-  while(inputQueue.length){
-    const cmd=inputQueue.shift();
-    if(cmd==='jump'){
-      if(dino.onGround){
-        dino.vy=JUMP_F;dino.jumping=true;dino.ducking=false;dino.fastFall=false;dino.onGround=false;
-      }
-    } else if(cmd==='duck'){
-      if(dino.onGround){dino.ducking=true;}
-      else{dino.fastFall=true;}  // 공중에서 ↓ → 빠른 낙하
-    } else if(cmd==='unduck'){
-      dino.ducking=false;dino.fastFall=false;
-    }
-  }
-
-  frame++;speed=Math.min(5+(frame/300)+Math.pow(frame/1200,2),22);currentScore=score=Math.floor(frame/6);
+  if(!gameRunning)return;frame++;speed=Math.min(5+(frame/300)+Math.pow(frame/1200,2),22);currentScore=score=Math.floor(frame/6);
   document.getElementById('hud-score').textContent=score;document.getElementById('speed-disp').textContent='x'+speed.toFixed(1);
   if(frame%60===0)updateHudRank(score);gOff=(gOff+speed)%800;
   clouds.forEach(c=>{c.x-=c.spd;if(c.x<-100)c.x=LW+20;});
-
-  // ── 물리 ──
-  if(dino.ducking && dino.onGround){
-    // 땅에서 숙이기: y 고정
-    dino.y=GY-DH*0.62; dino.vy=0;
-  } else {
-    // 공중 (점프 or 낙하)
-    const grav=dino.fastFall?FAST_FALL:GRAV;
-    dino.vy+=grav; dino.y+=dino.vy;
-    if(dino.y>=GY-DH){
-      dino.y=GY-DH; dino.vy=0; dino.jumping=false; dino.fastFall=false; dino.onGround=true;
-      // 착지 시 ↓ 키가 눌려있으면 즉시 숙이기 적용
-      if(duckHeld) dino.ducking=true;
-    }
-  }
-
+  if(!dino.ducking){const grav=dino.fastFall?FAST_FALL_GRAV:GRAV;dino.vy+=grav;dino.y+=dino.vy;if(dino.y>=GY-DH){dino.y=GY-DH;dino.vy=0;dino.jumping=false;dino.fastFall=false;}}
+  else dino.y=GY-DH*0.62;
   cooldown--;
   if(cooldown<=0){spawnObsGroup();cooldown=Math.max(55,120-Math.floor(speed*5))+Math.floor(Math.random()*60);}
   obstacles=obstacles.filter(o=>o.x>-200);
@@ -1378,15 +1344,15 @@ async function gameOver(){
 function beginGame(){document.getElementById('start-ov').classList.remove('show');gameStarted=true;gameRunning=true;reset();raf=requestAnimationFrame(loop);}
 function restartGame(){cancelAnimationFrame(raf);document.getElementById('go-ov').classList.remove('show');reset();gameRunning=true;raf=requestAnimationFrame(loop);}
 
-function jump(){if(!gameStarted||!gameRunning)return;if(!dino.jumping){dino.vy=JUMP_F;dino.jumping=true;dino.ducking=false;}}
-function startDuck(){if(gameRunning&&!dino.jumping)dino.ducking=true;}
-function stopDuck(){dino.ducking=false;}
+function jump(){if(!gameStarted||!gameRunning)return;if(!dino.jumping){dino.vy=JUMP_F;dino.jumping=true;dino.ducking=false;dino.fastFall=false;}}
+function startDuck(){if(!gameRunning)return;if(dino.jumping){dino.fastFall=true;}else{dino.ducking=true;}}
+function stopDuck(){dino.ducking=false;dino.fastFall=false;}
 
 document.addEventListener('keydown',e=>{
   if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();if(!gameStarted){beginGame();return;}jump();}
-  if(e.code==='ArrowDown'){e.preventDefault();startDuck();}
-});
-document.addEventListener('keyup',e=>{if(e.code==='ArrowDown')stopDuck();});
+  if(e.code==='ArrowDown'){e.preventDefault();if(!gameStarted){beginGame();return;}startDuck();}
+},{ passive: false });
+document.addEventListener('keyup',e=>{if(e.code==='ArrowDown'){e.preventDefault();stopDuck();}},{ passive: false });
 canvas.addEventListener('touchstart',e=>{e.preventDefault();if(!gameStarted){beginGame();return;}jump();},{passive:false});
 canvas.addEventListener('click',()=>{if(!gameStarted){beginGame();return;}jump();});
 const btnJump=document.getElementById('btn-jump');const btnDuck=document.getElementById('btn-duck');
