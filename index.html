@@ -1017,12 +1017,12 @@ function updateIcon(t) {
   // ▲▲▲ 예: https://chzzk-proxy.vercel.app/api/live-status ▲▲▲
 
   var POLL_INTERVAL_MS = 60 * 1000; // 60초마다 상태 재확인
-  var SESSION_KEY = 'chzzkPopupDismissed';
 
   var overlay = document.getElementById('chzzkLivePopupOverlay');
+  var closedThisPageView = false; // 새로고침하면 false로 초기화됨(sessionStorage 아님)
 
   function openPopup(data) {
-    if (sessionStorage.getItem(SESSION_KEY) === '1') return;
+    if (closedThisPageView) return;
 
     document.getElementById('clpThumb').src = data.thumbnailUrl || '';
     document.getElementById('clpTitle').textContent = data.liveTitle || '방송 중';
@@ -1038,21 +1038,19 @@ function updateIcon(t) {
     });
   }
 
-  function closePopup(remember) {
+  function closePopup() {
     overlay.classList.remove('in');
     setTimeout(function () {
       overlay.classList.remove('show');
     }, 250);
-    if (remember) {
-      sessionStorage.setItem(SESSION_KEY, '1');
-    }
+    closedThisPageView = true;
   }
 
   document.getElementById('clpCloseBtn').addEventListener('click', function () {
-    closePopup(true);
+    closePopup();
   });
   overlay.addEventListener('click', function (e) {
-    if (e.target === overlay) closePopup(true);
+    if (e.target === overlay) closePopup();
   });
 
   function checkLiveStatus() {
