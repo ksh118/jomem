@@ -955,7 +955,7 @@ function updateIcon(t) {
   justify-content: center;
   padding: 20px;
   opacity: 0;
-  transition: opacity .25s ease;
+  transition: opacity .35s var(--ease-apple, cubic-bezier(0.32,0.72,0,1));
 }
 #chzzkLivePopupOverlay.show {
   display: flex;
@@ -966,14 +966,14 @@ function updateIcon(t) {
 #chzzkLivePopup {
   background: var(--bg, #fff);
   color: var(--text, #111);
-  border: 3px solid #00FFA3;
+  border: 1px solid #9be8cf;
   border-radius: 16px;
   max-width: 380px;
   width: 100%;
   overflow: hidden;
   box-shadow: 0 20px 50px rgba(0,0,0,0.35);
-  transform: translateY(14px) scale(0.98);
-  transition: transform .25s ease;
+  transform: translateY(14px) scale(0.96);
+  transition: transform .4s var(--ease-apple, cubic-bezier(0.32,0.72,0,1));
 }
 #chzzkLivePopupOverlay.show.in #chzzkLivePopup {
   transform: translateY(0) scale(1);
@@ -1017,6 +1017,32 @@ function updateIcon(t) {
   align-items: center;
   gap: 4px;
 }
+#chzzkLivePopup .clp-live-headline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f6b52;
+  background: #d9f7ec;
+  padding: 11px 14px;
+  letter-spacing: 0.2px;
+}
+#chzzkLivePopup .clp-live-headline .clp-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #e02020;
+  box-shadow: 0 0 0 rgba(224,32,32,.5);
+  flex-shrink: 0;
+  animation: clpPulse 1.4s var(--ease-apple, cubic-bezier(0.32,0.72,0,1)) infinite;
+}
+@keyframes clpPulse {
+  0%   { transform: scale(1);    opacity: 1;   box-shadow: 0 0 0 0 rgba(224,32,32,.5); }
+  50%  { transform: scale(1.25); opacity: .7;  box-shadow: 0 0 0 5px rgba(224,32,32,0); }
+  100% { transform: scale(1);    opacity: 1;   box-shadow: 0 0 0 0 rgba(224,32,32,0); }
+}
 #chzzkLivePopup .clp-body {
   padding: 16px 18px 18px;
 }
@@ -1056,11 +1082,15 @@ function updateIcon(t) {
   border: none;
   text-decoration: none;
   display: inline-block;
+  transition: transform .18s var(--ease-apple-press, cubic-bezier(0.2,0.8,0.2,1)), filter .15s;
+}
+#chzzkLivePopup .clp-btn:active {
+  transform: scale(.96);
 }
 #chzzkLivePopup .clp-btn-watch {
-  background: #00FFA3;
-  color: #05261c;
-  border: 2px solid #00c983;
+  background: #d9f7ec;
+  color: #0f6b52;
+  border: 2px solid #9be8cf;
 }
 #chzzkLivePopup .clp-btn-watch:hover {
   filter: brightness(0.96);
@@ -1077,6 +1107,7 @@ function updateIcon(t) {
 
 <div id="chzzkLivePopupOverlay">
   <div id="chzzkLivePopup">
+    <div class="clp-live-headline"><span class="clp-dot"></span>지금 라이브 중입니다!</div>
     <div class="clp-thumb-wrap">
       <img id="clpThumb" src="" alt="라이브 썸네일">
       <span class="clp-live-badge">LIVE</span>
@@ -1116,7 +1147,7 @@ function updateIcon(t) {
     document.getElementById('clpChannelImg').src = data.channelImageUrl || '';
     document.getElementById('clpViewer').textContent =
       (data.viewerCount != null ? data.viewerCount.toLocaleString() : '') + '명 시청 중';
-    document.getElementById('clpWatchBtn').href = data.liveUrl || 'https://chzzk.naver.com/live/bb382c2c0cc9fa7c86ab3b037fb5799c';
+    document.getElementById('clpWatchBtn').href = data.liveUrl || 'https://chzzk.naver.com/73e605f0102e08c78d30e62414ad2542';
 
     overlay.classList.add('show');
     requestAnimationFrame(function () {
@@ -1128,7 +1159,7 @@ function updateIcon(t) {
     overlay.classList.remove('in');
     setTimeout(function () {
       overlay.classList.remove('show');
-    }, 250);
+    }, 350);
     closedThisPageView = true;
   }
 
