@@ -1116,7 +1116,7 @@ function updateIcon(t) {
     document.getElementById('clpChannelImg').src = data.channelImageUrl || '';
     document.getElementById('clpViewer').textContent =
       (data.viewerCount != null ? data.viewerCount.toLocaleString() : '') + '명 시청 중';
-    document.getElementById('clpWatchBtn').href = data.liveUrl || 'https://chzzk.naver.com/73e605f0102e08c78d30e62414ad2542';
+    document.getElementById('clpWatchBtn').href = data.liveUrl || 'https://chzzk.naver.com/live/bb382c2c0cc9fa7c86ab3b037fb5799c';
 
     overlay.classList.add('show');
     requestAnimationFrame(function () {
