@@ -1194,11 +1194,13 @@ function updateIcon(t) {
 @media(max-width:520px){ .help-btn span{display:none} .help-btn{padding:0;width:36px;justify-content:center} }
 
 /* 오버레이 */
-#tut{position:fixed;inset:0;z-index:9990;display:none;opacity:0;transition:opacity .35s var(--ease-apple)}
+#tut{position:fixed;inset:0;z-index:9990;display:none;opacity:0;pointer-events:none;transition:opacity .35s var(--ease-apple)}
 #tut.on{display:block}
 #tut.in{opacity:1}
 .tut-panel{
   position:fixed;left:0;top:0;width:0;height:0;
+  pointer-events:auto;
+  transition:background .4s var(--ease-apple),backdrop-filter .4s var(--ease-apple),-webkit-backdrop-filter .4s var(--ease-apple);
   background:rgba(12,12,14,.34);
   backdrop-filter:blur(6px) saturate(115%);-webkit-backdrop-filter:blur(6px) saturate(115%);
 }
@@ -1224,7 +1226,7 @@ function updateIcon(t) {
 
 /* 말풍선 카드 */
 #tutCard{
-  position:fixed;left:0;top:0;
+  position:fixed;left:0;top:0;pointer-events:auto;
   width:min(360px,calc(100vw - 28px));
   background:var(--menu-bg);
   border:1px solid var(--glass-border);
@@ -1279,6 +1281,11 @@ function updateIcon(t) {
 }
 .tut-skip:hover{color:var(--text2)}
 #tut *{-webkit-tap-highlight-color:transparent}
+/* 내용을 읽어야 하는 단계 : 흐림/어둡게 없이 클릭만 막는다 */
+#tut.clear .tut-panel,[data-theme="dark"] #tut.clear .tut-panel{
+  background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;
+}
+#tut.clear #tutCard{box-shadow:var(--glass-shadow),var(--glass-inset),0 0 0 1px var(--glass-border)}
 </style>
 
 <div id="tut" aria-hidden="true">
@@ -1347,6 +1354,7 @@ function updateIcon(t) {
       target:function(){ return document.querySelector('#tabBar .tab-home'); },
       title:'다 읽으셨으면 홈으로',
       sub:'채팅 규칙을 모두 읽으셨다면 다시 홈으로 돌아가주세요.',
+      noDim:true, dock:true,
       expect:'home', next:'partOpen', hint:'홈 버튼을 눌러주세요'
     },
     partOpen: {
@@ -1359,6 +1367,7 @@ function updateIcon(t) {
       target:function(){ return document.querySelector('#tabBar .tab-home'); },
       title:'다 읽으셨으면 홈으로',
       sub:'참여 규칙을 모두 읽으셨다면 다시 홈으로 돌아가주세요.',
+      noDim:true, dock:true,
       expect:'home', next:'howtoIntro', hint:'홈 버튼을 눌러주세요'
     },
     howtoIntro: {
@@ -1371,12 +1380,14 @@ function updateIcon(t) {
       target:function(){ return document.querySelector('#pg-howto .discord-embed'); },
       title:'디스코드에 참여해주세요',
       sub:"'역할' 채널에서 '시참 참여하기' 버튼 클릭 후에 서버주소에서 서버주소와 버전을 확인하세요!",
+      noDim:true,
       actions:[ { t:'확인', primary:true, run:function(){ show('howtoDone'); } } ]
     },
     howtoDone: {
       center:true,
       title:'준비 완료!',
       sub:'이제 이곳 참여안내서 방법을 보고 바로 참여하세요!',
+      noDim:true, dock:true,
       actions:[ { t:'도움 받기 끝내기', primary:true, run:function(){ finish(); } } ]
     }
   };
@@ -1424,6 +1435,7 @@ function updateIcon(t) {
     if (s.hint) { ui.tutHintText.textContent = s.hint; ui.tutHint.classList.add('on'); }
     else ui.tutHint.classList.remove('on');
 
+    ui.tut.classList.toggle('clear', !!s.noDim);
     ui.tutCard.classList.toggle('center', !!s.center);
     ui.tutRing.classList.toggle('on', !s.center);
     ui.tutArrow.classList.toggle('on', !s.center);
@@ -1485,7 +1497,13 @@ function updateIcon(t) {
 
     /* 카드 위치 */
     var s = STEPS[state.step];
-    if (s && s.center) {
+    if (s && s.center && s.dock) {
+      var cw0 = ui.tutCard.offsetWidth, ch0 = ui.tutCard.offsetHeight;
+      ui.tutCard.style.left = Math.round((vw - cw0) / 2) + 'px';
+      ui.tutCard.style.top = Math.round(vh - ch0 - 18) + 'px';
+      ui.tutCard.style.transform = '';
+      ui.tutArrow.style.opacity = '0';
+    } else if (s && s.center) {
       ui.tutCard.style.left = '50%';
       ui.tutCard.style.top = '50%';
       ui.tutCard.style.transform = ui.tutCard.classList.contains('on')
@@ -1497,6 +1515,7 @@ function updateIcon(t) {
       var ct = below ? (y + h + 22) : (y - 22 - ch);
       ct = Math.max(12, Math.min(ct, vh - ch - 12));
       var cl = x + w / 2 - cw / 2;
+      if (s && s.dock) { ct = vh - ch - 18; cl = vw - cw - 16; }
       cl = Math.max(12, Math.min(cl, vw - cw - 12));
       ui.tutCard.style.left = Math.round(cl) + 'px';
       ui.tutCard.style.top = Math.round(ct) + 'px';
