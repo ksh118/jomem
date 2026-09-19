@@ -47,8 +47,6 @@
   --toggle-border: rgba(0,0,0,0.14);
   --toggle-glint: rgba(255,255,255,0.9);
   --menu-bg: rgba(255,255,255,0.65);
-  --orb1: rgba(212,121,58,.16);
-  --orb2: rgba(60,120,220,.12);
 }
 [data-theme="dark"] {
   --bg: #000000;
@@ -84,8 +82,6 @@
   --toggle-border: rgba(255,255,255,0.2);
   --toggle-glint: rgba(255,255,255,0.7);
   --menu-bg: rgba(18,18,18,0.65);
-  --orb1: rgba(212,121,58,.10);
-  --orb2: rgba(60,120,220,.10);
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -96,18 +92,29 @@ body{
   overflow-x:hidden;
   position:relative;
 }
-/* soft blurred color orbs behind the glass surfaces (pure white / pure black base) */
-body::before,body::after{
-  content:"";position:fixed;z-index:-1;border-radius:50%;
-  filter:blur(90px);pointer-events:none;transition:background .25s;
+/* liquid-glass rainbow glints tucked into the screen corners only —
+   background itself stays a flat solid color */
+.corner-glass{
+  position:fixed;z-index:-1;pointer-events:none;border-radius:50%;
+  filter:blur(38px) saturate(220%);
+  mix-blend-mode:screen;
+  opacity:.22;
+  transition:opacity .25s;
 }
-body::before{width:480px;height:480px;background:var(--orb1);top:-140px;left:-120px}
-body::after{width:520px;height:520px;background:var(--orb2);top:280px;right:-160px}
+[data-theme="dark"] .corner-glass{opacity:.16;mix-blend-mode:screen}
+.corner-glass.cg-tl{
+  top:-120px;left:-120px;width:280px;height:280px;
+  background:conic-gradient(from 210deg at 50% 50%,#6ea8ff,#b18aff,#ff8ad4,#ffb672,#8affc2,#6ea8ff);
+}
+.corner-glass.cg-br{
+  bottom:-140px;right:-140px;width:320px;height:320px;
+  background:conic-gradient(from 30deg at 50% 50%,#ff8ad4,#ffb672,#8affc2,#6ea8ff,#b18aff,#ff8ad4);
+}
 
 /* ── TOP NAV (liquid glass, floating pill) ── */
 nav{
   position:sticky;top:14px;z-index:200;
-  margin:0 auto;width:min(760px,calc(100% - 24px));
+  margin:0 auto;width:min(1120px,calc(100% - 24px));
   background:var(--nav-bg);
   border:1px solid var(--glass-border);
   border-radius:26px;
@@ -116,47 +123,22 @@ nav{
   display:flex;align-items:center;justify-content:space-between;
   padding:8px 10px 8px 14px;height:auto;
   transition:background .25s,border-color .25s,box-shadow .25s;
+  overflow:hidden;
+}
+/* thin rainbow refraction along the pill's edge, like light bending through glass */
+nav::before{
+  content:"";position:absolute;inset:0;z-index:-1;
+  padding:1px;border-radius:inherit;
+  background:conic-gradient(from 160deg at 15% 0%,rgba(255,255,255,0) 0%,rgba(120,180,255,.55) 8%,rgba(190,130,255,.5) 16%,rgba(255,140,200,.5) 24%,rgba(255,200,120,.45) 32%,rgba(140,255,190,.45) 40%,rgba(255,255,255,0) 52%,rgba(255,255,255,0) 100%);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  opacity:.7;pointer-events:none;
 }
 .nav-left{display:flex;align-items:center;gap:9px;min-width:0}
 .nav-avatar{width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0}
 .nav-title{font-size:14px;font-weight:700;color:var(--text);cursor:pointer;transition:opacity .15s;white-space:nowrap}
 .nav-title:hover{opacity:.6}
 .nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative}
-
-/* hamburger / menu trigger — glass pill button */
-.menu-btn{
-  width:36px;height:36px;border-radius:50%;
-  border:1px solid var(--glass-border);
-  background:var(--glass-surface);
-  backdrop-filter:blur(14px);
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  color:var(--text2);transition:background .15s,transform .15s,color .15s;
-}
-.menu-btn:hover{color:var(--text);transform:translateY(-1px)}
-.menu-btn:active{transform:scale(.94)}
-
-/* dropdown glass menu, styled after the Liquid Glass preview */
-.nav-menu{
-  position:absolute;right:0;top:calc(100% + 10px);
-  width:210px;padding:8px;
-  border-radius:22px;
-  background:var(--menu-bg);
-  border:1px solid var(--glass-border);
-  backdrop-filter:blur(30px) saturate(160%);-webkit-backdrop-filter:blur(30px) saturate(160%);
-  box-shadow:0 24px 60px rgba(0,0,0,.22),var(--glass-inset);
-  display:none;flex-direction:column;gap:2px;
-  max-height:min(70vh,520px);overflow-y:auto;
-}
-.nav-menu.open{display:flex}
-.nav-menu button{
-  all:unset;box-sizing:border-box;
-  display:flex;align-items:center;padding:11px 13px;border-radius:14px;
-  font-size:13.5px;font-weight:600;color:var(--text2);cursor:pointer;
-  transition:background .12s,color .12s;
-}
-.nav-menu button:hover{background:var(--glass-hover);color:var(--text)}
-.nav-menu button.active{color:var(--accent)}
-.nav-menu .menu-divider{height:1px;background:var(--glass-border);margin:6px 4px}
 
 /* circular light/dark toggle — opaque grey glass with a corner glint */
 .theme-btn{
@@ -183,7 +165,7 @@ nav{
 /* ── TAB BAR (glass pill strip) ── */
 .tab-bar{
   position:sticky;top:78px;z-index:190;
-  margin:10px auto 0;width:min(760px,calc(100% - 24px));
+  margin:10px auto 0;width:min(1120px,calc(100% - 24px));
   background:var(--tab-bg);
   border:1px solid transparent;
   border-radius:20px;
@@ -380,6 +362,10 @@ nav{
 </head>
 <body>
 
+<!-- LIQUID GLASS CORNER GLINTS -->
+<div class="corner-glass cg-tl"></div>
+<div class="corner-glass cg-br"></div>
+
 <!-- LOADING SCREEN -->
 <div id="loading-screen" style="
   position:fixed;inset:0;z-index:9999;
@@ -432,22 +418,6 @@ nav{
     <span class="nav-title" onclick="go('home')">조밈 시참 설명서</span>
   </div>
   <div class="nav-right">
-    <button class="menu-btn" id="menuBtn" onclick="toggleMenu(event)" aria-label="메뉴">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-    <div class="nav-menu" id="navMenu">
-      <button data-menu="home" onclick="selectMenu('home')">🏠&nbsp;&nbsp;홈</button>
-      <div class="menu-divider"></div>
-      <button data-menu="chat" onclick="selectMenu('chat')">채팅 규칙</button>
-      <button data-menu="part" onclick="selectMenu('part')">참여 규칙</button>
-      <button data-menu="howto" onclick="selectMenu('howto')">참여 안내서</button>
-      <div class="menu-divider"></div>
-      <button data-menu="battle" onclick="selectMenu('battle')">야생 배틀로얄</button>
-      <button data-menu="school" onclick="selectMenu('school')">학교 술래잡기</button>
-      <button data-menu="city" onclick="selectMenu('city')">도시능력자</button>
-      <button data-menu="catch" onclick="selectMenu('catch')">조밈을 잡아라!</button>
-      <button data-menu="mind" onclick="selectMenu('mind')">캐치마인드</button>
-    </div>
     <button class="theme-btn" onclick="toggleTheme()">
       <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -939,26 +909,9 @@ function cp(btn, text) {
   });
 }
 
-function toggleMenu(e) {
-  if (e) e.stopPropagation();
-  document.getElementById('navMenu').classList.toggle('open');
-}
-function selectMenu(id) {
-  document.getElementById('navMenu').classList.remove('open');
-  go(id);
-}
 function markMenuActive(id) {
-  document.querySelectorAll('.nav-menu button[data-menu]').forEach(function (b) {
-    b.classList.toggle('active', b.dataset.menu === id);
-  });
+  // hamburger dropdown removed; kept as no-op so existing calls in go() stay safe
 }
-document.addEventListener('click', function (e) {
-  const menu = document.getElementById('navMenu');
-  const btn  = document.getElementById('menuBtn');
-  if (menu && menu.classList.contains('open') && !menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
-    menu.classList.remove('open');
-  }
-});
 
 function toggleTheme() {
   const dark = document.documentElement.getAttribute('data-theme') === 'dark';
