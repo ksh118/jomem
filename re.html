@@ -92,24 +92,7 @@ body{
   overflow-x:hidden;
   position:relative;
 }
-/* liquid-glass rainbow glints tucked into the screen corners only —
-   background itself stays a flat solid color */
-.corner-glass{
-  position:fixed;z-index:-1;pointer-events:none;border-radius:50%;
-  filter:blur(38px) saturate(220%);
-  mix-blend-mode:screen;
-  opacity:.22;
-  transition:opacity .25s;
-}
-[data-theme="dark"] .corner-glass{opacity:.16;mix-blend-mode:screen}
-.corner-glass.cg-tl{
-  top:-120px;left:-120px;width:280px;height:280px;
-  background:conic-gradient(from 210deg at 50% 50%,#6ea8ff,#b18aff,#ff8ad4,#ffb672,#8affc2,#6ea8ff);
-}
-.corner-glass.cg-br{
-  bottom:-140px;right:-140px;width:320px;height:320px;
-  background:conic-gradient(from 30deg at 50% 50%,#ff8ad4,#ffb672,#8affc2,#6ea8ff,#b18aff,#ff8ad4);
-}
+/* background intentionally stays a flat solid color — no page-wide glow/orbs */
 
 /* ── TOP NAV (liquid glass, floating pill) ── */
 nav{
@@ -254,14 +237,25 @@ nav::before{
 .home-section-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:12px}
 .nav-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .nav-btn{
+  position:relative;
   display:flex;align-items:center;gap:13px;padding:17px 17px;border-radius:22px;
   border:1px solid var(--glass-border);
   background:var(--glass-surface);
   backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);
   box-shadow:var(--glass-inset),0 10px 26px rgba(0,0,0,.06);
   cursor:pointer;color:var(--text);
+  overflow:hidden;
   transition:border-color .18s,background .18s,transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s;
 }
+.nav-btn::before,.game-btn::before{
+  content:"";position:absolute;inset:0;z-index:0;
+  padding:1px;border-radius:inherit;
+  background:conic-gradient(from 150deg at 12% 0%,rgba(255,255,255,0) 0%,rgba(120,180,255,.5) 6%,rgba(190,130,255,.45) 13%,rgba(255,140,200,.45) 20%,rgba(255,200,120,.4) 27%,rgba(140,255,190,.4) 34%,rgba(255,255,255,0) 44%,rgba(255,255,255,0) 100%);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  opacity:.6;pointer-events:none;
+}
+.nav-btn > *{position:relative;z-index:1}
 .nav-btn:hover{border-color:var(--glass-border-strong);transform:translateY(-3px);box-shadow:var(--glass-inset),0 16px 34px rgba(0,0,0,.12)}
 .nav-btn:active{transform:translateY(0);box-shadow:var(--glass-inset)}
 .btn-icon{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -271,14 +265,17 @@ nav::before{
 
 .game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
 .game-btn{
+  position:relative;
   display:flex;align-items:center;gap:12px;padding:15px 16px;border-radius:20px;
   border:1px solid var(--glass-border);
   background:var(--glass-surface);
   backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);
   box-shadow:var(--glass-inset),0 10px 26px rgba(0,0,0,.06);
   cursor:pointer;color:var(--text);
+  overflow:hidden;
   transition:border-color .18s,background .18s,transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s;
 }
+.game-btn > *{position:relative;z-index:1}
 .game-btn:hover{border-color:var(--glass-border-strong);transform:translateY(-3px);box-shadow:var(--glass-inset),0 16px 34px rgba(0,0,0,.12)}
 .game-btn:active{transform:translateY(0);box-shadow:var(--glass-inset)}
 .game-icon{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -361,10 +358,6 @@ nav::before{
 </style>
 </head>
 <body>
-
-<!-- LIQUID GLASS CORNER GLINTS -->
-<div class="corner-glass cg-tl"></div>
-<div class="corner-glass cg-br"></div>
 
 <!-- LOADING SCREEN -->
 <div id="loading-screen" style="
