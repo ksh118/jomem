@@ -413,6 +413,10 @@ nav::before{
     <span class="nav-title" onclick="go('home')">조밈 시참 설명서</span>
   </div>
   <div class="nav-right">
+    <button class="help-btn" id="helpBtn" onclick="startTutorial('choice')" title="도움 받기">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>도움 받기</span>
+    </button>
     <button class="theme-btn" onclick="toggleTheme()">
       <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
@@ -476,11 +480,11 @@ nav::before{
 <div class="home-section">
   <div class="home-section-label">규칙</div>
   <div class="nav-grid">
-    <div class="nav-btn" onclick="go('chat')">
+    <div class="nav-btn" id="navChat" onclick="go('chat')">
       <span class="btn-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
       <div><div class="btn-label">채팅 규칙</div><div class="btn-sub">채팅창 사용 규칙</div></div>
     </div>
-    <div class="nav-btn" onclick="go('part')">
+    <div class="nav-btn" id="navPart" onclick="go('part')">
       <span class="btn-icon ic-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
       <div><div class="btn-label">참여 규칙</div><div class="btn-sub">게임 참여 시 필수 확인</div></div>
     </div>
@@ -488,7 +492,7 @@ nav::before{
 </div>
 <div class="home-section">
   <div class="home-section-label">참여 방법</div>
-  <div class="nav-btn" onclick="go('howto')" style="max-width:340px">
+  <div class="nav-btn" id="navHowto" onclick="go('howto')" style="max-width:340px">
     <span class="btn-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
     <div><div class="btn-label">참여 안내서</div><div class="btn-sub">시참 방법 및 디스코드 안내</div></div>
   </div>
@@ -565,38 +569,6 @@ nav::before{
     <div class="section">
       <div class="section-title">공지 안 읽고 질문 금지</div>
       <ul class="rule-list">
-        <li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>시참 어떻게 해요? → 참여 안내서 참고</li>
-        <li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>이거 안되는데요? → 디코 문의 채널</li>
-        <li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>밴 당하고 규칙 몰랐어요</li>
-      </ul>
-    </div>
-    <div class="danger-box">이 외에도 관리자 판단 하에 선 넘으면 즉시 처벌<br>디스코드 내에서도 해당 규칙을 지켜주세요</div>
-  </div>
-</div>
-
-<!-- PART -->
-<div class="page" id="pg-part">
-  <div class="page-inner">
-    <div class="page-hero">
-      <span class="page-icon ic-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
-      <h1 class="page-title">참여 규칙</h1>
-    </div>
-    <div class="notice-box">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span>※ 컨텐츠 참여 시, 방송 음성을 반드시 청취하시며 참여해 주셔야 합니다! ※</span>
-    </div>
-    <div class="section">
-      <div class="section-title">친목 금지</div>
-      <ul class="rule-list">
-        <li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>게임 내에서 귓속말 주고받기</li>
-        <li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>채팅으로 닉 언급 및 대화</li>
-      </ul>
-    </div>
-    <div class="section">
-      <div class="section-title">비매너 금지</div>
-      <ul class="rule-list">
-        <li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>아무리 경쟁이라도 민폐가 되는 행위</li>
-            <li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>게임 룰 숙지하기 (게임마다 룰이 다름)</li>
         <li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>시참 어떻게 해요? → 참여 안내서 참고</li>
         <li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>이거 안되는데요? → 디코 문의 채널</li>
         <li><span class="rx"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>밴 당하고 규칙 몰랐어요</li>
@@ -1192,5 +1164,452 @@ function updateIcon(t) {
 })();
 </script>
 <!-- ===== 치지직 라이브 알림 팝업 끝 ===== -->
+<!-- ═══════════ 도움받기 튜토리얼 ═══════════ -->
+<style>
+/* nav 도움받기 버튼 */
+.help-btn{
+  display:none;align-items:center;gap:6px;
+  height:36px;padding:0 14px;border-radius:999px;
+  border:1px solid var(--toggle-border);
+  background:var(--toggle-bg);
+  backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);
+  color:var(--text2);font-size:12.5px;font-weight:700;font-family:inherit;
+  cursor:pointer;position:relative;overflow:hidden;white-space:nowrap;
+  transition:background .2s var(--ease-apple),color .2s var(--ease-apple),transform .18s var(--ease-apple-press);
+}
+.help-btn::before{
+  content:"";position:absolute;top:-55%;left:-25%;width:45%;height:220%;
+  background:linear-gradient(115deg,transparent 42%,var(--toggle-glint) 50%,transparent 58%);
+  transform:rotate(18deg);opacity:.5;pointer-events:none;
+}
+.help-btn:hover{color:var(--text);transform:translateY(-1px)}
+.help-btn:active{transform:scale(.94)}
+.help-btn.show{display:inline-flex}
+.help-btn.pop{animation:helpPop .6s var(--ease-apple)}
+@keyframes helpPop{
+  0%{opacity:0;transform:translateX(14px) scale(.7)}
+  60%{opacity:1;transform:translateX(0) scale(1.08)}
+  100%{opacity:1;transform:translateX(0) scale(1)}
+}
+@media(max-width:520px){ .help-btn span{display:none} .help-btn{padding:0;width:36px;justify-content:center} }
+
+/* 오버레이 */
+#tut{position:fixed;inset:0;z-index:9990;display:none;opacity:0;transition:opacity .35s var(--ease-apple)}
+#tut.on{display:block}
+#tut.in{opacity:1}
+.tut-panel{
+  position:fixed;left:0;top:0;width:0;height:0;
+  background:rgba(12,12,14,.34);
+  backdrop-filter:blur(6px) saturate(115%);-webkit-backdrop-filter:blur(6px) saturate(115%);
+}
+[data-theme="dark"] .tut-panel{background:rgba(0,0,0,.52)}
+#tutRing{
+  position:fixed;left:0;top:0;width:0;height:0;border-radius:20px;
+  border:2px solid var(--accent);
+  box-shadow:0 0 0 4px rgba(212,121,58,.22),0 0 30px rgba(212,121,58,.5);
+  pointer-events:none;opacity:0;transition:opacity .3s;
+}
+#tutRing.on{opacity:1;animation:tutPulse 1.9s ease-in-out infinite}
+@keyframes tutPulse{
+  0%,100%{box-shadow:0 0 0 4px rgba(212,121,58,.20),0 0 24px rgba(212,121,58,.40)}
+  50%{box-shadow:0 0 0 9px rgba(212,121,58,.08),0 0 40px rgba(212,121,58,.65)}
+}
+#tutArrow{
+  position:fixed;left:0;top:0;width:0;height:0;pointer-events:none;opacity:0;
+  color:var(--accent);transition:opacity .3s;
+}
+#tutArrow.on{opacity:1}
+#tutArrow.on svg{animation:tutBob 1.4s ease-in-out infinite}
+@keyframes tutBob{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+/* 말풍선 카드 */
+#tutCard{
+  position:fixed;left:0;top:0;
+  width:min(360px,calc(100vw - 28px));
+  background:var(--menu-bg);
+  border:1px solid var(--glass-border);
+  border-radius:24px;
+  backdrop-filter:blur(30px) saturate(170%);-webkit-backdrop-filter:blur(30px) saturate(170%);
+  box-shadow:var(--glass-shadow),var(--glass-inset);
+  padding:20px 20px 16px;color:var(--text);
+  opacity:0;transform:scale(.96);
+  transition:opacity .3s var(--ease-apple),transform .3s var(--ease-apple);
+}
+#tutCard.on{opacity:1;transform:scale(1)}
+#tutCard.center{width:min(400px,calc(100vw - 32px));padding:28px 26px 22px;text-align:center}
+#tutCard.shake{animation:tutShake .4s}
+@keyframes tutShake{0%,100%{margin-left:0}20%{margin-left:-8px}40%{margin-left:8px}60%{margin-left:-5px}80%{margin-left:5px}}
+.tut-step{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--accent);margin-bottom:7px}
+.tut-title{font-size:19px;font-weight:800;letter-spacing:-.3px;line-height:1.35}
+#tutCard.center .tut-title{font-size:24px}
+.tut-sub{font-size:13.5px;color:var(--text2);line-height:1.65;margin-top:8px}
+.tut-actions{display:flex;flex-direction:column;gap:8px;margin-top:18px}
+.tut-btn{
+  width:100%;height:44px;border-radius:15px;cursor:pointer;
+  border:1px solid var(--glass-border);
+  background:var(--glass-surface);
+  color:var(--text);font-size:14px;font-weight:700;font-family:inherit;
+  position:relative;overflow:hidden;
+  transition:transform .18s var(--ease-apple-press),border-color .18s,box-shadow .18s,background .18s;
+}
+.tut-btn:hover{border-color:var(--glass-border-strong);transform:translateY(-2px)}
+.tut-btn:active{transform:scale(.97)}
+.tut-btn.primary{
+  background:var(--accent);border-color:transparent;color:#fff;
+  box-shadow:0 10px 26px rgba(212,121,58,.38);
+  animation:tutGlow 2.2s ease-in-out infinite;
+}
+.tut-btn.primary::after{
+  content:"";position:absolute;top:-60%;left:-40%;width:40%;height:240%;
+  background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.55) 50%,transparent 60%);
+  transform:rotate(18deg);animation:tutSheen 2.6s ease-in-out infinite;
+}
+@keyframes tutGlow{0%,100%{box-shadow:0 10px 26px rgba(212,121,58,.34)}50%{box-shadow:0 12px 34px rgba(212,121,58,.62)}}
+@keyframes tutSheen{0%{left:-40%}55%,100%{left:130%}}
+.tut-hint{
+  display:none;align-items:center;justify-content:center;gap:6px;
+  margin-top:16px;font-size:12.5px;font-weight:700;color:var(--accent);
+}
+.tut-hint.on{display:flex}
+.tut-hint .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:tutDot 1.2s ease-in-out infinite}
+@keyframes tutDot{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:scale(1.25)}}
+.tut-skip{
+  margin-top:12px;background:none;border:none;cursor:pointer;font-family:inherit;
+  font-size:12px;color:var(--text3);text-decoration:underline;width:100%;padding:4px;
+}
+.tut-skip:hover{color:var(--text2)}
+#tut *{-webkit-tap-highlight-color:transparent}
+</style>
+
+<div id="tut" aria-hidden="true">
+  <div class="tut-panel" id="tpTop"></div>
+  <div class="tut-panel" id="tpBottom"></div>
+  <div class="tut-panel" id="tpLeft"></div>
+  <div class="tut-panel" id="tpRight"></div>
+  <div id="tutRing"></div>
+  <div id="tutArrow">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+  </div>
+  <div id="tutCard">
+    <div class="tut-step" id="tutStepNo"></div>
+    <div class="tut-title" id="tutTitle"></div>
+    <div class="tut-sub" id="tutSub"></div>
+    <div class="tut-actions" id="tutActions"></div>
+    <div class="tut-hint" id="tutHint"><span class="dot"></span><span id="tutHintText"></span></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var KEY = 'jomim-tut-done';
+  var $ = function (id) { return document.getElementById(id); };
+
+  var ui = {};
+  ['tut','tpTop','tpBottom','tpLeft','tpRight','tutRing','tutArrow','tutCard',
+   'tutStepNo','tutTitle','tutSub','tutActions','tutHint','tutHintText','helpBtn']
+    .forEach(function (k) { ui[k] = $(k); });
+
+  var state = { active:false, step:null, flow:[], rect:null, raf:null };
+
+  /* ── 단계 정의 ── */
+  var STEPS = {
+    welcome: {
+      center:true,
+      title:'안녕하세요?',
+      sub:'시참에 참여하실건가요? 도와드리겠습니다.',
+      actions:[
+        { t:'도움 받기', primary:true, run:function(){ show('choice'); } },
+        { t:'도움 안받기', run:function(){ decline(); } }
+      ]
+    },
+    choice: {
+      center:true,
+      title:'바로 참여하실건가요?',
+      sub:'규칙을 확인하실건가요?',
+      actions:[
+        { t:'규칙 확인하기', primary:true, run:function(){ setFlow('full'); show('chatOpen'); } },
+        { t:'바로 참여하기', run:function(){ setFlow('quick'); show('howtoIntro'); } }
+      ]
+    },
+    declined: {
+      target:function(){ return ui.helpBtn; },
+      title:'언제든 다시 도와드릴게요',
+      sub:'여기 도움 받기 버튼으로 다음에 다시 도움을 받을 수 있습니다.',
+      actions:[ { t:'확인', primary:true, run:function(){ finish(); } } ]
+    },
+    chatOpen: {
+      target:function(){ return $('navChat'); },
+      title:'채팅 규칙을 확인하세요',
+      sub:'먼저 채팅창에서 지켜야 할 규칙부터 살펴볼게요.',
+      expect:'chat', next:'chatRead', hint:'채팅 규칙 버튼을 눌러주세요'
+    },
+    chatRead: {
+      target:function(){ return document.querySelector('#tabBar .tab-home'); },
+      title:'다 읽으셨으면 홈으로',
+      sub:'채팅 규칙을 모두 읽으셨다면 다시 홈으로 돌아가주세요.',
+      expect:'home', next:'partOpen', hint:'홈 버튼을 눌러주세요'
+    },
+    partOpen: {
+      target:function(){ return $('navPart'); },
+      title:'참여 규칙을 확인하세요',
+      sub:'게임에 참여하기 전 반드시 알아야 할 규칙입니다.',
+      expect:'part', next:'partRead', hint:'참여 규칙 버튼을 눌러주세요'
+    },
+    partRead: {
+      target:function(){ return document.querySelector('#tabBar .tab-home'); },
+      title:'다 읽으셨으면 홈으로',
+      sub:'참여 규칙을 모두 읽으셨다면 다시 홈으로 돌아가주세요.',
+      expect:'home', next:'howtoIntro', hint:'홈 버튼을 눌러주세요'
+    },
+    howtoIntro: {
+      target:function(){ return $('navHowto'); },
+      title:'다음은 참여 안내서입니다.',
+      sub:'서버주소와 시참게임의 마크 버전을 확인하는 방법을 알아보겠습니다.',
+      expect:'howto', next:'howtoDiscord', hint:'참여 안내서 버튼을 눌러주세요'
+    },
+    howtoDiscord: {
+      target:function(){ return document.querySelector('#pg-howto .discord-embed'); },
+      title:'디스코드에 참여해주세요',
+      sub:"'역할' 채널에서 '시참 참여하기' 버튼 클릭 후에 서버주소에서 서버주소와 버전을 확인하세요!",
+      actions:[ { t:'확인', primary:true, run:function(){ show('howtoDone'); } } ]
+    },
+    howtoDone: {
+      center:true,
+      title:'준비 완료!',
+      sub:'이제 이곳 참여안내서 방법을 보고 바로 참여하세요!',
+      actions:[ { t:'도움 받기 끝내기', primary:true, run:function(){ finish(); } } ]
+    }
+  };
+
+  var FLOWS = {
+    full:['chatOpen','chatRead','partOpen','partRead','howtoIntro','howtoDiscord','howtoDone'],
+    quick:['howtoIntro','howtoDiscord','howtoDone']
+  };
+  function setFlow(k){ state.flow = FLOWS[k] || []; }
+
+  /* ── 렌더링 ── */
+  function render(key) {
+    var s = STEPS[key];
+    state.step = key;
+
+    var idx = state.flow.indexOf(key);
+    if (idx >= 0) {
+      ui.tutStepNo.textContent = (idx + 1) + ' / ' + state.flow.length;
+      ui.tutStepNo.style.display = 'block';
+    } else {
+      ui.tutStepNo.style.display = 'none';
+    }
+
+    ui.tutTitle.textContent = s.title || '';
+    ui.tutSub.textContent = s.sub || '';
+    ui.tutSub.style.display = s.sub ? 'block' : 'none';
+
+    ui.tutActions.innerHTML = '';
+    (s.actions || []).forEach(function (a) {
+      var b = document.createElement('button');
+      b.className = 'tut-btn' + (a.primary ? ' primary' : '');
+      b.textContent = a.t;
+      b.onclick = a.run;
+      ui.tutActions.appendChild(b);
+    });
+    if (!s.center && key !== 'declined') {
+      var skip = document.createElement('button');
+      skip.className = 'tut-skip';
+      skip.textContent = '도움 받기 그만두기';
+      skip.onclick = finish;
+      ui.tutActions.appendChild(skip);
+    }
+    ui.tutActions.style.display = ui.tutActions.children.length ? 'flex' : 'none';
+
+    if (s.hint) { ui.tutHintText.textContent = s.hint; ui.tutHint.classList.add('on'); }
+    else ui.tutHint.classList.remove('on');
+
+    ui.tutCard.classList.toggle('center', !!s.center);
+    ui.tutRing.classList.toggle('on', !s.center);
+    ui.tutArrow.classList.toggle('on', !s.center);
+  }
+
+  function show(key) {
+    var s = STEPS[key];
+    if (!s) return;
+    ui.tutCard.classList.remove('on');
+    setTimeout(function () {
+      render(key);
+      var t = s.target ? s.target() : null;
+      if (t) {
+        var r = t.getBoundingClientRect();
+        if (r.top < 90 || r.bottom > window.innerHeight - 40) {
+          t.scrollIntoView({ behavior:'smooth', block:'center' });
+        }
+      }
+      ui.tutCard.classList.add('on');
+    }, 180);
+  }
+
+  /* ── 위치 계산(매 프레임 부드럽게 따라감) ── */
+  function goalRect() {
+    var s = STEPS[state.step];
+    var t = (s && s.target) ? s.target() : null;
+    var vw = window.innerWidth, vh = window.innerHeight;
+    if (!t || (s && s.center)) return { x:vw/2, y:vh/2, w:0, h:0, none:true };
+    var r = t.getBoundingClientRect();
+    var p = 8;
+    return { x:r.left - p, y:r.top - p, w:r.width + p*2, h:r.height + p*2, none:false };
+  }
+
+  function tick() {
+    if (!state.active) return;
+    var g = goalRect();
+    if (!state.rect) state.rect = { x:g.x, y:g.y, w:g.w, h:g.h };
+    var c = state.rect, k = 0.22;
+    c.x += (g.x - c.x) * k; c.y += (g.y - c.y) * k;
+    c.w += (g.w - c.w) * k; c.h += (g.h - c.h) * k;
+
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var x = Math.round(c.x), y = Math.round(c.y), w = Math.round(c.w), h = Math.round(c.h);
+    if (g.none) { x = Math.round(g.x); y = Math.round(g.y); w = 0; h = 0; }
+
+    var L = Math.max(0, x), T = Math.max(0, y);
+    var R = Math.min(vw, x + w), B = Math.min(vh, y + h);
+
+    sz(ui.tpTop,    0, 0, vw, T);
+    sz(ui.tpBottom, 0, B, vw, Math.max(0, vh - B));
+    sz(ui.tpLeft,   0, T, L, Math.max(0, B - T));
+    sz(ui.tpRight,  R, T, Math.max(0, vw - R), Math.max(0, B - T));
+
+    ui.tutRing.style.left = x + 'px';
+    ui.tutRing.style.top = y + 'px';
+    ui.tutRing.style.width = w + 'px';
+    ui.tutRing.style.height = h + 'px';
+    ui.tutRing.style.borderRadius = Math.min(22, h / 2 + 6) + 'px';
+
+    /* 카드 위치 */
+    var s = STEPS[state.step];
+    if (s && s.center) {
+      ui.tutCard.style.left = '50%';
+      ui.tutCard.style.top = '50%';
+      ui.tutCard.style.transform = ui.tutCard.classList.contains('on')
+        ? 'translate(-50%,-50%) scale(1)' : 'translate(-50%,-50%) scale(.96)';
+      ui.tutArrow.style.opacity = '0';
+    } else {
+      var cw = ui.tutCard.offsetWidth, ch = ui.tutCard.offsetHeight;
+      var below = (y + h + 20 + ch) <= (vh - 12);
+      var ct = below ? (y + h + 22) : (y - 22 - ch);
+      ct = Math.max(12, Math.min(ct, vh - ch - 12));
+      var cl = x + w / 2 - cw / 2;
+      cl = Math.max(12, Math.min(cl, vw - cw - 12));
+      ui.tutCard.style.left = Math.round(cl) + 'px';
+      ui.tutCard.style.top = Math.round(ct) + 'px';
+      ui.tutCard.style.transform = '';
+
+      ui.tutArrow.style.left = Math.round(x + w / 2 - 13) + 'px';
+      ui.tutArrow.style.top = Math.round(below ? (y - 34) : (y + h + 8)) + 'px';
+      ui.tutArrow.style.width = '26px';
+      ui.tutArrow.style.height = '26px';
+      ui.tutArrow.style.transform = below ? 'rotate(180deg)' : 'none';
+    }
+
+    state.raf = requestAnimationFrame(tick);
+  }
+
+  function sz(el, l, t, w, h) {
+    el.style.left = l + 'px'; el.style.top = t + 'px';
+    el.style.width = w + 'px'; el.style.height = h + 'px';
+  }
+
+  /* ── 시작 / 종료 ── */
+  function open(startStep) {
+    if (state.active) return;
+    state.active = true;
+    state.rect = null;
+    state.flow = [];
+    ui.tut.classList.add('on');
+    requestAnimationFrame(function () { ui.tut.classList.add('in'); });
+    render(startStep);
+    ui.tutCard.classList.add('on');
+    state.raf = requestAnimationFrame(tick);
+  }
+
+  function close() {
+    if (!state.active) return;
+    state.active = false;
+    cancelAnimationFrame(state.raf);
+    ui.tutCard.classList.remove('on');
+    ui.tut.classList.remove('in');
+    setTimeout(function () {
+      ui.tut.classList.remove('on');
+      ui.tutRing.classList.remove('on');
+      ui.tutArrow.classList.remove('on');
+    }, 360);
+  }
+
+  function finish() {
+    try { localStorage.setItem(KEY, '1'); } catch (e) {}
+    showHelpBtn(false);
+    close();
+  }
+
+  function decline() {
+    try { localStorage.setItem(KEY, '1'); } catch (e) {}
+    showHelpBtn(true);
+    setTimeout(function () { show('declined'); }, 80);
+  }
+
+  function showHelpBtn(animate) {
+    ui.helpBtn.classList.add('show');
+    if (animate) {
+      ui.helpBtn.classList.remove('pop');
+      void ui.helpBtn.offsetWidth;
+      ui.helpBtn.classList.add('pop');
+    }
+  }
+
+  function shake() {
+    ui.tutCard.classList.remove('shake');
+    void ui.tutCard.offsetWidth;
+    ui.tutCard.classList.add('shake');
+  }
+
+  /* ── 페이지 이동 가로채기 ── */
+  var rawGo = window.go;
+  window.go = function (id) {
+    if (state.active) {
+      var s = STEPS[state.step];
+      if (!s || s.expect !== id) { shake(); return; }
+      rawGo(id);
+      setTimeout(function () { if (state.active) show(s.next); }, 620);
+      return;
+    }
+    return rawGo(id);
+  };
+
+  /* ── 외부 진입점 ── */
+  window.startTutorial = function (step) {
+    if (state.active) return;
+    var begin = function () { open(step || 'welcome'); };
+    var home = document.getElementById('pg-home');
+    if (home && !home.classList.contains('active')) {
+      rawGo('home');
+      setTimeout(begin, 640);
+    } else {
+      begin();
+    }
+  };
+
+  window.addEventListener('resize', function () { if (state.active) state.rect = null; });
+
+  /* ── 최초 실행 ── */
+  function boot() {
+    var done = false;
+    try { done = !!localStorage.getItem(KEY); } catch (e) {}
+    if (done) { showHelpBtn(false); return; }
+    setTimeout(function () { open('welcome'); }, 1400);
+  }
+  if (document.readyState === 'complete') boot();
+  else window.addEventListener('load', boot);
+})();
+</script>
+<!-- ═══════════ 튜토리얼 끝 ═══════════ -->
+
 </body>
 </html>
