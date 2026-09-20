@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>피드백 확인 · 조밈 시참 설명서</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+<style>
+:root{
+  --bg:#f4f5f7;--card:#ffffff;--line:rgba(0,0,0,.09);--text:#111318;--text2:#4a4f5a;--text3:#8a8f9a;
+  --accent:#d4793a;--accent-bg:#fdf3e7;--star:#f4b429;--bar:#e6e8ec;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#0E1117;--card:#151922;--line:rgba(255,255,255,.10);--text:#e6e8ee;--text2:#b4b9c4;--text3:#7d8492;
+    --accent:#e8954a;--accent-bg:#3a1e06;--bar:#232837;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:32px 18px 80px}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:20px}
+h1{font-size:22px;font-weight:800}
+.live{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:6px}
+.live i{width:7px;height:7px;border-radius:50%;background:#9aa0ab}
+.live.ok i{background:#2fb864}
+.live.bad i{background:#e0524d}
+
+.summary{display:grid;grid-template-columns:150px 1fr;gap:22px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px 22px;margin-bottom:18px}
+.avg{text-align:center}
+.avg b{display:block;font-size:44px;font-weight:800;line-height:1.1}
+.avg .st{color:var(--star);font-size:15px;letter-spacing:1px;margin:2px 0}
+.avg span{font-size:12.5px;color:var(--text3)}
+.dist{display:flex;flex-direction:column;gap:5px}
+.dist button{display:grid;grid-template-columns:34px 1fr 30px;align-items:center;gap:10px;border:none;background:none;font:inherit;font-size:12.5px;color:var(--text2);cursor:pointer;padding:2px 6px;border-radius:8px;text-align:left}
+.dist button:hover{background:var(--bar)}
+.dist button.on{background:var(--accent-bg);color:var(--accent)}
+.dist .track{height:7px;border-radius:99px;background:var(--bar);overflow:hidden}
+.dist .track i{display:block;height:100%;background:var(--star);border-radius:99px}
+.dist em{font-style:normal;text-align:right;color:var(--text3)}
+
+.bar{display:flex;align-items:center;justify-content:space-between;margin:0 2px 10px;font-size:13px;color:var(--text3)}
+.bar button{border:none;background:none;font:inherit;font-size:13px;color:var(--accent);cursor:pointer;font-weight:700}
+
+.list{display:flex;flex-direction:column;gap:10px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.item .top{display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap}
+.item .st{color:var(--star);font-size:14px;letter-spacing:1px}
+.item .st u{text-decoration:none;color:var(--bar)}
+.item .nick{font-size:13px;font-weight:700}
+.item time{margin-left:auto;font-size:12px;color:var(--text3)}
+.item p{font-size:14px;color:var(--text2);white-space:pre-wrap;word-break:break-word}
+.item p.none{color:var(--text3);font-style:italic}
+.msg{text-align:center;color:var(--text3);font-size:14px;padding:44px 12px;background:var(--card);border:1px dashed var(--line);border-radius:14px}
+.msg strong{display:block;color:var(--text2);margin-bottom:4px}
+
+@media(max-width:520px){.summary{grid-template-columns:1fr;gap:14px}.item time{margin-left:0;width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>사이트 피드백</h1>
+    <div class="live" id="live"><i></i><span>연결 중…</span></div>
+  </header>
+
+  <section class="summary" id="summary" hidden>
+    <div class="avg"><b id="avgNum">0.0</b><div class="st" id="avgStars"></div><span id="avgCount"></span></div>
+    <div class="dist" id="dist"></div>
+  </section>
+
+  <div class="bar" id="bar" hidden><span id="barText"></span><button id="clear" hidden>필터 해제</button></div>
+  <div class="list" id="list"><div class="msg">불러오는 중…</div></div>
+</div>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyDIl0-jomcfA8ykz-nYK_rYaLb-IE_yICc",
+  authDomain:"codet-597c7.firebaseapp.com",
+  databaseURL:"https://codet-597c7-default-rtdb.firebaseio.com",
+  projectId:"codet-597c7",
+  storageBucket:"codet-597c7.firebasestorage.app",
+  messagingSenderId:"619578457920",
+  appId:"1:619578457920:web:52d98e7430f9b9820104a5"
+});
+var db = firebase.database();
+var items = [], filter = 0;
+var $ = function (id) { return document.getElementById(id); };
+
+function stars(n) {
+  var f = document.createElement('span'); f.className = 'st';
+  f.appendChild(document.createTextNode('★'.repeat(n)));
+  var u = document.createElement('u'); u.textContent = '★'.repeat(5 - n); f.appendChild(u);
+  return f;
+}
+function setLive(cls, txt) { var l = $('live'); l.className = 'live ' + cls; l.lastChild.textContent = txt; }
+
+function render() {
+  var total = items.length;
+  $('summary').hidden = !total; $('bar').hidden = !total;
+
+  if (total) {
+    var count = [0, 0, 0, 0, 0, 0], sum = 0;
+    items.forEach(function (d) { count[d.rating]++; sum += d.rating; });
+    var avg = sum / total;
+    $('avgNum').textContent = avg.toFixed(1);
+    $('avgStars').textContent = '★'.repeat(Math.round(avg)) + '☆'.repeat(5 - Math.round(avg));
+    $('avgCount').textContent = '총 ' + total + '개의 평가';
+    var dist = $('dist'); dist.textContent = '';
+    for (var v = 5; v >= 1; v--) (function (v) {
+      var b = document.createElement('button'); if (filter === v) b.className = 'on';
+      b.innerHTML = '<span>' + v + '점</span><div class="track"><i style="width:' + (count[v] / total * 100) + '%"></i></div><em>' + count[v] + '</em>';
+      b.onclick = function () { filter = filter === v ? 0 : v; render(); };
+      dist.appendChild(b);
+    })(v);
+  }
+
+  var shown = filter ? items.filter(function (d) { return d.rating === filter; }) : items;
+  $('barText').textContent = filter ? filter + '점 피드백 ' + shown.length + '개' : '최신순';
+  $('clear').hidden = !filter; $('clear').onclick = function () { filter = 0; render(); };
+
+  var list = $('list'); list.textContent = '';
+  if (!shown.length) {
+    list.innerHTML = '<div class="msg"><strong>아직 피드백이 없어요</strong>사이트에서 피드백이 들어오면 여기에 바로 표시됩니다.</div>';
+    return;
+  }
+  shown.forEach(function (d) {
+    var el = document.createElement('div'); el.className = 'item';
+    var top = document.createElement('div'); top.className = 'top';
+    top.appendChild(stars(d.rating));
+    var n = document.createElement('span'); n.className = 'nick'; n.textContent = d.nick; top.appendChild(n);
+    var t = document.createElement('time');
+    t.textContent = d.createdAt ? new Date(d.createdAt).toLocaleString('ko-KR', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+    top.appendChild(t); el.appendChild(top);
+    var p = document.createElement('p');
+    if (d.text) p.textContent = d.text; else { p.className = 'none'; p.textContent = '(별점만 남김)'; }
+    el.appendChild(p); list.appendChild(el);
+  });
+}
+
+db.ref('site_feedback').limitToLast(500).on('value', function (snap) {
+  var v = snap.val() || {};
+  items = Object.keys(v).map(function (k) {
+    var d = v[k] || {};
+    return { rating: Math.min(5, Math.max(1, +d.rating || 1)), text: String(d.text || ''), nick: String(d.nick || '익명'), createdAt: +d.createdAt || 0 };
+  }).sort(function (a, b) { return b.createdAt - a.createdAt; });
+  setLive('ok', '실시간 연결됨');
+  render();
+}, function (e) {
+  setLive('bad', '연결 실패');
+  $('list').innerHTML = '<div class="msg"><strong>피드백을 불러오지 못했어요</strong>Firebase 규칙에서 site_feedback 읽기 권한을 확인해주세요.</div>';
+  console.warn(e);
+});
+</script>
+</body>
+</html>
