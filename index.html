@@ -15,11 +15,12 @@
 <meta name="color-scheme" content="light dark">
 <script>
 (function () {
-  var t = null;
-  try { t = localStorage.getItem('jomim-theme'); } catch (e) {}
-  if (t !== 'dark' && t !== 'light') {
-    t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
-  }
+  var sys = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  var t = sys;
+  try {
+    var saved = localStorage.getItem('jomim-theme'), at = localStorage.getItem('jomim-theme-sys');
+    if ((saved === 'dark' || saved === 'light') && at === sys) t = saved;
+  } catch (e) {}
   document.documentElement.setAttribute('data-theme', t);
 })();
 </script>
@@ -918,7 +919,10 @@ function toggleTheme() {
   const dark = document.documentElement.getAttribute('data-theme') === 'dark';
   const t = dark ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', t);
-  try { localStorage.setItem('jomim-theme', t); } catch (e) {}
+  try {
+    localStorage.setItem('jomim-theme', t);
+    localStorage.setItem('jomim-theme-sys', window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  } catch (e) {}
   updateIcon(t);
 }
 
@@ -930,17 +934,11 @@ function updateIcon(t) {
 
 (function () {
   const mq = window.matchMedia('(prefers-color-scheme: dark)');
-  let saved = null;
-  try { saved = localStorage.getItem('jomim-theme'); } catch (e) {}
-  if (saved !== 'dark' && saved !== 'light') saved = null;
-  const t = saved || (mq.matches ? 'dark' : 'light');
-  document.documentElement.setAttribute('data-theme', t);
-  updateIcon(t);
-  // 사용자가 직접 테마를 고르지 않았다면 시스템 설정이 바뀔 때 따라감
+  // head 스크립트가 이미 결정한 테마를 아이콘에 반영
+  updateIcon(document.documentElement.getAttribute('data-theme') || 'light');
+  // 시스템(브라우저) 설정이 바뀌면 이전 수동 선택을 버리고 시스템 설정을 따라감
   const onSys = (e) => {
-    let s2 = null;
-    try { s2 = localStorage.getItem('jomim-theme'); } catch (err) {}
-    if (s2 === 'dark' || s2 === 'light') return;
+    try { localStorage.removeItem('jomim-theme'); localStorage.removeItem('jomim-theme-sys'); } catch (err) {}
     const n = e.matches ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', n);
     updateIcon(n);
