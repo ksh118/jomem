@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>조밈님 생일 편지 - 관리자</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+<style>
+  :root{
+    --cream:#fff8e9;--paper:#fdf6e3;--ink:#3a3226;
+    --coral:#ff6b5e;--coral-dark:#e5473a;--line:rgba(0,0,0,.1);
+    padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){ --cream:#20242b; --paper:#2b2f38; --ink:#f2ead9; --line:rgba(255,255,255,.12);}
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{margin:0;background:var(--cream);color:var(--ink);font-family:'Noto Sans KR',sans-serif;}
+  .wrap{max-width:720px;margin:0 auto;padding:28px 18px 60px;}
+  h1{font-family:'Gaegu',cursive;font-size:26px;margin:0 0 4px;}
+  .sub{font-size:12.5px;opacity:.6;margin-bottom:22px;line-height:1.6;}
+
+  /* gate */
+  #gate{max-width:340px;margin:80px auto;text-align:center;}
+  #gate input{
+    width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--line);
+    font-size:15px;margin-bottom:10px;background:var(--paper);color:var(--ink);
+  }
+  #gate button{
+    width:100%;padding:12px;border:none;border-radius:10px;background:var(--coral-dark);
+    color:#fff;font-weight:700;font-size:14px;cursor:pointer;
+  }
+  #gateErr{color:var(--coral-dark);font-size:12px;margin-top:8px;min-height:14px;}
+
+  #panel{display:none;}
+  #panel.show{display:block;}
+
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap;}
+  .count-badge{font-size:13px;background:var(--paper);padding:7px 14px;border-radius:999px;border:1px solid var(--line);}
+  .refresh{font-size:12.5px;background:none;border:1px solid var(--line);border-radius:999px;padding:7px 14px;cursor:pointer;color:var(--ink);}
+
+  .card{
+    background:var(--paper);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;margin-bottom:12px;
+  }
+  .card-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px;}
+  .card-head .nick{font-weight:700;font-size:14.5px;}
+  .card-head .time{font-size:11px;opacity:.5;white-space:nowrap;}
+  .card textarea{
+    width:100%;min-height:70px;border-radius:8px;border:1px solid var(--line);
+    padding:8px 10px;font-size:13.5px;font-family:inherit;background:transparent;color:var(--ink);
+    resize:vertical;
+  }
+  .card-actions{display:flex;gap:8px;margin-top:10px;}
+  .btn{border:none;border-radius:8px;padding:8px 14px;font-size:12.5px;cursor:pointer;font-weight:500;}
+  .btn-save{background:#4caf7d;color:#fff;}
+  .btn-del{background:var(--coral-dark);color:#fff;}
+  .btn-del.confirm{background:#8b1f16;}
+  .btn[disabled]{opacity:.5;cursor:not-allowed;}
+  .empty{text-align:center;font-size:13px;opacity:.55;padding:40px 0;}
+  .toast{
+    position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+    background:#222;color:#fff;padding:10px 18px;border-radius:999px;font-size:12.5px;
+    opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:10;
+  }
+  .toast.show{opacity:.95;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="gate">
+    <h1>🔒 관리자 로그인</h1>
+    <p class="sub">조밈님 생일 편지 관리 페이지예요.<br>비밀번호를 입력해주세요.</p>
+    <input id="pwInput" type="password" placeholder="비밀번호" autocomplete="off">
+    <button id="pwBtn" type="button">입장하기</button>
+    <div id="gateErr"></div>
+  </div>
+
+  <div id="panel">
+    <h1>편지 관리</h1>
+    <p class="sub">부적절한 내용(욕설·비방·광고 등)은 삭제해주세요. 수정 후에는 반드시 저장을 눌러주세요.<br>
+    ※ 이 페이지의 비밀번호는 간단한 접근 제한용이며, 완전한 보안이 필요하면 Firebase 보안 규칙을 함께 설정해주세요.</p>
+
+    <div class="toolbar">
+      <span class="count-badge">총 <b id="totalCount">0</b>통</span>
+      <button class="refresh" id="refreshBtn" type="button">새로고침</button>
+    </div>
+
+    <div id="list"></div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var ADMIN_PW = '0118'; // 필요하면 이 값을 원하는 비밀번호로 바꿔서 다시 저장/게시하세요.
+  var LETTERS_PATH = 'jomim_birthday_2026/letters';
+  var $ = function(id){ return document.getElementById(id); };
+
+  var fdb = null;
+  try {
+    firebase.initializeApp({
+      apiKey: "AIzaSyDIl0-jomcfA8ykz-nYK_rYaLb-IE_yICc",
+      authDomain: "codet-597c7.firebaseapp.com",
+      databaseURL: "https://codet-597c7-default-rtdb.firebaseio.com",
+      projectId: "codet-597c7",
+      storageBucket: "codet-597c7.firebasestorage.app",
+      messagingSenderId: "619578457920",
+      appId: "1:619578457920:web:52d98e7430f9b9820104a5"
+    });
+    fdb = firebase.database();
+  } catch(e){ console.warn('firebase init failed', e); }
+
+  /* gate */
+  var gate = $('gate'), panel = $('panel'), pwInput = $('pwInput'), pwBtn = $('pwBtn'), gateErr = $('gateErr');
+  function tryEnter(){
+    if (pwInput.value === ADMIN_PW){
+      gate.style.display = 'none';
+      panel.classList.add('show');
+      loadLetters();
+    } else {
+      gateErr.textContent = '비밀번호가 올바르지 않아요.';
+    }
+  }
+  pwBtn.addEventListener('click', tryEnter);
+  pwInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') tryEnter(); });
+
+  /* toast */
+  var toastTimer = null;
+  function toast(msg){
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 1800);
+  }
+
+  function fmtTime(ts){
+    if (!ts) return '';
+    var d = new Date(ts);
+    var p = function(n){ return (n<10?'0':'')+n; };
+    return d.getFullYear()+'.'+p(d.getMonth()+1)+'.'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes());
+  }
+  function escapeHtml(s){
+    return (s||'').toString().replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function loadLetters(){
+    if (!fdb){ $('list').innerHTML = '<div class="empty">Firebase 연결에 실패했어요.</div>'; return; }
+    fdb.ref(LETTERS_PATH).get().then(renderList).catch(function(e){
+      console.warn(e);
+      $('list').innerHTML = '<div class="empty">불러오기에 실패했어요.</div>';
+    });
+  }
+
+  function renderList(snap){
+    var val = snap.val();
+    var list = $('list');
+    var ids = val ? Object.keys(val) : [];
+    $('totalCount').textContent = ids.length;
+
+    if (!ids.length){
+      list.innerHTML = '<div class="empty">아직 도착한 편지가 없어요.</div>';
+      return;
+    }
+
+    ids.sort(function(a,b){ return (val[b].createdAt||0) - (val[a].createdAt||0); });
+
+    list.innerHTML = ids.map(function(id){
+      var it = val[id];
+      return '' +
+        '<div class="card" data-id="' + id + '">' +
+          '<div class="card-head">' +
+            '<span class="nick">From. ' + escapeHtml(it.nickname) + '</span>' +
+            '<span class="time">' + fmtTime(it.createdAt) + '</span>' +
+          '</div>' +
+          '<textarea class="msgBox">' + escapeHtml(it.message) + '</textarea>' +
+          '<div class="card-actions">' +
+            '<button class="btn btn-save" type="button">저장</button>' +
+            '<button class="btn btn-del" type="button">삭제</button>' +
+          '</div>' +
+        '</div>';
+    }).join('');
+
+    Array.prototype.forEach.call(list.querySelectorAll('.card'), function(card){
+      var id = card.getAttribute('data-id');
+      var box = card.querySelector('.msgBox');
+      var saveBtn = card.querySelector('.btn-save');
+      var delBtn = card.querySelector('.btn-del');
+
+      saveBtn.addEventListener('click', function(){
+        var newMsg = box.value.trim().slice(0,400);
+        if (!newMsg){ toast('내용을 입력해주세요.'); return; }
+        saveBtn.disabled = true;
+        fdb.ref(LETTERS_PATH + '/' + id + '/message').set(newMsg).then(function(){
+          toast('저장했어요.');
+          saveBtn.disabled = false;
+        }).catch(function(e){
+          console.warn(e); toast('저장에 실패했어요.'); saveBtn.disabled = false;
+        });
+      });
+
+      delBtn.addEventListener('click', function(){
+        if (!delBtn.classList.contains('confirm')){
+          delBtn.classList.add('confirm');
+          delBtn.textContent = '정말 삭제할까요?';
+          setTimeout(function(){
+            delBtn.classList.remove('confirm');
+            delBtn.textContent = '삭제';
+          }, 3000);
+          return;
+        }
+        fdb.ref(LETTERS_PATH + '/' + id).remove().then(function(){
+          toast('삭제했어요.');
+          card.remove();
+          var remaining = list.querySelectorAll('.card').length;
+          $('totalCount').textContent = remaining;
+          if (!remaining) list.innerHTML = '<div class="empty">아직 도착한 편지가 없어요.</div>';
+        }).catch(function(e){
+          console.warn(e); toast('삭제에 실패했어요.');
+        });
+      });
+    });
+  }
+
+  $('refreshBtn').addEventListener('click', loadLetters);
+})();
+</script>
+</body>
+</html>
