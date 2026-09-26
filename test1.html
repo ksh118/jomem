@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 <style>
   :root{
     --cream:#fff8e9;--paper:#fdf6e3;--ink:#3a3226;
@@ -76,20 +77,22 @@
 
   <div id="gate">
     <h1>🔒 관리자 로그인</h1>
-    <p class="sub">조밈님 생일 편지 관리 페이지예요.<br>비밀번호를 입력해주세요.</p>
+    <p class="sub">조밈님 생일 편지 관리 페이지예요.<br>아이디와 비밀번호를 입력해주세요.</p>
+    <input id="idInput" type="text" placeholder="아이디" autocomplete="username">
     <input id="pwInput" type="password" placeholder="비밀번호" autocomplete="off">
+    <div class="sub">아이디 admin으로 로그인하세요.</div>
     <button id="pwBtn" type="button">입장하기</button>
     <div id="gateErr"></div>
   </div>
 
   <div id="panel">
     <h1>편지 관리</h1>
-    <p class="sub">부적절한 내용(욕설·비방·광고 등)은 삭제해주세요. 수정 후에는 반드시 저장을 눌러주세요.<br>
-    ※ 이 페이지의 비밀번호는 간단한 접근 제한용이며, 완전한 보안이 필요하면 Firebase 보안 규칙을 함께 설정해주세요.</p>
+    <p class="sub">부적절한 내용(욕설·비방·광고 등)은 삭제해주세요. 수정 후에는 반드시 저장을 눌러주세요.<br>Firebase 인증 계정으로 로그인한 관리자만 편지를 수정하고 삭제할 수 있습니다.</p>
 
     <div class="toolbar">
       <span class="count-badge">총 <b id="totalCount">0</b>통</span>
       <button class="refresh" id="refreshBtn" type="button">새로고침</button>
+      <button class="refresh" id="logoutBtn" type="button">로그아웃</button>
     </div>
 
     <div id="list"></div>
@@ -100,11 +103,11 @@
 
 <script>
 (function(){
-  var ADMIN_PW = '0118'; // 필요하면 이 값을 원하는 비밀번호로 바꿔서 다시 저장/게시하세요.
+  var ADMIN_EMAIL = 'admin@jomeme.kro.kr';
   var LETTERS_PATH = 'jomim_birthday_2026/letters';
   var $ = function(id){ return document.getElementById(id); };
 
-  var fdb = null;
+  var fdb = null, auth = null;
   try {
     firebase.initializeApp({
       apiKey: "AIzaSyDIl0-jomcfA8ykz-nYK_rYaLb-IE_yICc",
@@ -116,21 +119,48 @@
       appId: "1:619578457920:web:52d98e7430f9b9820104a5"
     });
     fdb = firebase.database();
+    auth = firebase.auth();
   } catch(e){ console.warn('firebase init failed', e); }
 
   /* gate */
-  var gate = $('gate'), panel = $('panel'), pwInput = $('pwInput'), pwBtn = $('pwBtn'), gateErr = $('gateErr');
+  var gate = $('gate'), panel = $('panel'), idInput = $('idInput'), pwInput = $('pwInput'), pwBtn = $('pwBtn'), gateErr = $('gateErr');
+  function openPanel(){
+    gate.style.display = 'none';
+    panel.classList.add('show');
+    loadLetters();
+  }
+  if (auth){
+    auth.onAuthStateChanged(function(user){
+      if (user && user.email === ADMIN_EMAIL && !panel.classList.contains('show')) openPanel();
+    });
+  }
   function tryEnter(){
-    if (pwInput.value === ADMIN_PW){
-      gate.style.display = 'none';
-      panel.classList.add('show');
-      loadLetters();
-    } else {
-      gateErr.textContent = '비밀번호가 올바르지 않아요.';
+    if (!idInput.value.trim() || idInput.value.trim().toLowerCase() !== 'admin'){
+      gateErr.textContent = '아이디가 올바르지 않아요.'; return;
     }
+    if (!auth){ gateErr.textContent = 'Firebase 인증에 연결하지 못했어요.'; return; }
+    pwBtn.disabled = true; gateErr.textContent = '';
+    auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).then(function(){
+      return auth.signInWithEmailAndPassword(ADMIN_EMAIL, pwInput.value);
+    }).then(function(credential){
+      if (credential.user.email !== ADMIN_EMAIL) throw new Error('unauthorized-admin');
+      openPanel();
+    }).catch(function(e){
+      console.warn('admin sign-in failed', e.code || e.message);
+      gateErr.textContent = '아이디 또는 비밀번호가 올바르지 않아요.';
+      pwBtn.disabled = false;
+    });
   }
   pwBtn.addEventListener('click', tryEnter);
+  idInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') tryEnter(); });
   pwInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') tryEnter(); });
+  $('logoutBtn').addEventListener('click', function(){
+    if (!auth) return;
+    auth.signOut().then(function(){
+      panel.classList.remove('show'); gate.style.display = '';
+      idInput.value = ''; pwInput.value = ''; pwBtn.disabled = false;
+    });
+  });
 
   /* toast */
   var toastTimer = null;
