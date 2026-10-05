@@ -287,7 +287,7 @@
 <body>
 <div id="incidentNotice" role="dialog" aria-modal="true" aria-labelledby="incidentNoticeTitle" aria-describedby="incidentNoticeText">
  <div class="incident-card" role="document"><div class="incident-label">📌 사이트 안내</div><h2 id="incidentNoticeTitle">안내드립니다.</h2>
- <p id="incidentNoticeText">생일 편지 사이트에서 특정 시간대에 편지가 비정상적으로 대량 등록된 기록을 확인했습니다. 현재 관련 자료를 보존하고 있습니다. 해당 등록을 한 분은 feelbox.gsh@gmail.com 으로 자진 연락해 경위를 알려주세요. 자수하고 피해 복구에 협조하면 신고를 취하하겠습니다. 반복적인 자동 등록이나 서비스 방해 행위는 중단해 주세요.</p>
+ <p id="incidentNoticeText">생일 편지 사이트에서 특정 시간대에 편지가 비정상적으로 대량 등록된 기록을 확인했습니다. 현재 관련 자료를 보존하고 있습니다. 해당 등록을 한 분은 feelbox.gsh@gmail.com 으로 자진해서 연락해 경위를 알려주세요. 자수하고 피해 복구에 협조해 주시면 신고를 취하하겠습니다. 연락이 없을 경우 한국인터넷진흥원(KISA) 등 관계 기관에 신고할 예정입니다. 반복적인 자동 등록이나 서비스 방해 행위는 즉시 중단해 주세요.</p>
  <p class="incident-thanks">정상적으로 편지를 남겨주신 분들께 감사드립니다.</p><button id="incidentNoticeClose" type="button">확인</button></div>
 </div>
 
@@ -452,22 +452,6 @@
 
   var LETTERS_PATH = 'jomim_birthday_2026/letters';
   var WRITES_ENABLED = true;
-  var RATE_LIMIT_KEY = 'jomim_letter_send_times_v1';
-  var RATE_LIMIT_WINDOW = 10 * 60 * 1000;
-  var RATE_LIMIT_COUNT = 2;
-  var RATE_LIMIT_MESSAGE = '편지를 너무 많이 적었습니다. 잠시후에 다시 적어주세요';
-  function getRecentSendTimes(){
-    var now = Date.now(), times = [];
-    try { times = JSON.parse(localStorage.getItem(RATE_LIMIT_KEY) || '[]'); } catch(e) { times = []; }
-    if (!Array.isArray(times)) times = [];
-    return times.filter(function(t){ return typeof t === 'number' && now - t < RATE_LIMIT_WINDOW && now >= t; });
-  }
-  function recordSendAttempt(){
-    var times = getRecentSendTimes();
-    times.push(Date.now());
-    try { localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify(times)); } catch(e) {}
-  }
-  function isRateLimited(){ return getRecentSendTimes().length >= RATE_LIMIT_COUNT; }
   var $ = function(id){ return document.getElementById(id); };
 
   /* ---------- intro gate + audio ---------- */
@@ -602,7 +586,6 @@
     if (RECAPTCHA_SITE_KEY && !captchaToken){ errMsg.textContent = "\"로봇이 아닙니다\"를 먼저 체크해주세요."; return; }
     if (msgInput.value.length > 400) { errMsg.textContent = "편지 내용은 400자까지 보낼 수 있어요."; validate(); return; }
     if (!fdb){ errMsg.textContent = "연결에 실패했어요. 새로고침 후 다시 시도해주세요."; return; }
-    if (isRateLimited()){ errMsg.textContent = RATE_LIMIT_MESSAGE; return; }
     if (!WRITES_ENABLED){ errMsg.textContent = "편지 전송을 잠시 중단했어요."; return; }
     sendConfirmDialog.hidden = false;
     sendConfirmBtn.focus();
@@ -611,9 +594,7 @@
   sendCancelBtn.addEventListener("click", closeSendConfirm);
   sendConfirmBtn.addEventListener("click", function(){
     if (sending) return;
-    if (isRateLimited()){ closeSendConfirm(); errMsg.textContent = RATE_LIMIT_MESSAGE; return; }
     closeSendConfirm();
-    recordSendAttempt();
     sending = true; sendBtn.disabled = true; errMsg.textContent = "";
     /* fold, insert into the envelope, seal it and send it away */
     paperStage.classList.remove("send-flow");
