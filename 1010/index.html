@@ -11,6 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-check-compat.js"></script>
 
 <style>
   :root{
@@ -425,10 +426,11 @@
 <script>
 (function(){
   /* ---------- Firebase ---------- */
+  var APPCHECK_SITE_KEY = ''; /* reCAPTCHA v3 사이트 키를 여기에 붙여넣기 */
   var fdb = null;
   try {
     firebase.initializeApp({
-      apiKey: "AIzaSyDIl0-jomcfA8ykz-nYK_rYaLb-IE_yICc",
+      apiKey: "AIzaSyCFoi_GIsULhVSkcnwO7JVFN0Sm-5PQFqk",
       authDomain: "jomeme-a4054.firebaseapp.com",
       databaseURL: "https://jomeme-a4054-default-rtdb.firebaseio.com",
       projectId: "jomeme-a4054",
@@ -436,6 +438,7 @@
       messagingSenderId: "738558785061",
       appId: "1:738558785061:web:d39b48986660a02bacb1cc"
     });
+    if (APPCHECK_SITE_KEY) firebase.appCheck().activate(APPCHECK_SITE_KEY, true);
     fdb = firebase.database();
   } catch(e){ console.warn('firebase init failed', e); }
 
@@ -664,8 +667,43 @@
       oldestKey = wallKeys.length ? wallKeys[wallKeys.length - 1] : null;
       wallItems = wallKeys.map(function(key){ return letterCache[key]; }).filter(Boolean);
       renderWall();
+      if (reset) startLive();
     }).catch(function(e){ console.error('Could not load letters', e); if(reset) wall.innerHTML = '<div class="empty-wall">편지를 불러오지 못했어요. 잠시 후 새로고침해주세요.</div>'; })
       .then(function(){ pageLoading = false; updateMore(); });
+  }
+  /* ---------- 실시간 반영 (새로고침 없이 새 편지/삭제/수정 표시) ---------- */
+  var liveStarted = false;
+  function rebuildWall(){
+    wallItems = wallKeys.map(function(key){ return letterCache[key]; }).filter(Boolean);
+    oldestKey = wallKeys.length ? wallKeys[wallKeys.length - 1] : null;
+    renderWall();
+  }
+  function bumpCount(d){
+    var el = $('countNum'); el.textContent = Math.max(0, (parseInt(el.textContent, 10) || 0) + d);
+  }
+  function startLive(){
+    if (liveStarted || !fdb) return;
+    liveStarted = true;
+    var ref = fdb.ref(LETTERS_PATH).orderByKey();
+    var newest = wallKeys.length ? wallKeys[0] : null;
+    var q = newest ? ref.startAt(newest) : ref;
+    q.on('child_added', function(snap){
+      var key = snap.key;
+      if (wallKeys.indexOf(key) >= 0) return;
+      letterCache[key] = snap.val();
+      wallKeys.unshift(key);
+      rebuildWall(); bumpCount(1);
+    });
+    ref.on('child_changed', function(snap){
+      if (wallKeys.indexOf(snap.key) < 0) return;
+      letterCache[snap.key] = snap.val(); rebuildWall();
+    });
+    ref.on('child_removed', function(snap){
+      var i = wallKeys.indexOf(snap.key);
+      if (i < 0) return;
+      wallKeys.splice(i, 1); delete letterCache[snap.key];
+      rebuildWall(); bumpCount(-1);
+    });
   }
   loadMoreBtn.addEventListener('click', function(){ loadLetters(false); });
   if (fdb){
@@ -684,8 +722,3 @@
 </script>
 </body>
 </html>
-
-
-
-
-
