@@ -12,6 +12,8 @@
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-check-compat.js"></script>
+<script>window.__rcReady=false;function onRecaptchaLoad(){window.__rcReady=true;if(window.__initCaptcha)window.__initCaptcha();}</script>
+<script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onRecaptchaLoad" async defer></script>
 
 <style>
   :root{
@@ -228,6 +230,9 @@
   .sign{text-align:right;font-family:'Gaegu',cursive;font-size:16px;opacity:.75;margin-top:6px;}
 
   .paper-actions{display:flex;gap:10px;margin-top:18px;}
+  .captcha-box{display:flex;justify-content:center;margin:12px 0 4px;min-height:78px;}
+  .captcha-box[hidden]{display:none;}
+  @media (max-width:360px){ #captchaWidget{transform:scale(.85);transform-origin:center top;} }
   #sendBtn{
     flex:1;border:none;cursor:pointer;color:#fff;background:var(--coral-dark);
     font-family:'Gaegu',cursive;font-weight:700;font-size:18px;padding:13px;border-radius:12px;
@@ -403,6 +408,8 @@
         <div class="sign">From. 나</div>
         <p class="warn-text">⚠️ 욕설, 비방, 광고 등 부적절한 내용은 사전 통보 없이 삭제되거나 작성이 제한될 수 있어요.</p>
 
+        <div class="captcha-box" id="captchaBox" hidden><div id="captchaWidget"></div></div>
+
         <div class="paper-actions">
           <button id="sendBtn" type="button" disabled>보내기</button>
         </div>
@@ -426,6 +433,7 @@
 <script>
 (function(){
   /* ---------- Firebase ---------- */
+  var RECAPTCHA_SITE_KEY = '6LdRRuAtAAAAAGClKBA7CnlpW6RHwItEqRm2eoxR'; /* reCAPTCHA v2 ("로봇이 아닙니다" 체크박스) 사이트 키를 여기에 붙여넣기 */
   var APPCHECK_SITE_KEY = ''; /* reCAPTCHA v3 사이트 키를 여기에 붙여넣기 */
   var fdb = null;
   try {
@@ -552,7 +560,7 @@
   function validate(){
     var overLimit = msgInput.value.length > 400;
     var ok = nickInput.value.trim().length > 0 && msgInput.value.trim().length > 0 && !overLimit;
-    sendBtn.disabled = !ok;
+    sendBtn.disabled = !ok || (!!RECAPTCHA_SITE_KEY && !captchaToken);
     if (overLimit) errMsg.textContent = "편지 내용은 400자까지 보낼 수 있어요.";
     else if (errMsg.textContent === "편지 내용은 400자까지 보낼 수 있어요.") errMsg.textContent = "";
   }
@@ -562,6 +570,28 @@
     validate();
   });
 
+  /* ---------- 캡챠 (보내기 전에 체크) ---------- */
+  var captchaId = null, captchaToken = '';
+  function initCaptcha(){
+    if (!RECAPTCHA_SITE_KEY) return;
+    $('captchaBox').hidden = false;
+    if (captchaId !== null || !window.__rcReady || !window.grecaptcha || !grecaptcha.render) return;
+    captchaId = grecaptcha.render('captchaWidget', {
+      sitekey: RECAPTCHA_SITE_KEY,
+      callback: function(t){ captchaToken = t; validate(); },
+      'expired-callback': function(){ captchaToken = ''; validate(); },
+      'error-callback': function(){ captchaToken = ''; validate(); }
+    });
+  }
+  function resetCaptcha(){
+    captchaToken = '';
+    if (captchaId !== null && window.grecaptcha) grecaptcha.reset(captchaId);
+    validate();
+  }
+  window.__initCaptcha = initCaptcha;
+  writeBtn.addEventListener('click', initCaptcha);
+  if (window.__rcReady) initCaptcha();
+
   var sending = false, pendingNick = "", pendingMsg = "";
   var sendConfirmDialog = $("sendConfirmDialog"), sendCancelBtn = $("sendCancelBtn"), sendConfirmBtn = $("sendConfirmBtn");
   sendBtn.addEventListener("click", function(){
@@ -569,6 +599,7 @@
     pendingNick = nickInput.value.trim().slice(0,20);
     pendingMsg = msgInput.value.trim();
     if (!pendingNick || !pendingMsg) return;
+    if (RECAPTCHA_SITE_KEY && !captchaToken){ errMsg.textContent = "\"로봇이 아닙니다\"를 먼저 체크해주세요."; return; }
     if (msgInput.value.length > 400) { errMsg.textContent = "편지 내용은 400자까지 보낼 수 있어요."; validate(); return; }
     if (!fdb){ errMsg.textContent = "연결에 실패했어요. 새로고침 후 다시 시도해주세요."; return; }
     if (isRateLimited()){ errMsg.textContent = RATE_LIMIT_MESSAGE; return; }
@@ -604,14 +635,14 @@
         paperStage.classList.remove("success-mode");
         successMsg.classList.remove("show");
         nickInput.value = ""; msgInput.value = ""; charCount.textContent = "0 / 400";
-        sending = false; sendBtn.disabled = true;
+        sending = false; resetCaptcha(); sendBtn.disabled = true;
       }, 4700);
     }).catch(function(e){
       console.warn(e);
       paperStage.classList.remove("send-flow");
       paper.classList.remove("fold1","fold2","fly");
       errMsg.textContent = "전송에 실패했어요. 잠시 후 다시 시도해주세요.";
-      sending = false; sendBtn.disabled = false;
+      sending = false; resetCaptcha();
     });
   });
 
