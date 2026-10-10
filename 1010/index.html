@@ -269,6 +269,8 @@
   .send-confirm{position:fixed;inset:0;z-index:100;}
   .send-confirm-actions #sendCancelBtn{background:#eee7d9;color:#443c32;}
   .send-confirm-actions #sendConfirmBtn{background:#e5473a;color:#fff;box-shadow:0 7px 18px rgba(229,71,58,.28);}  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+#viewAllBtn{display:block;width:fit-content;margin:24px auto 0;padding:15px 30px;border-radius:999px;background:linear-gradient(135deg,#ffd166,#ff8a80);color:#4a2b22;font:700 20px 'Gaegu',cursive;text-decoration:none;box-shadow:0 10px 22px rgba(229,71,58,.28);transition:transform .15s}
+#viewAllBtn:active{transform:scale(.96)}
 </style>
 <style>
 #incidentNotice{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(24,20,18,.72);backdrop-filter:blur(5px)}
@@ -287,7 +289,7 @@
 <body>
 <div id="incidentNotice" role="dialog" aria-modal="true" aria-labelledby="incidentNoticeTitle" aria-describedby="incidentNoticeText">
  <div class="incident-card" role="document"><div class="incident-label">📌 공지사항</div><h2 id="incidentNoticeTitle">안내드립니다.</h2>
- <p id="incidentNoticeText">10월10일에 편지 작성이 불가합니다. 10월10일 전에 모두 작성해주세요.</p>
+ <p id="incidentNoticeText">가장 최근에 올린 편지 3개만 표시됩니다. 전체 편지는 조밈님만 볼 수 있습니다.</p>
  <p class="incident-thanks">문의메일:feelbox.gsh@gmail.com</p><button id="incidentNoticeClose" type="button">확인</button></div>
 </div>
 
@@ -374,11 +376,12 @@
     <div><span class="counter">💌 지금까지 <b id="countNum">0</b>명이 축하 편지를 남겼어요</span></div>
     <div><button id="writeBtn" type="button">축하 편지 남기기</button></div>
 
-    <div class="wall-title">축하 편지 모아보기 📮</div>
+    <div class="wall-title">최근에 도착한 편지 📮</div>
     <div class="wall" id="wall">
       <div class="empty-wall">아직 도착한 편지가 없어요. 첫 편지의 주인공이 되어보세요!</div>
     </div>
-    <button id="loadMoreBtn" type="button" hidden>오래된 편지 더 보기</button>
+    <button id="loadMoreBtn" type="button" hidden style="display:none"></button>
+    <a id="viewAllBtn" href="https://jomeme.kro.kr/jo.html">💌 조밈님이 받은편지 모아보기</a>
 
     <footer>
       <p>Song : danmoo - birthday &nbsp;<a id="songLink" href="https://www.youtube.com/watch?v=BYXJqP9TWbE" target="_blank" rel="noopener">[출처]</a></p>
@@ -663,7 +666,7 @@
     }
   }
   window.addEventListener('resize', renderWall);
-  var PAGE_SIZE = 20, oldestKey = null, hasOlderPages = false, pageLoading = false;
+  var PAGE_SIZE = 3, oldestKey = null, hasOlderPages = false, pageLoading = false;
   var wallKeys = [], letterCache = Object.create(null), loadMoreBtn = $('loadMoreBtn');
   function updateMore(){ loadMoreBtn.hidden = !hasOlderPages; loadMoreBtn.disabled = pageLoading; loadMoreBtn.textContent = pageLoading ? '불러오는 중...' : '오래된 편지 더 보기'; }
   function loadLetters(reset){
@@ -686,6 +689,7 @@
   /* ---------- 실시간 반영 (새로고침 없이 새 편지/삭제/수정 표시) ---------- */
   var liveStarted = false;
   function rebuildWall(){
+    while (wallKeys.length > PAGE_SIZE) delete letterCache[wallKeys.pop()];
     wallItems = wallKeys.map(function(key){ return letterCache[key]; }).filter(Boolean);
     oldestKey = wallKeys.length ? wallKeys[wallKeys.length - 1] : null;
     renderWall();
