@@ -8,6 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{--butter:#fff3c4;--peach:#cfe8ff;--ink:#2b2a4c;--pink:#2f6fed;--sun:#ffb703;--mint:#7ae0c3;--paper:#fffef8;color-scheme:light;
 padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -186,6 +188,18 @@ h1 .row:first-child .c{text-shadow:0 0 18px rgba(142,203,255,.9),0 0 36px rgba(2
   #print .pl b{font:700 11pt 'Gaegu',cursive;color:#2f6fed}
   #print .pl:nth-child(4n+1){background:#fffef8}#print .pl:nth-child(4n+2){background:#fff3c4}#print .pl:nth-child(4n+3){background:#e3f1ff}#print .pl:nth-child(4n){background:#e6fbf3}
 }
+
+/* PDF 페이지(화면 밖에서 그려서 이미지로 캡처) */
+.xpg{position:fixed;left:-10000px;top:0;width:794px;height:1123px;padding:45px;background:#fff;color:#2b2a4c;font-family:'Noto Sans KR',sans-serif;overflow:hidden}
+.xh{text-align:center;padding-bottom:16px;margin-bottom:22px;border-bottom:2px dashed #ffb703}
+.xh h1{font:700 46px/1.2 'Gaegu',cursive;margin:0;color:#2f6fed}
+.xh div{font-size:15px;margin-top:6px;opacity:.8}
+.xcols{display:flex;gap:19px;align-items:flex-start}
+.xcol{width:222px}
+.xl{margin:0 0 18px;padding:14px 14px 10px;border-radius:9px;border:1px solid rgba(43,42,76,.2);font-size:12px;line-height:1.65;width:222px;box-sizing:border-box}
+.xl p{margin:0 0 7px;white-space:pre-wrap;word-break:break-word}
+.xl b{font:700 16px 'Gaegu',cursive;color:#2f6fed}
+.xl.c0{background:#fffef8}.xl.c1{background:#fff3c4}.xl.c2{background:#e3f1ff}.xl.c3{background:#e6fbf3}
 </style>
 </head>
 <body>
@@ -414,23 +428,48 @@ h1 .row:first-child .c{text-shadow:0 0 18px rgba(142,203,255,.9),0 0 36px rgba(2
     }).catch(function(){ return ord.length ? ord : SAMPLE; });
   }
   $('pdfBtn').addEventListener('click', function(){
-    var btn = this; btn.disabled = true; btn.textContent = '편지 모으는 중…';
+    var btn = this, LABEL = '📄 PDF로 저장하기', PW = 794, PH = 1123, PAD = 45, AV = PH - PAD * 2, tmp = [];
+    if (!window.html2canvas || !window.jspdf){ alert('PDF 도구를 불러오지 못했어요. 인터넷 연결을 확인하고 다시 눌러주세요.'); return; }
+    btn.disabled = true; btn.textContent = '편지 모으는 중…';
+    function mk(tag, cls, parent){ var e = document.createElement(tag); if (cls) e.className = cls; if (parent) parent.appendChild(e); return e; }
+    function header(parent, n){ var h = mk('div', 'xh', parent); mk('h1', '', h).textContent = '조밈님에게 보낸 편지 💌'; mk('div', '', h).textContent = '2026년 10월 10일 · 총 ' + n.toLocaleString('ko-KR') + '통'; return h; }
+    function card(it, i, parent){ var el = mk('div', 'xl c' + (i % 4), parent); mk('p', '', el).textContent = it.message; mk('b', '', el).textContent = 'From. ' + (it.nickname || '익명'); return el; }
     fetchAll().then(function(arr){
-      var root = $('print'); root.textContent = '';
-      var h = document.createElement('div'); h.className = 'ph';
-      var t = document.createElement('h1'); t.textContent = '조밈님에게 보낸 편지 💌';
-      var d = document.createElement('div'); d.className = 'pd'; d.textContent = '2026년 10월 10일 · 총 ' + arr.length.toLocaleString('ko-KR') + '통';
-      h.appendChild(t); h.appendChild(d); root.appendChild(h);
-      var cols = document.createElement('div'); cols.className = 'pcols';
-      arr.forEach(function(it){
-        var el = document.createElement('div'); el.className = 'pl';
-        var p = document.createElement('p'); p.textContent = it.message;
-        var b = document.createElement('b'); b.textContent = 'From. ' + (it.nickname || '익명');
-        el.appendChild(p); el.appendChild(b); cols.appendChild(el);
+      /* 1) 높이 재기 */
+      var m = mk('div', 'xpg', document.body); tmp.push(m); var hh = header(m, arr.length).offsetHeight + 22, cards = arr.map(function(it, i){ return card(it, i, m); });
+      return (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(function(){ return sleep(400); }).then(function(){
+        var hs = cards.map(function(c){ return c.offsetHeight + 18; });
+        /* 2) 가장 낮은 열부터 채우는 벽돌 배치 */
+        var pages = [], cur = null;
+        function np(){ var first = !pages.length; cur = {cols: [[],[],[]], h: [0,0,0], max: first ? AV - hh : AV}; pages.push(cur); }
+        np();
+        arr.forEach(function(it, i){
+          var order = [0,1,2].sort(function(a,b){ return cur.h[a] - cur.h[b]; }), c = -1;
+          for (var k = 0; k < 3; k++){ if (cur.h[order[k]] + hs[i] <= cur.max){ c = order[k]; break; } }
+          if (c < 0){ np(); c = 0; }
+          cur.cols[c].push(i); cur.h[c] += hs[i];
+        });
+        m.remove(); tmp.length = 0;
+        /* 3) 페이지별로 그려서 PDF에 붙이기 */
+        var pdf = new window.jspdf.jsPDF({unit:'mm', format:'a4', orientation:'portrait'}), chain = Promise.resolve();
+        pages.forEach(function(pg, pi){
+          chain = chain.then(function(){
+            btn.textContent = 'PDF 만드는 중… (' + (pi + 1) + '/' + pages.length + ')';
+            var el = mk('div', 'xpg', document.body); tmp.push(el);
+            if (pi === 0) header(el, arr.length);
+            var row = mk('div', 'xcols', el);
+            pg.cols.forEach(function(ids){ var col = mk('div', 'xcol', row); ids.forEach(function(i){ card(arr[i], i, col); }); });
+            return sleep(60).then(function(){ return window.html2canvas(el, {scale: 2, backgroundColor: '#ffffff', logging: false}); }).then(function(cv){
+              if (pi) pdf.addPage();
+              pdf.addImage(cv.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, 297);
+              el.remove(); tmp.length = 0;
+            });
+          });
+        });
+        return chain.then(function(){ pdf.save('조밈님_생일편지_2026-10-10.pdf'); });
       });
-      root.appendChild(cols);
-      return (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(function(){ return sleep(300); });
-    }).then(function(){ window.print(); }).then(function(){ btn.disabled = false; btn.textContent = '📄 PDF로 저장하기'; });
+    }).catch(function(e){ console.error(e); alert('PDF를 만들다가 문제가 생겼어요. 다시 시도해 주세요.'); })
+      .then(function(){ tmp.forEach(function(e){ e.remove(); }); btn.disabled = false; btn.textContent = LABEL; });
   });
   lock(2600);
   $('go').addEventListener('click', go);
