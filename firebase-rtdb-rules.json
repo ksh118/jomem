@@ -1,0 +1,10 @@
+{
+  "rules": {
+    "site_content": {
+      ".write": "auth != null && auth.uid === 'AUzK40T2eFVfG4rV3DG7UvfydAF3'",
+      ".read": true
+    },
+    ".read": false,
+    ".write": false
+  }
+}
