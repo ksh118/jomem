@@ -26,6 +26,7 @@
 </script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
 <style>
 :root {
   --bg: #ffffff;
@@ -1827,13 +1828,13 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
   /* Firebase (게임 파일과 동일 프로젝트) */
   try {
     firebase.initializeApp({
-      apiKey: "AIzaSyDIl0-jomcfA8ykz-nYK_rYaLb-IE_yICc",
-      authDomain: "codet-597c7.firebaseapp.com",
-      databaseURL: "https://codet-597c7-default-rtdb.firebaseio.com",
-      projectId: "codet-597c7",
-      storageBucket: "codet-597c7.firebasestorage.app",
-      messagingSenderId: "619578457920",
-      appId: "1:619578457920:web:52d98e7430f9b9820104a5"
+      apiKey: "AIzaSyA6oy-U3pyAaNQT6IZwRv2S4da_-Go_qKY",
+      authDomain: "jomeme-2b9db.firebaseapp.com",
+      databaseURL: "https://jomeme-2b9db-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "jomeme-2b9db",
+      storageBucket: "jomeme-2b9db.firebasestorage.app",
+      messagingSenderId: "1051219590742",
+      appId: "1:1051219590742:web:b9fe91939a6bac005b45f7"
     });
     fdb = firebase.database();
   } catch (e) { console.warn('firebase init failed', e); }
@@ -1916,83 +1917,70 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
 </script>
 
 
-<!-- 조밈 사이트 관리자 편집기 -->
-<style id="siteBuilderStyles">
-#siteEditToggle{position:fixed;right:18px;bottom:18px;z-index:9998;border:0;border-radius:999px;padding:13px 18px;background:#645bff;color:#fff;font:700 14px inherit;box-shadow:0 10px 30px #16114a45;cursor:pointer}
-#siteEditToggle:hover{transform:translateY(-2px)}
-#siteEditToolbar{position:fixed;z-index:9997;left:50%;bottom:76px;transform:translateX(-50%);display:none;gap:8px;align-items:center;max-width:calc(100vw - 24px);overflow:auto;padding:10px 12px;border:1px solid #ffffff26;border-radius:18px;background:#191927f2;color:#fff;box-shadow:0 16px 48px #0005;backdrop-filter:blur(16px);font:13px/1.2 system-ui,sans-serif;white-space:nowrap}
-#siteEditToolbar.on{display:flex}
-#siteEditToolbar button{border:1px solid #ffffff26;background:#ffffff12;color:#fff;border-radius:10px;padding:9px 12px;font:inherit;font-weight:700;cursor:pointer}
-#siteEditToolbar button:hover{background:#ffffff25}
-#siteEditStatus{font-size:11px;color:#c9c7df;padding:0 4px}
-body.site-editing [data-site-editable="1"]{outline:1px dashed #756cff88;outline-offset:3px;border-radius:3px;cursor:text}
-body.site-editing [data-site-editable="1"]:focus{outline:2px solid #756cff;background:#756cff0d}
-body.site-editing img[data-site-image="1"]{outline:2px dashed #756cff;outline-offset:4px;cursor:pointer}
-.site-added-card{box-sizing:border-box;margin:12px 0;padding:18px 20px;border:1px solid var(--border2,#ddd);border-radius:18px;background:var(--bg2,#fff);color:var(--text,#222);box-shadow:0 8px 24px #0000000a}
-.site-added-card h3{margin:0 0 8px;font-size:18px;color:var(--text,#222)}
-.site-added-card p{margin:0;line-height:1.7;color:var(--text2,#555);white-space:pre-wrap}
-.site-remove{display:none;float:right;border:1px solid #ff657766;border-radius:999px;background:#fff1f2;color:#d7354b;padding:5px 10px;font:700 12px system-ui,sans-serif;cursor:pointer}
-body.site-editing .site-remove{display:inline-block}
-.site-added-image{display:block;max-width:100%;height:auto;margin:14px 0;border-radius:16px}
-.site-added-section{margin:22px 0;padding:20px;border:1px dashed var(--border2,#bbb);border-radius:20px}
-.site-edit-controls{display:none;gap:7px;margin:10px 0;padding:6px 0}
-body.site-editing .site-edit-controls{display:flex}
-.site-edit-controls button{border:1px solid #756cff55;border-radius:999px;background:#756cff12;color:#5549d8;padding:6px 11px;font:700 12px system-ui,sans-serif;cursor:pointer}
-body.site-editing .admin-deletable{position:relative}
-body.site-editing .admin-deletable:hover{outline:1px dashed #ff6577}
-@media(max-width:600px){#siteEditToolbar{left:8px;right:8px;bottom:70px;transform:none;justify-content:flex-start}#siteEditToggle{right:12px;bottom:12px}}
-</style>
-<button id="siteEditToggle" type="button">✏️ 편집 모드</button>
-<div id="siteEditToolbar" aria-label="사이트 편집 도구">
-  <button type="button" data-action="box">＋ 박스</button>
-  <button type="button" data-action="image">＋ 사진</button>
-  <button type="button" data-action="section">＋ 구역</button>
-  <button type="button" data-action="save">⬇ 수정본 저장</button>
-  <button type="button" data-action="reset">↺ 편집 취소</button>
-  <span id="siteEditStatus">변경 사항은 이 브라우저에 자동 저장됩니다.</span>
-</div>
-<input id="siteImagePicker" type="file" accept="image/*" hidden>
-<script id="siteBuilderScript">
+
+<script id="siteContentReader">
 (function(){
-  'use strict';
-  var STORE='jomim-site-builder-v1', edit=false, target=null, imageTarget=null, timer=0, deletedKeys=[];
-  var toolbar=document.getElementById('siteEditToolbar'), toggle=document.getElementById('siteEditToggle'), status=document.getElementById('siteEditStatus'), picker=document.getElementById('siteImagePicker');
-  var contentSelector='.site-added-card h3,.site-added-card p,.site-added-section .home-section-label,.nav-title,.home-name,.home-handle,.home-notice,.home-section-label,.btn-label,.btn-sub,.game-label,.game-sub,.page-title,.section-title,.page-inner p,.page-inner li,.page-inner h2,.page-inner h3,.page-inner h4,.page-inner .danger-box,.page-inner .step-body,.page-inner .step-no';
-  var contentSelector='.site-added-card h3,.site-added-card p,.site-added-section .home-section-label,.nav-title,.tab-item,.birthday-btn span,.help-btn span,.fb-btn span,.home-name,.home-handle,.home-notice,.home-section-label,.btn-label,.btn-sub,.game-label,.game-sub,.page-title,.section-title,.page-inner p,.page-inner li,.page-inner h2,.page-inner h3,.page-inner h4,.page-inner .danger-box,.page-inner .step-body,.page-inner .step-no';
-  function key(el){if(!el.dataset.siteKey)el.dataset.siteKey='edit-'+Math.random().toString(36).slice(2,11);return el.dataset.siteKey}
-  function prep(root){
-    (root||document).querySelectorAll(contentSelector).forEach(function(el){if(!el.closest('#siteEditToolbar')){el.dataset.siteEditable='1';key(el)}});
-    (root||document).querySelectorAll('#app img,nav .nav-avatar').forEach(function(el){el.dataset.siteImage='1';key(el)});
-    (root||document).querySelectorAll('.home-section,.page-inner').forEach(function(el){if(!el.querySelector(':scope > .site-edit-controls')){
-      key(el); var controls=document.createElement('div');controls.className='site-edit-controls';controls.innerHTML='<button type="button" data-action="box">＋ 이 구역에 박스</button><button type="button" data-action="image">＋ 이 구역에 사진</button>';
-      el.appendChild(controls);
-    }});
-    (root||document).querySelectorAll('.site-added-card,.site-added-section,.site-added-image').forEach(function(el){el.classList.add('admin-deletable');key(el);if(!el.querySelector(':scope > .site-remove')){var b=document.createElement('button');b.type='button';b.className='site-remove';b.textContent='삭제';el.appendChild(b)}});
-  }
-  function mapByKey(){var m={};document.querySelectorAll('[data-site-key]').forEach(function(el){m[el.dataset.siteKey]=el});return m}
-  function restore(){try{var d=JSON.parse(localStorage.getItem(STORE)||'{}'),m=mapByKey();Object.keys(d.content||{}).forEach(function(k){if(m[k])m[k].innerHTML=d.content[k]});Object.keys(d.images||{}).forEach(function(k){if(m[k])m[k].src=d.images[k]});(d.added||[]).forEach(function(a){var par=m[a.parent];if(par){var t=document.createElement('template');t.innerHTML=a.html.trim();var el=t.content.firstElementChild;if(el){par.insertBefore(el,par.querySelector(':scope > .site-edit-controls'));}}});deletedKeys=d.deleted||[];(d.added||[]).forEach(function(a){var t=document.querySelector('[data-site-key="'+a.parent+'"]');});var m2=mapByKey();deletedKeys.forEach(function(k){var e=m2[k];if(e)e.remove()});}catch(e){console.warn('편집 내용 복원 실패',e)} prep(document);}
-  function restore(){try{var d=JSON.parse(localStorage.getItem(STORE)||'{}'),m=mapByKey();Object.keys(d.content||{}).forEach(function(k){if(m[k])m[k].innerHTML=d.content[k]});Object.keys(d.images||{}).forEach(function(k){if(m[k])m[k].src=d.images[k]});(d.added||[]).forEach(function(a){var par=m[a.parent];if(par){var t=document.createElement('template');t.innerHTML=a.html.trim();var el=t.content.firstElementChild;if(el){par.insertBefore(el,par.querySelector(':scope > .site-edit-controls'));}}});deletedKeys=d.deleted||[];var m2=mapByKey();deletedKeys.forEach(function(k){var e=m2[k];if(e)e.remove()});}catch(e){console.warn('편집 내용 복원 실패',e)} prep(document);}
-  function snapshot(){var d={content:{},images:{},added:[],deleted:[]};document.querySelectorAll('[data-site-editable="1"][data-site-key]').forEach(function(el){d.content[el.dataset.siteKey]=el.innerHTML});document.querySelectorAll('img[data-site-image="1"][data-site-key]').forEach(function(el){d.images[el.dataset.siteKey]=el.getAttribute('src')});document.querySelectorAll('.site-added-card,.site-added-section,.site-added-image').forEach(function(el){var par=el.parentElement;d.added.push({parent:key(par),html:cleanNode(el).outerHTML})});d.deleted=deletedKeys.slice();return d}
-  function cleanNode(el){var c=el.cloneNode(true);c.querySelectorAll('.site-edit-controls,.site-remove').forEach(function(x){x.remove()});return c}
-  function persist(){clearTimeout(timer);timer=setTimeout(function(){try{localStorage.setItem(STORE,JSON.stringify(snapshot()));status.textContent='자동 저장됨 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}catch(e){status.textContent='저장 공간이 부족합니다. 수정본 저장을 눌러주세요.'}},250)}
-  function setEdit(v){edit=v;document.body.classList.toggle('site-editing',edit);toolbar.classList.toggle('on',edit);toggle.textContent=edit?'✅ 편집 완료':'✏️ 편집 모드';toggle.style.bottom=edit?'145px':'18px';document.querySelectorAll('[data-site-editable="1"]').forEach(function(el){el.contentEditable=edit?'true':'false';el.spellcheck=edit});}
-  function sectionTarget(){return target&&target.isConnected?target:document.querySelector('#pg-home .home-body .home-section')||document.querySelector('#pg-home .home-body')||document.querySelector('#app .page.active .page-inner')}
-  function makeBox(){var par=sectionTarget(),el=document.createElement('article');el.className='site-added-card';el.innerHTML='<h3 data-site-editable="1">새 제목을 입력하세요</h3><p data-site-editable="1">여기에 내용을 입력하세요.</p>';key(el);prep(el);par.insertBefore(el,par.querySelector(':scope > .site-edit-controls'));target=par;setEdit(true);el.querySelector('h3').focus();persist()}
-  function makeImage(){var par=sectionTarget();imageTarget=par;picker.value='';picker.click()}
-  function makeSection(){var home=document.querySelector('#pg-home .home-body');var sec=document.createElement('section');sec.className='home-section site-added-section';sec.innerHTML='<div class="home-section-label" data-site-editable="1">새 구역</div>';key(sec);prep(sec);home.appendChild(sec);target=sec;setEdit(true);sec.querySelector('.home-section-label').focus();persist()}
-  function exportHtml(){var clone=document.documentElement.cloneNode(true);clone.querySelector('#siteEditToolbar')?.remove();clone.querySelector('#siteImagePicker')?.remove();clone.querySelectorAll('.site-edit-controls,.site-remove').forEach(function(e){e.remove()});clone.querySelectorAll('[contenteditable],[data-site-editable],[data-site-image],[data-site-key],[data-site-deleted]').forEach(function(e){['contenteditable','data-site-editable','data-site-image','data-site-key','data-site-deleted'].forEach(function(a){e.removeAttribute(a)})});clone.querySelector('#siteEditToggle').textContent='✏️ 편집 모드';clone.querySelector('#siteEditToggle').style.bottom='18px';clone.querySelector('body').classList.remove('site-editing');var blob=new Blob(['<!DOCTYPE html>\n'+clone.outerHTML],{type:'text/html;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='jomim-site-edited.html';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000);status.textContent='수정본 HTML을 다운로드했습니다.'}
-  toggle.addEventListener('click',function(){setEdit(!edit)});
-  document.addEventListener('focusin',function(e){var p=e.target.closest('.home-section,.page-inner');if(p)target=p});
-  document.addEventListener('click',function(e){
-    if(e.target.closest('#siteEditToggle'))return;
-    var action=e.target.closest('[data-action]');if(action){e.preventDefault();e.stopPropagation();var a=action.dataset.action;if(action.closest('.site-edit-controls'))target=action.closest('.home-section,.page-inner');if(a==='box')makeBox();if(a==='image')makeImage();if(a==='section')makeSection();if(a==='save')exportHtml();if(a==='reset'){if(confirm('이 브라우저에 저장된 편집 내용을 모두 지울까요?')){localStorage.removeItem(STORE);location.reload()}}return}
-    var img=e.target.closest('img[data-site-image="1"]');if(edit&&img){e.preventDefault();e.stopPropagation();imageTarget=img;picker.value='';picker.click();return}
-    if(edit){var remove=e.target.closest('.site-remove');if(remove){e.preventDefault();e.stopPropagation();var del=remove.parentElement;deletedKeys.push(del.dataset.siteKey);del.remove();persist();return}e.stopPropagation();}
-  },true);
-  document.addEventListener('input',function(e){if(edit&&e.target.closest('[data-site-editable="1"]'))persist()});
-  picker.addEventListener('change',function(){var f=picker.files&&picker.files[0];if(!f)return;var reader=new FileReader();reader.onload=function(){if(imageTarget&&imageTarget.tagName==='IMG'){imageTarget.src=reader.result;imageTarget.removeAttribute('srcset')}else if(imageTarget){var im=document.createElement('img');im.className='site-added-image';im.src=reader.result;im.alt='추가한 사진';key(im);imageTarget.insertBefore(im,imageTarget.querySelector(':scope > .site-edit-controls'));prep(im)}persist()};reader.readAsDataURL(f)});
-  prep(document);restore();
+  var cfg={apiKey:"AIzaSyA6oy-U3pyAaNQT6IZwRv2S4da_-Go_qKY",authDomain:"jomeme-2b9db.firebaseapp.com",databaseURL:"https://jomeme-2b9db-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"jomeme-2b9db",storageBucket:"jomeme-2b9db.firebasestorage.app",messagingSenderId:"1051219590742",appId:"1:1051219590742:web:b9fe91939a6bac005b45f7"};
+  function stableKey(el){if(el.id)return 'id:'+el.id;var p=[],n=el;while(n&&n!==document.body){var i=1,s=n;while((s=s.previousElementSibling))if(s.tagName===n.tagName)i++;p.push(n.tagName.toLowerCase()+':'+i);n=n.parentElement}return p.reverse().join('/')}
+  function initialMap(){var m={};document.querySelectorAll('#app,nav .nav-title,.tab-item,.birthday-btn span,.help-btn span,.fb-btn span,.home-name,.home-handle,.home-notice,.home-section-label,.btn-label,.btn-sub,.game-label,.game-sub,.page-title,.section-title,.page-inner p,.page-inner li,.page-inner h2,.page-inner h3,.page-inner h4,.page-inner .danger-box,.page-inner .step-body,.page-inner .step-no,#app img,nav .nav-avatar').forEach(function(e){m[stableKey(e)]=e});return m}
+  function apply(d){if(!d)return;var m=initialMap();Object.keys(d.content||{}).forEach(function(k){if(m[k])m[k].innerHTML=d.content[k]});Object.keys(d.images||{}).forEach(function(k){if(m[k]&&m[k].tagName==='IMG')m[k].src=d.images[k]});(d.added||[]).forEach(function(a){var mm=initialMap();document.querySelectorAll('[data-builder-key]').forEach(function(e){mm[e.dataset.builderKey]=e});var par=mm[a.parent];if(!par)return;var t=document.createElement('template');t.innerHTML=a.html;var el=t.content.firstElementChild;if(el){el.dataset.builderKey=a.key;par.appendChild(el)}});(d.deleted||[]).forEach(function(k){var e=m[k];if(e)e.remove()})}
+  try{if(!firebase.apps.length)firebase.initializeApp(cfg);firebase.database().ref('site_content').once('value').then(function(s){apply(s.val())}).catch(function(e){console.warn('사이트 공개 내용 불러오기 실패',e)})}catch(e){console.warn('Firebase 연결 실패',e)}
 })();
 </script>
+
+
+<!-- 조밈 관리자 편집기: 관리자 로그인 후에만 콘텐츠를 수정하고 저장할 수 있습니다. -->
+<style>
+#adminGate{position:fixed;inset:0;z-index:10000;background:linear-gradient(145deg,#10121c,#25223b);display:grid;place-items:center;padding:20px;font-family:system-ui,sans-serif;color:#fff}
+#adminGate[hidden]{display:none}#adminLoginCard{width:min(390px,100%);padding:30px;border:1px solid #ffffff25;border-radius:24px;background:#ffffff10;box-shadow:0 24px 80px #0006;backdrop-filter:blur(18px)}#adminLoginCard h1{margin:0 0 8px;font-size:24px}#adminLoginCard p{color:#c7c6d7;font-size:14px;line-height:1.6;margin:0 0 20px}#adminLoginCard input{box-sizing:border-box;width:100%;margin:6px 0;padding:13px 14px;border:1px solid #ffffff28;border-radius:12px;background:#ffffff12;color:white;font:inherit}#adminLoginCard button{width:100%;margin-top:10px;padding:13px;border:0;border-radius:12px;background:#786cff;color:white;font:700 14px system-ui,sans-serif;cursor:pointer}#adminLoginMsg{min-height:20px;margin-top:10px!important;color:#ffb8c1!important}
+#adminBar{position:fixed;z-index:9998;left:50%;bottom:18px;transform:translateX(-50%);display:none;gap:8px;align-items:center;max-width:calc(100vw - 24px);overflow:auto;padding:10px 12px;border:1px solid #ffffff25;border-radius:18px;background:#191927f2;color:#fff;box-shadow:0 16px 48px #0005;backdrop-filter:blur(16px);font:13px system-ui,sans-serif;white-space:nowrap}#adminBar.on{display:flex}#adminBar button{border:1px solid #ffffff26;background:#ffffff12;color:#fff;border-radius:10px;padding:9px 12px;font:inherit;font-weight:700;cursor:pointer}#adminBar button:hover{background:#ffffff25}#adminStatus{font-size:11px;color:#d4d2e7;padding:0 3px}
+body.admin-editing [data-admin-edit="1"]{outline:1px dashed #756cff99;outline-offset:3px;border-radius:3px;cursor:text}body.admin-editing [data-admin-edit="1"]:focus{outline:2px solid #756cff;background:#756cff0d}body.admin-editing img[data-admin-image="1"]{outline:2px dashed #756cff;outline-offset:4px;cursor:pointer}
+.admin-added-card{box-sizing:border-box;margin:12px 0;padding:18px 20px;border:1px solid var(--border2,#ddd);border-radius:18px;background:var(--bg2,#fff);color:var(--text,#222);box-shadow:0 8px 24px #0000000a}.admin-added-card h3{margin:0 0 8px;font-size:18px;color:var(--text,#222)}.admin-added-card p{margin:0;line-height:1.7;color:var(--text2,#555);white-space:pre-wrap}.admin-added-image{display:block;max-width:100%;height:auto;margin:14px 0;border-radius:16px}.admin-added-section{margin:22px 0;padding:20px;border:1px dashed var(--border2,#bbb);border-radius:20px}.admin-controls{display:none;gap:7px;margin:10px 0;padding:6px 0}body.admin-editing .admin-controls{display:flex}.admin-controls button{border:1px solid #756cff55;border-radius:999px;background:#756cff12;color:#5549d8;padding:6px 11px;font:700 12px system-ui,sans-serif;cursor:pointer}.admin-remove{display:none;float:right;border:1px solid #ff657766;border-radius:999px;background:#fff1f2;color:#d7354b;padding:5px 10px;font:700 12px system-ui,sans-serif;cursor:pointer}body.admin-editing .admin-remove{display:inline-block}@media(max-width:600px){#adminBar{left:8px;right:8px;transform:none;justify-content:flex-start}}
+</style>
+<div id="adminGate">
+  <form id="adminLoginCard">
+    <h1>조밈 사이트 관리자</h1><p>관리자 계정으로 로그인하면 방문자용 사이트의 내용을 편집할 수 있습니다.</p>
+    <input id="adminEmail" type="email" autocomplete="username" placeholder="관리자 이메일" required>
+    <input id="adminPassword" type="password" autocomplete="current-password" placeholder="비밀번호" required>
+    <button type="submit">관리자 로그인</button><p id="adminLoginMsg" role="alert"></p>
+  </form>
+</div>
+<div id="adminBar" aria-label="사이트 편집 도구">
+  <button type="button" data-action="edit">✏️ 편집 시작</button><button type="button" data-action="box">＋ 박스</button><button type="button" data-action="image">＋ 사진</button><button type="button" data-action="section">＋ 구역</button><button type="button" data-action="save">저장</button><button type="button" data-action="logout">로그아웃</button><span id="adminStatus">Firebase 연결 대기 중</span>
+</div>
+<input id="adminImagePicker" type="file" accept="image/*" hidden>
+<script>
+(function(){
+  'use strict';
+  var cfg={apiKey:"AIzaSyA6oy-U3pyAaNQT6IZwRv2S4da_-Go_qKY",authDomain:"jomeme-2b9db.firebaseapp.com",databaseURL:"https://jomeme-2b9db-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"jomeme-2b9db",storageBucket:"jomeme-2b9db.firebasestorage.app",messagingSenderId:"1051219590742",appId:"1:1051219590742:web:b9fe91939a6bac005b45f7"};
+  var ADMIN_UID='AUzK40T2eFVfG4rV3DG7UvfydAF3';
+  var gate=document.getElementById('adminGate'),bar=document.getElementById('adminBar'),msg=document.getElementById('adminLoginMsg'),status=document.getElementById('adminStatus'),picker=document.getElementById('adminImagePicker');
+  var auth,ref,edit=false,target=null,imageTarget=null,baseMap={},deleted=[],counter=0;
+  var selector='.nav-title,.tab-item,.birthday-btn span,.help-btn span,.fb-btn span,.home-name,.home-handle,.home-notice,.home-section-label,.btn-label,.btn-sub,.game-label,.game-sub,.page-title,.section-title,.page-inner p,.page-inner li,.page-inner h2,.page-inner h3,.page-inner h4,.page-inner .danger-box,.page-inner .step-body,.page-inner .step-no';
+  function keyOf(el){if(el.id)return 'id:'+el.id;var parts=[],n=el;while(n&&n!==document.body){var i=1,s=n;while((s=s.previousElementSibling))if(s.tagName===n.tagName)i++;parts.push(n.tagName.toLowerCase()+':'+i);n=n.parentElement}return parts.reverse().join('/')}
+  function scanBase(){document.querySelectorAll('#app,'+selector+',#app img,nav .nav-avatar').forEach(function(e){var k=keyOf(e);e.dataset.builderKey=k;baseMap[k]=e})}
+  function ensureAdminControls(root){(root||document).querySelectorAll('.home-section,.page-inner,.home-body').forEach(function(el){if(!el.querySelector(':scope > .admin-controls')){var c=document.createElement('div');c.className='admin-controls';c.innerHTML='<button type="button" data-action="box">＋ 이 구역에 박스</button><button type="button" data-action="image">＋ 이 구역에 사진</button>';el.appendChild(c)}});(root||document).querySelectorAll('.admin-added-card,.admin-added-section,.admin-added-image').forEach(function(el){if(!el.dataset.builderKey)el.dataset.builderKey='added-'+(++counter);if(!el.querySelector(':scope > .admin-remove')){var b=document.createElement('button');b.type='button';b.className='admin-remove';b.textContent='삭제';el.appendChild(b)}})}
+  function keyMap(){var m=Object.assign({},baseMap);document.querySelectorAll('[data-builder-key]').forEach(function(e){m[e.dataset.builderKey]=e});return m}
+  function insertSaved(d){if(!d)return;Object.keys(d.content||{}).forEach(function(k){if(baseMap[k])baseMap[k].innerHTML=d.content[k]});Object.keys(d.images||{}).forEach(function(k){if(baseMap[k]&&baseMap[k].tagName==='IMG')baseMap[k].src=d.images[k]});var m=keyMap();(d.added||[]).forEach(function(a){var mm=keyMap(),par=mm[a.parent];if(!par)return;var t=document.createElement('template');t.innerHTML=a.html;var el=t.content.firstElementChild;if(el){el.dataset.builderKey=a.key;par.appendChild(el)}});deleted=d.deleted||[];var mm=keyMap();deleted.forEach(function(k){if(mm[k])mm[k].remove()})}
+  function startEditor(){gate.hidden=true;bar.classList.add('on');ensureAdminControls(document);status.textContent='로그인 완료 · Firebase 불러오는 중';ref.once('value').then(function(s){insertSaved(s.val());ensureAdminControls(document);status.textContent='Firebase 연결됨 · 편집을 시작하세요'}).catch(function(e){status.textContent='Firebase 읽기 실패: '+e.message})}
+  function setEdit(v){edit=v;document.body.classList.toggle('admin-editing',v);bar.querySelector('[data-action="edit"]').textContent=v?'✅ 편집 완료':'✏️ 편집 시작';document.querySelectorAll('[data-admin-edit="1"]').forEach(function(e){e.contentEditable=v?'true':'false'})}
+  function makeBox(){var p=target&&target.isConnected?target:document.querySelector('#pg-home .home-body .home-section')||document.querySelector('#pg-home .home-body');var e=document.createElement('article');e.className='admin-added-card';e.dataset.builderKey='added-'+(++counter);e.innerHTML='<h3 data-admin-edit="1">새 제목을 입력하세요</h3><p data-admin-edit="1">여기에 내용을 입력하세요.</p>';p.insertBefore(e,p.querySelector(':scope > .admin-controls'));ensureAdminControls(e);setEdit(true);e.querySelector('h3').focus()}
+  function makeImage(){imageTarget=target&&target.isConnected?target:document.querySelector('#pg-home .home-body');picker.value='';picker.click()}
+  function makeSection(){var p=document.querySelector('#pg-home .home-body'),e=document.createElement('section');e.className='home-section admin-added-section';e.dataset.builderKey='added-'+(++counter);e.innerHTML='<div class="home-section-label" data-admin-edit="1">새 구역 이름</div>';p.appendChild(e);ensureAdminControls(e);target=e;setEdit(true);e.querySelector('.home-section-label').focus()}
+  function imageData(file){return new Promise(function(resolve,reject){var r=new FileReader();r.onerror=reject;r.onload=function(){var im=new Image();im.onload=function(){var max=1500,scale=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*scale);c.height=Math.round(im.height*scale);c.getContext('2d').drawImage(im,0,0,c.width,c.height);var d=c.toDataURL('image/webp',.82);if(d.length>850000)d=c.toDataURL('image/jpeg',.7);resolve(d)};im.onerror=reject;im.src=r.result};r.readAsDataURL(file)})}
+  function snapshot(){var d={content:{},images:{},added:[],deleted:deleted.slice()};document.querySelectorAll('[data-admin-edit="1"]').forEach(function(e){var k=e.dataset.builderKey||keyOf(e);d.content[k]=e.innerHTML});document.querySelectorAll('#app img,nav .nav-avatar').forEach(function(e){var k=e.dataset.builderKey||keyOf(e);var original=baseMap[k];if(e.dataset.builderKey)d.images[k]=e.src;else if(original&&e.src!==original.src)d.images[k]=e.src});document.querySelectorAll('.admin-added-card,.admin-added-section,.admin-added-image').forEach(function(e){if(e.parentElement.closest('.admin-added-card,.admin-added-section'))return;var c=e.cloneNode(true);c.querySelectorAll('.admin-controls,.admin-remove').forEach(function(x){x.remove()});d.added.push({key:e.dataset.builderKey,parent:e.parentElement.dataset.builderKey||keyOf(e.parentElement),html:c.outerHTML})});return d}
+  function save(){status.textContent='Firebase에 저장 중…';var d=snapshot();d.updatedAt=Date.now();ref.set(d).then(function(){status.textContent='저장 완료 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}).catch(function(e){status.textContent='저장 실패: '+(e.code==='PERMISSION_DENIED'?'데이터베이스 규칙이 아직 관리자 저장을 허용하지 않아요.':e.message)})}
+  function login(e){e.preventDefault();msg.textContent='로그인 중…';auth.signInWithEmailAndPassword(document.getElementById('adminEmail').value.trim(),document.getElementById('adminPassword').value).catch(function(err){msg.textContent=err.code==='auth/invalid-credential'?'이메일 또는 비밀번호를 확인해주세요.':'로그인 실패: '+err.message})}
+  try{if(!firebase.apps.length)firebase.initializeApp(cfg);auth=firebase.auth();ref=firebase.database().ref('site_content');scanBase();document.getElementById('adminLoginCard').addEventListener('submit',login);auth.onAuthStateChanged(function(u){if(!u){gate.hidden=false;bar.classList.remove('on');return}if(u.uid!==ADMIN_UID){auth.signOut();msg.textContent='이 계정은 사이트 관리자 계정이 아닙니다.';gate.hidden=false;return}startEditor()})}catch(e){msg.textContent='Firebase 연결 오류: '+e.message}
+  bar.addEventListener('click',function(e){var b=e.target.closest('[data-action]');if(!b)return;var a=b.dataset.action;if(b.closest('.admin-controls'))target=b.closest('.home-section,.page-inner,.home-body');if(a==='edit')setEdit(!edit);if(a==='box')makeBox();if(a==='image')makeImage();if(a==='section')makeSection();if(a==='save')save();if(a==='logout')auth.signOut()});
+  document.addEventListener('focusin',function(e){var p=e.target.closest('.home-section,.page-inner,.home-body');if(p)target=p});
+  document.addEventListener('click',function(e){var r=e.target.closest('.admin-remove');if(r){e.preventDefault();var el=r.parentElement;deleted.push(el.dataset.builderKey);el.remove();return}if(!edit)return;var img=e.target.closest('img[data-admin-image="1"]');if(img){imageTarget=img;picker.value='';picker.click();e.stopPropagation();return}if(!e.target.closest('#adminBar,#adminGate'))e.stopPropagation()},true);
+  document.querySelectorAll('#app img,nav .nav-avatar').forEach(function(e){e.dataset.adminImage='1';e.dataset.builderKey=keyOf(e)});
+  document.querySelectorAll(selector).forEach(function(e){e.dataset.adminEdit='1';e.dataset.builderKey=keyOf(e)});
+  picker.addEventListener('change',function(){var f=picker.files&&picker.files[0];if(!f)return;imageData(f).then(function(src){if(imageTarget&&imageTarget.tagName==='IMG'){imageTarget.src=src}else if(imageTarget){var im=document.createElement('img');im.className='admin-added-image';im.dataset.builderKey='added-'+(++counter);im.src=src;im.alt='추가한 사진';imageTarget.insertBefore(im,imageTarget.querySelector(':scope > .admin-controls'))}ensureAdminControls(document)}).catch(function(){status.textContent='사진을 읽지 못했습니다.'})});
+})();
+</script>
+
 </body>
 </html>
+
