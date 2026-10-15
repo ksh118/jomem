@@ -1827,13 +1827,13 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
   /* Firebase (게임 파일과 동일 프로젝트) */
   try {
     firebase.initializeApp({
-      apiKey: "AIzaSyDIl0-jomcfA8ykz-nYK_rYaLb-IE_yICc",
-      authDomain: "codet-597c7.firebaseapp.com",
-      databaseURL: "https://codet-597c7-default-rtdb.firebaseio.com",
-      projectId: "codet-597c7",
-      storageBucket: "codet-597c7.firebasestorage.app",
-      messagingSenderId: "619578457920",
-      appId: "1:619578457920:web:52d98e7430f9b9820104a5"
+      apiKey: "AIzaSyA6oy-U3pyAaNQT6IZwRv2S4da_-Go_qKY",
+      authDomain: "jomeme-2b9db.firebaseapp.com",
+      databaseURL: "https://jomeme-2b9db-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "jomeme-2b9db",
+      storageBucket: "jomeme-2b9db.firebasestorage.app",
+      messagingSenderId: "1051219590742",
+      appId: "1:1051219590742:web:b9fe91939a6bac005b45f7"
     });
     fdb = firebase.database();
   } catch (e) { console.warn('firebase init failed', e); }
@@ -1915,6 +1915,17 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
 })();
 </script>
 
+
+
+<script id="siteContentReader">
+(function(){
+  var cfg={apiKey:"AIzaSyA6oy-U3pyAaNQT6IZwRv2S4da_-Go_qKY",authDomain:"jomeme-2b9db.firebaseapp.com",databaseURL:"https://jomeme-2b9db-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"jomeme-2b9db",storageBucket:"jomeme-2b9db.firebasestorage.app",messagingSenderId:"1051219590742",appId:"1:1051219590742:web:b9fe91939a6bac005b45f7"};
+  function stableKey(el){if(el.id)return 'id:'+el.id;var p=[],n=el;while(n&&n!==document.body){var i=1,s=n;while((s=s.previousElementSibling))if(s.tagName===n.tagName)i++;p.push(n.tagName.toLowerCase()+':'+i);n=n.parentElement}return p.reverse().join('/')}
+  function initialMap(){var m={};document.querySelectorAll('#app,nav .nav-title,.tab-item,.birthday-btn span,.help-btn span,.fb-btn span,.home-name,.home-handle,.home-notice,.home-section-label,.btn-label,.btn-sub,.game-label,.game-sub,.page-title,.section-title,.page-inner p,.page-inner li,.page-inner h2,.page-inner h3,.page-inner h4,.page-inner .danger-box,.page-inner .step-body,.page-inner .step-no,#app img,nav .nav-avatar').forEach(function(e){m[stableKey(e)]=e});return m}
+  function apply(d){if(!d)return;var m=initialMap();Object.keys(d.content||{}).forEach(function(k){if(m[k])m[k].innerHTML=d.content[k]});Object.keys(d.images||{}).forEach(function(k){if(m[k]&&m[k].tagName==='IMG')m[k].src=d.images[k]});(d.added||[]).forEach(function(a){var mm=initialMap();document.querySelectorAll('[data-builder-key]').forEach(function(e){mm[e.dataset.builderKey]=e});var par=mm[a.parent];if(!par)return;var t=document.createElement('template');t.innerHTML=a.html;var el=t.content.firstElementChild;if(el){el.dataset.builderKey=a.key;par.appendChild(el)}});(d.deleted||[]).forEach(function(k){var e=m[k];if(e)e.remove()})}
+  try{if(!firebase.apps.length)firebase.initializeApp(cfg);firebase.database().ref('site_content').once('value').then(function(s){apply(s.val())}).catch(function(e){console.warn('사이트 공개 내용 불러오기 실패',e)})}catch(e){console.warn('Firebase 연결 실패',e)}
+})();
+</script>
 
 </body>
 </html>
