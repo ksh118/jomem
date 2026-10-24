@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>조밈 시참 설명서 — Cinematic Motion Graphic</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+  :root {
+    --bg: #06080f;
+    --surface: rgba(18, 24, 42, 0.82);
+    --line: rgba(255, 255, 255, 0.08);
+    --txt: #eef2ff;
+    --muted: #8b95b5;
+    --accent: #6c8cff;
+    --accent2: #9b6cff;
+    --gold: #f5c97a;
+    --live: #ff4d6d;
+    --font: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, -apple-system, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: #000;
+    font-family: var(--font);
+    color: var(--txt);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  #stage {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: radial-gradient(ellipse 80% 60% at 50% 40%, #0d1225 0%, #04060d 75%);
+  }
+
+  #world {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 1600px;
+    height: 900px;
+    margin-left: -800px;
+    margin-top: -450px;
+    transform-origin: center center;
+    will-change: transform;
+  }
+
+  .scene {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .scene.active { pointer-events: auto; }
+
+  /* ========== START OVERLAY ========== */
+  #startOverlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: radial-gradient(ellipse at 50% 45%, #0e1428 0%, #03040a 80%);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 32px;
+  }
+  #startOverlay .brand {
+    font-size: 52px; font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff 20%, #9bafff 60%, #c9b8ff);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  #startOverlay .sub {
+    font-size: 13px; color: var(--muted);
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  #btnStart {
+    margin-top: 4px;
+    display: inline-flex; align-items: center; gap: 12px;
+    padding: 16px 44px;
+    border-radius: 100px;
+    border: 1px solid rgba(108, 140, 255, 0.45);
+    background: linear-gradient(135deg, rgba(108,140,255,0.18), rgba(155,108,255,0.12));
+    color: var(--txt);
+    font-size: 17px; font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  #btnStart:hover {
+    background: linear-gradient(135deg, rgba(108,140,255,0.32), rgba(155,108,255,0.24));
+    box-shadow: 0 0 40px -6px rgba(108,140,255,0.55);
+    transform: translateY(-2px);
+  }
+  #btnStart .tri {
+    width: 0; height: 0;
+    border-left: 12px solid var(--txt);
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+  }
+
+  /* ========== CONTROLS ========== */
+  #controls {
+    position: fixed; bottom: 26px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 900;
+    display: flex; align-items: center; gap: 14px;
+    padding: 10px 20px;
+    border-radius: 100px;
+    background: rgba(10, 14, 26, 0.75);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  #controls.show { opacity: 1; pointer-events: auto; }
+  #controls button {
+    width: 34px; height: 34px;
+    border-radius: 50%; border: none;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--txt);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-family: var(--font);
+    transition: background 0.25s;
+  }
+  #controls button:hover { background: rgba(255, 255, 255, 0.14); }
+  #progressTrack {
+    width: 170px; height: 3px;
+    border-radius: 99px;
+    background: rgba(255, 255, 255, 0.12);
+    overflow: hidden;
+    cursor: pointer;
+    position: relative;
+  }
+  #progressFill {
+    width: 0%; height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  #timeLabel {
+    font-size: 11px; color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    min-width: 34px; text-align: center;
+  }
+
+  /* ========== SCENE 01 — INTRO ========== */
+  .intro-glow {
+    position: absolute;
+    width: 680px; height: 680px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(108,140,255,0.22) 0%, transparent 62%);
+    filter: blur(50px);
+    pointer-events: none;
+  }
+  .intro-wrap {
+    position: relative;
+    display: flex; flex-direction: column;
+    align-items: center; text-align: center;
+    gap: 20px;
+  }
+  .intro-title {
+    font-size: 84px; font-weight: 800;
+    letter-spacing: -0.045em;
+    line-height: 1.02;
+    white-space: nowrap;
+    background: linear-gradient(135deg, #ffffff 15%, #c2d1ff 50%, #b9a5ff 90%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 0;
+  }
+  .intro-line {
+    width: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+  .intro-sub {
+    font-size: 21px;
+    color: var(--muted);
+    letter-spacing: 0.015em;
+    opacity: 0;
+    white-space: nowrap;
+  }
+
+  /* ========== SCENE 02 — SITE UI ========== */
+  .site-shell {
+    width: 1120px;
+    border-radius: 22px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    box-shadow:
+      0 40px 100px -30px rgba(0, 0, 0, 0.9),
+      0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(30px) scale(0.97);
+    will-change: transform, opacity;
+  }
+  .site-topbar {
+    display: flex; align-items: center;
+    gap: 14px;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(10, 14, 26, 0.65);
+  }
+  .site-logo {
+    font-size: 16px; font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff, #9bafff);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    white-space: nowrap;
+  }
+  .site-nav {
+    display: flex; gap: 6px;
+    margin-left: auto;
+  }
+  .nav-item {
+    padding: 7px 14px;
+    border-radius: 100px;
+    font-size: 12px;
+    color: var(--muted);
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .nav-item.hot {
+    color: var(--txt);
+    background: rgba(108, 140, 255, 0.12);
+    border-color: rgba(108, 140, 255, 0.25);
+  }
+  .site-body { padding: 26px 24px 30px; }
+  .hero-strip {
+    border-radius: 16px;
+    padding: 26px 28px;
+    background: linear-gradient(135deg, rgba(108,140,255,0.12), rgba(155,108,255,0.06));
+    border: 1px solid rgba(108, 140, 255, 0.15);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .hero-strip h2 {
+    font-size: 24px; font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .hero-strip p { font-size: 13px; color: var(--muted); }
+
+  .cta-row {
+    display: flex; gap: 14px;
+    margin-top: 22px;
+    opacity: 0;
+  }
+  .btn-soft {
+    padding: 13px 26px;
+    border-radius: 100px;
+    font-size: 13px; font-weight: 600;
+    font-family: var(--font);
+    border: 1px solid rgba(108, 140, 255, 0.35);
+    background: rgba(108, 140, 255, 0.1);
+    color: var(--txt);
+    cursor: pointer;
+    transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .btn-soft.hover {
+    background: rgba(108, 140, 255, 0.22);
+    box-shadow: 0 0 30px -8px rgba(108, 140, 255, 0.7);
+    transform: scale(1.05);
+  }
+  .btn-ghost {
+    padding: 13px 26px;
+    border-radius: 100px;
+    font-size: 13px; font-weight: 500;
+    font-family: var(--font);
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  /* helper */
+  .helper {
+    position: absolute;
+    right: 16%; bottom: 22%;
+    display: flex; align-items: flex-end; gap: 12px;
+    opacity: 0;
+    z-index: 20;
+  }
+  .helper-avatar {
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    box-shadow: 0 10px 30px -8px rgba(108, 140, 255, 0.6);
+    flex-shrink: 0;
+  }
+  .helper-bubble {
+    background: rgba(18, 24, 42, 0.96);
+    border: 1px solid rgba(108, 140, 255, 0.32);
+    border-radius: 16px 16px 16px 4px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--txt);
+    max-width: 250px;
+    line-height: 1.5;
+    box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.8);
+  }
+  .helper-bubble b { color: var(--accent); }
+
+  /* click ripple */
+  .click-ripple {
+    position: absolute;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: rgba(108, 140, 255, 0.7);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+  }
+
+  /* ========== SCENE 03 — MENU FOCUS + GUIDE ========== */
+  .menu-focus {
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+  .mf-pill {
+    display: flex; gap: 8px;
+    padding: 22px 28px;
+    border-radius: 60px;
+    background: rgba(18, 24, 42, 0.92);
+    border: 1px solid rgba(108, 140, 255, 0.2);
+    box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.9);
+    position: relative;
+  }
+  .mf-item {
+    padding: 14px 26px;
+    border-radius: 100px;
+    font-size: 16px;
+    color: var(--muted);
+    font-weight: 500;
+    white-space: nowrap;
+    position: relative;
+    transition: color 0.3s, background 0.3s, border-color 0.3s;
+  }
+  .mf-item.mf-target {
+    color: var(--txt);
+    background: rgba(108, 140, 255, 0.15);
+    border: 1px solid rgba(108, 140, 255, 0.4);
+  }
+  .mf-sweep {
+    position: absolute;
+    top: 10%; bottom: 10%;
+    width: 50px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    pointer-events: none;
+    opacity: 0;
+    border-radius: 4px;
+  }
+
+  .guide-wrap {
+    position: absolute;
+    inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 26px;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+  .guide-head { text-align: center; }
+  .guide-head h2 {
+    font-size: 40px; font-weight: 800;
+    letter-spacing: -0.035em;
+    background: linear-gradient(135deg, #fff, #a9bcff);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 0;
+  }
+  .guide-head p {
+    margin-top: 8px;
+    font-size: 15px; color: var(--muted);
+    opacity: 0;
+  }
+  .steps {
+    display: flex; gap: 26px;
+    width: 1180px; justify-content: center;
+  }
+  .step-card {
+    flex: 1; max-width: 340px;
+    border-radius: 18px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 30px 26px 28px;
+    position: relative;
+    opacity: 0;
+    box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.7);
+  }
+  .step-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 24px; right: 24px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(108, 140, 255, 0.5), transparent);
+  }
+  .step-num {
+    font-size: 42px; font-weight: 800;
+    letter-spacing: -0.03em;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 14px;
+    opacity: 0.9;
+  }
+  .step-card h3 {
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+    word-break: keep-all;
+  }
+  .step-card p {
+    font-size: 13.5px; line-height: 1.65;
+    color: var(--muted);
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+  .step-link {
+    position: absolute;
+    left: 50%; bottom: -13px;
+    transform: translateX(-50%);
+    width: 2px; height: 26px;
+    background: linear-gradient(180deg, var(--accent), transparent);
+    opacity: 0;
+  }
+  .guide-emph {
+    margin-top: 8px;
+    font-size: 16px; font-weight: 600;
+    color: var(--gold);
+    letter-spacing: 0.01em;
+    opacity: 0;
+    white-space: nowrap;
+  }
+
+  /* ========== SCENE 04 — GAMES ========== */
+  .games-wrap {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 30px;
+    width: 1400px;
+  }
+  .games-title {
+    font-size: 34px; font-weight: 800;
+    letter-spacing: -0.035em;
+    opacity: 0;
+    white-space: nowrap;
+  }
+  .games-title span { color: var(--accent); }
+  .game-rail {
+    display: flex; gap: 20px;
+    width: 1380px; justify-content: center;
+    perspective: 1400px;
+  }
+  .game-card {
+    flex: 1; max-width: 250px;
+    border-radius: 16px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 24px 20px 22px;
+    opacity: 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 50px -18px rgba(0, 0, 0, 0.8);
+    transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1),
+                border-color 0.55s, box-shadow 0.55s;
+    will-change: transform;
+  }
+  .game-card::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(108, 140, 255, 0.09), transparent 55%);
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+  }
+  .game-card.focus {
+    border-color: rgba(108, 140, 255, 0.55);
+    box-shadow: 0 30px 80px -18px rgba(108, 140, 255, 0.45);
+    transform: translateY(-8px) scale(1.05);
+  }
+  .game-card.focus::after { opacity: 1; }
+  .game-index {
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--accent);
+    opacity: 0.85;
+    margin-bottom: 10px;
+  }
+  .game-card h3 {
+    font-size: 19px; font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    line-height: 1.3;
+    word-break: keep-all;
+  }
+  .game-card p {
+    font-size: 12.5px; line-height: 1.6;
+    color: var(--muted);
+    word-break: keep-all;
+  }
+  .games-foot {
+    font-size: 15px; color: var(--muted);
+    opacity: 0;
+    white-space: nowrap;
+  }
+
+  /* ========== SCENE 05 — RULES + LIVE ========== */
+  .rules-stage {
+    width: 1280px;
+    display: flex; gap: 40px;
+    align-items: flex-start; justify-content: center;
+    position: relative;
+  }
+  .rules-panel {
+    flex: 1; max-width: 520px;
+    border-radius: 18px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 30px 28px;
+    opacity: 0;
+  }
+  .rules-panel h3 {
+    font-size: 20px; font-weight: 700;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+    letter-spacing: -0.01em;
+  }
+  .rules-panel h3 .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+  }
+  .rule-list { display: flex; flex-direction: column; gap: 14px; }
+  .rule-item {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 13.5px; color: var(--muted);
+    opacity: 0;
+    word-break: keep-all;
+  }
+  .rule-item .check {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(108, 140, 255, 0.5);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .rule-item .check svg {
+    width: 10px; height: 10px;
+    stroke: var(--accent); stroke-width: 3;
+    fill: none; stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 20; stroke-dashoffset: 20;
+  }
+
+  .live-popup {
+    position: absolute;
+    right: -20px; top: 70px;
+    width: 290px;
+    border-radius: 20px;
+    background: rgba(16, 20, 36, 0.97);
+    border: 1px solid rgba(255, 77, 109, 0.32);
+    padding: 24px 22px;
+    opacity: 0;
+    box-shadow: 0 30px 80px -20px rgba(255, 77, 109, 0.28);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 10;
+  }
+  .live-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--live);
+    margin-bottom: 14px;
+  }
+  .live-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--live);
+    animation: livePulse 1.4s ease-in-out infinite;
+  }
+  @keyframes livePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 77, 109, 0.5); }
+    50% { box-shadow: 0 0 0 8px rgba(255, 77, 109, 0); }
+  }
+  .live-popup h4 {
+    font-size: 17px; font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+  }
+  .live-popup p {
+    font-size: 12.5px; color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 16px;
+    word-break: keep-all;
+  }
+  .live-popup p span {
+    font-size: 10.5px; opacity: 0.65;
+  }
+  .btn-live {
+    display: block; width: 100%;
+    padding: 11px;
+    border-radius: 100px;
+    border: none;
+    background: linear-gradient(135deg, var(--live), #ff7a8f);
+    color: #fff;
+    font-size: 13px; font-weight: 700;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-live.pulse {
+    box-shadow: 0 0 30px -4px rgba(255, 77, 109, 0.8);
+    transform: scale(1.04);
+  }
+
+  /* ========== SCENE 06 — OUTRO ========== */
+  .outro-glow {
+    position: absolute;
+    width: 720px; height: 720px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(108,140,255,0.16) 0%, transparent 62%);
+    filter: blur(55px);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+  .outro-wrap {
+    position: relative;
+    display: flex; flex-direction: column;
+    align-items: center; text-align: center;
+    gap: 18px;
+  }
+  .outro-title {
+    font-size: 76px; font-weight: 800;
+    letter-spacing: -0.045em;
+    white-space: nowrap;
+    background: linear-gradient(135deg, #ffffff 15%, #b8c8ff 55%, #c7b4ff);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 0;
+  }
+  .outro-sub {
+    font-size: 20px; color: var(--muted);
+    opacity: 0;
+    white-space: nowrap;
+  }
+  .outro-final {
+    margin-top: 10px;
+    font-size: 17px; font-weight: 500;
+    color: var(--gold);
+    opacity: 0;
+    white-space: nowrap;
+  }
+  .outro-cta {
+    margin-top: 26px;
+    display: inline-flex; align-items: center; gap: 12px;
+    padding: 17px 46px;
+    border-radius: 100px;
+    border: 1px solid rgba(108, 140, 255, 0.5);
+    background: linear-gradient(135deg, rgba(108,140,255,0.22), rgba(155,108,255,0.16));
+    color: var(--txt);
+    font-size: 16px; font-weight: 700;
+    font-family: var(--font);
+    cursor: pointer;
+    opacity: 0;
+    box-shadow: 0 0 50px -10px rgba(108, 140, 255, 0.4);
+    transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .outro-cta:hover {
+    box-shadow: 0 0 70px -8px rgba(108, 140, 255, 0.7);
+    transform: translateY(-3px);
+  }
+  .outro-copy {
+    margin-top: 12px;
+    font-size: 13px; color: var(--muted);
+    opacity: 0;
+    white-space: nowrap;
+  }
+
+  .float-chip {
+    position: absolute;
+    padding: 9px 16px;
+    border-radius: 100px;
+    background: rgba(18, 24, 42, 0.92);
+    border: 1px solid var(--line);
+    font-size: 11.5px;
+    color: var(--muted);
+    opacity: 0;
+    pointer-events: none;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  /* overlays */
+  #vignette {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse 75% 70% at 50% 50%, transparent 55%, rgba(0,0,0,0.6) 100%);
+    z-index: 50;
+  }
+  #grain {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    opacity: 0.032;
+    z-index: 51;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  #flash {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 50%, rgba(155, 180, 255, 0.9), rgba(108, 140, 255, 0));
+    opacity: 0;
+    z-index: 200;
+  }
+
+  /* responsive (fallback — 16:9 is primary) */
+  @media (max-width: 900px) {
+    #stage { overflow: hidden; }
+    #startOverlay .brand { font-size: 34px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- START OVERLAY -->
+<div id="startOverlay">
+  <div class="sub">Cinematic Motion Graphic</div>
+  <div class="brand">조밈 시참 설명서</div>
+  <button id="btnStart"><span class="tri"></span> 영상 시작</button>
+</div>
+
+<!-- STAGE -->
+<div id="stage">
+  <div id="world">
+
+    <!-- SCENE 01 -->
+    <section class="scene" id="scene1">
+      <div class="intro-glow"></div>
+      <div class="intro-wrap">
+        <h1 class="intro-title" id="introTitle">조밈 시참 설명서</h1>
+        <div class="intro-line" id="introLine"></div>
+        <p class="intro-sub" id="introSub">조밈의 콘텐츠를 더 재미있게 즐기는 방법</p>
+      </div>
+    </section>
+
+    <!-- SCENE 02 -->
+    <section class="scene" id="scene2">
+      <div class="site-shell" id="siteShell">
+        <div class="site-topbar">
+          <div class="site-logo">조밈 시참 설명서</div>
+          <div class="site-nav">
+            <div class="nav-item">채팅 규칙</div>
+            <div class="nav-item">참여 규칙</div>
+            <div class="nav-item hot">참여 안내서</div>
+            <div class="nav-item">게임 목록</div>
+          </div>
+        </div>
+        <div class="site-body">
+          <div class="hero-strip">
+            <h2>조밈 방송에 참여하고 싶으신가요?</h2>
+            <p>처음이라도 괜찮아요! 아래 안내를 따라 차근차근 시작해 보세요.</p>
+          </div>
+          <div class="cta-row" id="ctaRow">
+            <button class="btn-soft" id="ctaPrimary">참여 방법 알아보기</button>
+            <button class="btn-ghost">어떤 게임이 있을까?</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="helper" id="helper">
+        <div class="helper-avatar">🙂</div>
+        <div class="helper-bubble">
+          <b>조밈 방송</b>에 참여하고 싶으신가요?<br>
+          <span style="color:var(--muted);font-size:11.5px;">처음이라도 괜찮아요!</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCENE 03 -->
+    <section class="scene" id="scene3">
+
+      <!-- menu focus sub-scene -->
+      <div class="menu-focus" id="menuFocus">
+        <div class="mf-pill" id="mfPill">
+          <div class="mf-item" id="mf1">채팅 규칙</div>
+          <div class="mf-item" id="mf2">참여 규칙</div>
+          <div class="mf-item mf-target" id="mfTarget">참여 안내서</div>
+          <div class="mf-item" id="mf4">게임 목록</div>
+          <div class="mf-sweep" id="mfSweep"></div>
+          <div class="click-ripple" id="mfRipple"></div>
+        </div>
+      </div>
+
+      <!-- guide sub-scene -->
+      <div class="guide-wrap" id="guideWrap">
+        <div class="guide-head">
+          <h2 id="guideTitle">참여 안내서</h2>
+          <p id="guideSub">세 단계만 따라 하면 바로 참여할 수 있어요.</p>
+        </div>
+        <div class="steps">
+          <div class="step-card" id="step1">
+            <div class="step-num">01</div>
+            <h3>디스코드 서버 참가</h3>
+            <p>조밈 디스코드 서버에 참가하세요.</p>
+            <div class="step-link"></div>
+          </div>
+          <div class="step-card" id="step2">
+            <div class="step-num">02</div>
+            <h3>시참 역할 받기</h3>
+            <p>'역할' 채널에서 '시참 참여하기' 버튼을 클릭하세요.</p>
+            <
