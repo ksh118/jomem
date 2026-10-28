@@ -1841,13 +1841,13 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
   /* 피드백 기록은 별도 프로젝트 앱을 사용합니다. */
   if (!new URLSearchParams(location.search).has('adminPreview')) try {
     firebase.initializeApp({
-      apiKey: "AIzaSyA6oy-U3pyAaNQT6IZwRv2S4da_-Go_qKY",
-      authDomain: "jomeme-2b9db.firebaseapp.com",
-      databaseURL: "https://jomeme-2b9db-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "jomeme-2b9db",
-      storageBucket: "jomeme-2b9db.firebasestorage.app",
-      messagingSenderId: "1051219590742",
-      appId: "1:1051219590742:web:b9fe91939a6bac005b45f7"
+      apiKey: "AIzaSyABvR4Qzqt8lJpy3oH52nuXMeAcOcwfkOY",
+      authDomain: "jomeme-stream-guide.firebaseapp.com",
+      databaseURL: "https://jomeme-stream-guide-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "jomeme-stream-guide",
+      storageBucket: "jomeme-stream-guide.firebasestorage.app",
+      messagingSenderId: "1045076939348",
+      appId: "1:1045076939348:web:686b3c91921a55792793c1"
     }, 'feedback');
     fdb = firebase.app('feedback').database();
   } catch (e) { console.warn('firebase init failed', e); }
