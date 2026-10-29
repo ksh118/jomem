@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content="조밈 방송 시청자 참여 안내서입니다. 채팅·게임 규칙과 디스코드 참여 방법, 콘텐츠별 게임 안내를 확인하세요.">
+<link rel="preconnect" href="https://www.googleapis.com">
+<link rel="preconnect" href="https://i.ytimg.com">
 <link rel="canonical" href="https://jomeme.kro.kr/">
 <meta property="og:site_name" content="조밈">
 <meta property="og:description" content="조밈 방송 시청자 참여 안내서입니다. 채팅·게임 규칙과 디스코드 참여 방법, 콘텐츠별 게임 안내를 확인하세요.">
@@ -2347,113 +2349,141 @@ var YT_CONFIG = {
     stateEl.appendChild(a); stateEl.appendChild(b);
   }
 
+  /* 타임아웃 걸린 fetch (느린 서버에서 오래 멈추지 않게) */
+  function tfetch(url,ms){
+    var c=window.AbortController?new AbortController():null, t=setTimeout(function(){ if(c) c.abort(); },ms||6000);
+    return new Promise(function(res,rej){
+      var to=setTimeout(function(){rej(new Error('timeout'));},(ms||6000)+500);
+      fetch(url,c?{signal:c.signal}:{}).then(function(r){clearTimeout(t);clearTimeout(to);res(r);},function(e){clearTimeout(t);clearTimeout(to);rej(e);});
+    });
+  }
+
   function api(path,params){
     var q=Object.keys(params).map(function(k){return k+'='+encodeURIComponent(params[k]);}).join('&');
-    return fetch('https://www.googleapis.com/youtube/v3/'+path+'?'+q+'&key='+encodeURIComponent(YT_CONFIG.apiKey))
+    return tfetch('https://www.googleapis.com/youtube/v3/'+path+'?'+q+'&key='+encodeURIComponent(YT_CONFIG.apiKey),6000)
       .then(function(r){return r.json().then(function(j){ if(!r.ok) throw new Error((j.error&&j.error.message)||r.status); return j; });});
+  }
+
+  function thumbOf(id){ return 'https://i.ytimg.com/vi/'+id+'/mqdefault.jpg'; }
+  var RSS_URL='https://www.youtube.com/feeds/videos.xml?channel_id='+YT_CONFIG.channelId;
+
+  /* 방법 1 (빠름): YouTube Data API ─ 호출 1번으로 목록 바로 표시 */
+  function viaApi(){
+    if(!YT_CONFIG.apiKey) return Promise.reject(new Error('no key'));
+    var getUploads = YT_CONFIG.channelId
+      ? Promise.resolve('UU'+YT_CONFIG.channelId.slice(2))
+      : api('channels',{part:'contentDetails',forHandle:YT_CONFIG.handle}).then(function(j){
+          if(!j.items||!j.items.length) throw new Error('채널을 찾지 못했어요');
+          return j.items[0].contentDetails.relatedPlaylists.uploads;
+        });
+    return getUploads.then(function(pl){
+      return api('playlistItems',{part:'snippet',playlistId:pl,maxResults:YT_CONFIG.maxResults});
+    }).then(function(j){
+      return (j.items||[]).filter(function(it){
+        var sn=it.snippet; return sn&&sn.resourceId&&sn.thumbnails&&sn.title!=='Private video'&&sn.title!=='Deleted video';
+      }).map(function(it){
+        var sn=it.snippet, th=sn.thumbnails;
+        return {id:sn.resourceId.videoId,title:sn.title,date:sn.publishedAt,
+                thumb:(th.medium||th.high||th.default).url,short:false};
+      });
+    });
+  }
+
+  /* 쇼츠 여부는 화면을 먼저 보여준 뒤 뒤에서 확인해서 링크만 바꿔줌 (로딩을 늦추지 않음) */
+  function markShorts(items){
+    if(!YT_CONFIG.apiKey||!items.length) return;
+    api('videos',{part:'contentDetails',id:items.map(function(v){return v.id;}).join(',')}).then(function(j){
+      var dur={};
+      (j.items||[]).forEach(function(x){
+        var m=(x.contentDetails.duration||'').match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/);
+        dur[x.id]=m?((+m[1]||0)*3600+(+m[2]||0)*60+(+m[3]||0)):9999;
+      });
+      var cards=grid.querySelectorAll('a.hv-card'), changed=false;
+      items.forEach(function(v,i){
+        var sh=(dur[v.id]||9999)<=180;
+        if(sh!==!!v.short){ v.short=sh; changed=true; if(cards[i]) cards[i].href=(sh?'https://www.youtube.com/shorts/':'https://www.youtube.com/watch?v=')+encodeURIComponent(v.id); }
+      });
+      if(changed){ try{localStorage.setItem(CKEY,JSON.stringify({t:Date.now(),items:items}));}catch(e){} }
+    }).catch(function(){});
+  }
+
+  /* 방법 2 (대체): API가 막혔을 때만 RSS 사용 */
+  function rssViaRss2Json(){
+    return tfetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(RSS_URL),7000)
+      .then(function(r){ if(!r.ok) throw new Error('rss2json '+r.status); return r.json(); })
+      .then(function(j){
+        if(j.status!=='ok'||!j.items) throw new Error('rss2json 응답 오류');
+        return j.items.map(function(it){
+          var m=(it.guid||'').match(/yt:video:(.+)$/)||(it.link||'').match(/(?:v=|shorts\/)([\w-]{11})/);
+          if(!m) return null;
+          return {id:m[1],title:it.title,date:(it.pubDate||'').replace(' ','T')+'Z',thumb:thumbOf(m[1]),short:/\/shorts\//.test(it.link||'')};
+        }).filter(Boolean);
+      });
+  }
+  function rssViaXml(proxy){
+    return tfetch(proxy+encodeURIComponent(RSS_URL),7000)
+      .then(function(r){ if(!r.ok) throw new Error('proxy '+r.status); return r.text(); })
+      .then(function(txt){
+        var doc=new DOMParser().parseFromString(txt,'text/xml');
+        var entries=doc.getElementsByTagName('entry'), out=[];
+        for(var i=0;i<entries.length;i++){
+          var e=entries[i];
+          var idEl=e.getElementsByTagName('yt:videoId')[0];
+          var tEl=e.getElementsByTagName('title')[0];
+          var dEl=e.getElementsByTagName('published')[0];
+          if(!idEl||!tEl) continue;
+          var lk=e.getElementsByTagName('link')[0], href=lk?(lk.getAttribute('href')||''):'';
+          out.push({id:idEl.textContent,title:tEl.textContent,date:dEl?dEl.textContent:'',thumb:thumbOf(idEl.textContent),short:href.indexOf('/shorts/')>-1});
+        }
+        if(!out.length) throw new Error('RSS 비어있음');
+        return out;
+      });
+  }
+  function viaRss(){
+    return rssViaRss2Json()
+      .catch(function(){ return rssViaXml('https://api.allorigins.win/raw?url='); })
+      .catch(function(){ return rssViaXml('https://corsproxy.io/?'); });
+  }
+
+  function preloadThumbs(items){
+    items.slice(0,6).forEach(function(v){ var im=new Image(); im.src=v.thumb; });
   }
 
   function loadVideos(force){
     loaded=true;
-    if(!force){
-      try{
-        var c=JSON.parse(localStorage.getItem(CKEY)||'null');
-        if(c&&c.items&&c.items.length&&Date.now()-c.t<YT_CONFIG.cacheMinutes*60000){ render(c.items); return; }
-      }catch(e){}
-    }
-    skeleton();
+    var cached=null;
+    try{ cached=JSON.parse(localStorage.getItem(CKEY)||'null'); }catch(e){}
+    var hasCache=!!(cached&&cached.items&&cached.items.length);
+    var fresh=hasCache&&(Date.now()-cached.t<YT_CONFIG.cacheMinutes*60000);
+    var silent=false;
+    if(!force&&hasCache){
+      render(cached.items);           /* 오래된 캐시라도 일단 즉시 보여주고 */
+      if(fresh) return;
+      silent=true;                    /* 뒤에서 조용히 새로고침 */
+    } else skeleton();
 
-    function done(items){
-      if(!items||!items.length) throw new Error('영상이 없어요');
-      try{localStorage.setItem(CKEY,JSON.stringify({t:Date.now(),items:items}));}catch(e){}
-      render(items);
-    }
-
-    /* 방법 1: YouTube Data API (쇼츠/일반 영상 모두 포함) */
-    function viaApi(){
-      if(!YT_CONFIG.apiKey) return Promise.reject(new Error('no key'));
-      var getUploads = YT_CONFIG.channelId
-        ? Promise.resolve('UU'+YT_CONFIG.channelId.slice(2))
-        : api('channels',{part:'contentDetails',forHandle:YT_CONFIG.handle}).then(function(j){
-            if(!j.items||!j.items.length) throw new Error('채널을 찾지 못했어요');
-            return j.items[0].contentDetails.relatedPlaylists.uploads;
-          });
-      return getUploads.then(function(pl){
-        return api('playlistItems',{part:'snippet',playlistId:pl,maxResults:YT_CONFIG.maxResults});
-      }).then(function(j){
-        return (j.items||[]).filter(function(it){
-          var sn=it.snippet; return sn&&sn.resourceId&&sn.thumbnails&&sn.title!=='Private video'&&sn.title!=='Deleted video';
-        }).map(function(it){
-          var sn=it.snippet, th=sn.thumbnails;
-          return {id:sn.resourceId.videoId,title:sn.title,date:sn.publishedAt,
-                  thumb:(th.medium||th.high||th.default).url,short:false};
-        });
-      }).then(function(items){
-        if(!items.length) return items;
-        return api('videos',{part:'contentDetails',id:items.map(function(v){return v.id;}).join(',')}).then(function(j){
-          var dur={};
-          (j.items||[]).forEach(function(x){
-            var m=(x.contentDetails.duration||'').match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/);
-            dur[x.id]=m?((+m[1]||0)*3600+(+m[2]||0)*60+(+m[3]||0)):9999;
-          });
-          items.forEach(function(v){ v.short=(dur[v.id]||9999)<=180; });
-          return items;
-        }).catch(function(){ return items; });
-      });
-    }
-
-    /* 방법 2: API 키 없이 RSS 사용 (API가 막혔을 때 자동 대체) */
-    function thumbOf(id){ return 'https://i.ytimg.com/vi/'+id+'/mqdefault.jpg'; }
-    var RSS_URL='https://www.youtube.com/feeds/videos.xml?channel_id='+YT_CONFIG.channelId;
-
-    function rssViaRss2Json(){
-      return fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(RSS_URL))
-        .then(function(r){ if(!r.ok) throw new Error('rss2json '+r.status); return r.json(); })
-        .then(function(j){
-          if(j.status!=='ok'||!j.items) throw new Error('rss2json 응답 오류');
-          return j.items.map(function(it){
-            var m=(it.guid||'').match(/yt:video:(.+)$/)||(it.link||'').match(/(?:v=|shorts\/)([\w-]{11})/);
-            if(!m) return null;
-            return {id:m[1],title:it.title,date:(it.pubDate||'').replace(' ','T')+'Z',thumb:thumbOf(m[1]),short:/\/shorts\//.test(it.link||'')};
-          }).filter(Boolean);
-        });
-    }
-
-    function rssViaXml(proxy){
-      return fetch(proxy+encodeURIComponent(RSS_URL))
-        .then(function(r){ if(!r.ok) throw new Error('proxy '+r.status); return r.text(); })
-        .then(function(txt){
-          var doc=new DOMParser().parseFromString(txt,'text/xml');
-          var entries=doc.getElementsByTagName('entry'), out=[];
-          for(var i=0;i<entries.length;i++){
-            var e=entries[i];
-            var idEl=e.getElementsByTagName('yt:videoId')[0];
-            var tEl=e.getElementsByTagName('title')[0];
-            var dEl=e.getElementsByTagName('published')[0];
-            if(!idEl||!tEl) continue;
-            var lk=e.getElementsByTagName('link')[0], href=lk?(lk.getAttribute('href')||''):'';
-            out.push({id:idEl.textContent,title:tEl.textContent,date:dEl?dEl.textContent:'',thumb:thumbOf(idEl.textContent),short:href.indexOf('/shorts/')>-1});
-          }
-          if(!out.length) throw new Error('RSS 비어있음');
-          return out;
-        });
-    }
-
-    function viaRss(){
-      return rssViaRss2Json()
-        .catch(function(){ return rssViaXml('https://api.allorigins.win/raw?url='); })
-        .catch(function(){ return rssViaXml('https://corsproxy.io/?'); });
-    }
-
-    viaRss()
-      .catch(function(e){ console.warn('[최신영상] RSS 실패 → API로 대체:',e); return viaApi(); })
-      .then(function(items){ items=items.slice(0,YT_CONFIG.maxResults); done(items); })
+    viaApi()
+      .catch(function(e){ console.warn('[최신영상] API 실패 → RSS로 대체:',e); return viaRss(); })
+      .then(function(items){
+        items=(items||[]).slice(0,YT_CONFIG.maxResults);
+        if(!items.length) throw new Error('영상이 없어요');
+        try{localStorage.setItem(CKEY,JSON.stringify({t:Date.now(),items:items}));}catch(e){}
+        var same=silent&&cached.items[0]&&cached.items[0].id===items[0].id&&cached.items.length===items.length;
+        if(!same){ preloadThumbs(items); render(items); }
+        markShorts(items);
+      })
       .catch(function(e){
         console.warn('[최신영상] 불러오기 실패:',e);
+        if(silent) return;
         loaded=false;
         fail('영상을 불러오지 못했어요. 잠시 후 다시 시도해주세요.');
       });
   }
+
+  /* 탭을 누르기 전에 미리 불러와 두기 → 영상 탭 눌렀을 때 바로 뜸 */
+  function prefetch(){ if(!loaded) loadVideos(); }
+  if(window.requestIdleCallback) window.addEventListener('load',function(){ requestIdleCallback(prefetch,{timeout:2500}); });
+  else window.addEventListener('load',function(){ setTimeout(prefetch,800); });
 })();
 </script>
 <!-- ═══════════ 홈 탭 끝 ═══════════ -->
