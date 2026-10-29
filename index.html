@@ -1830,27 +1830,13 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
 
 <script>
 (function () {
-  var SEEN = 'jomim-fb-seen', LAST = 'jomim-fb-last';
+  var SEEN = 'jomim-fb-seen';
   var LABELS = ['별점을 선택해주세요', '별로예요', '아쉬워요', '보통이에요', '좋아요', '최고예요'];
   var $ = function (id) { return document.getElementById(id); };
   var btn = $('fbBtn'), bubble = $('fbBubble'), modal = $('fbModal'),
       stars = $('fbStars').children, label = $('fbStarLabel'),
       text = $('fbText'), nick = $('fbNick'), err = $('fbErr'), submitBtn = $('fbSubmit');
-  var rating = 0, sending = false, fdb = null;
-
-  /* Firebase (게임 파일과 동일 프로젝트) */
-  try {
-    firebase.initializeApp({
-      apiKey: "AIzaSyA6oy-U3pyAaNQT6IZwRv2S4da_-Go_qKY",
-      authDomain: "jomeme-2b9db.firebaseapp.com",
-      databaseURL: "https://jomeme-2b9db-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "jomeme-2b9db",
-      storageBucket: "jomeme-2b9db.firebasestorage.app",
-      messagingSenderId: "1051219590742",
-      appId: "1:1051219590742:web:b9fe91939a6bac005b45f7"
-    });
-    fdb = firebase.database();
-  } catch (e) { console.warn('firebase init failed', e); }
+  var rating = 0;
 
   /* 말풍선 */
   function seen() { try { return !!localStorage.getItem(SEEN); } catch (e) { return false; } }
@@ -1904,27 +1890,8 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
   });
 
   submitBtn.addEventListener('click', function () {
-    if (sending) return;
     if (!rating) { setErr('별점을 선택해주세요.'); return; }
-    var last = 0; try { last = +localStorage.getItem(LAST) || 0; } catch (e) {}
-    if (Date.now() - last < 30000) { setErr('잠시 후 다시 보내주세요.'); return; }
-    if (!fdb) { setErr('연결에 실패했어요. 새로고침 후 다시 시도해주세요.'); return; }
-    sending = true; submitBtn.disabled = true; submitBtn.textContent = '보내는 중…'; setErr('');
-    fdb.ref('site_feedback').push({
-      rating: rating,
-      text: text.value.trim().slice(0, 500),
-      nick: nick.value.trim().slice(0, 20) || '익명',
-      createdAt: Date.now()
-    }).then(function () {
-      try { localStorage.setItem(LAST, String(Date.now())); } catch (e) {}
-      $('fbForm').hidden = true; $('fbDone').hidden = false;
-      rating = 0; paint(0); text.value = '';
-      setTimeout(closeModal, 2000);
-    }).catch(function (e) {
-      console.warn(e); setErr('전송에 실패했어요. 잠시 후 다시 시도해주세요.');
-    }).then(function () {
-      sending = false; submitBtn.disabled = false; submitBtn.textContent = '보내기';
-    });
+    setErr('전송되지 않았어요. 피드백 기능은 현재 잠시 중지되어 있어요.');
   });
 })();
 </script>
