@@ -180,8 +180,8 @@ nav{position:sticky;top:0;z-index:200;background:var(--bg);border-bottom:1px sol
 
 .game-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .game-btn{
-  position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:16px;
-  min-height:120px;padding:16px;border:1px solid var(--border2);border-radius:12px;background:var(--bg);
+  position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:14px;
+  padding:18px 16px;border:1px solid var(--border2);border-radius:12px;background:var(--bg);
   text-align:left;cursor:pointer;color:var(--text);
   transition:border-color .15s,background .15s;
 }
@@ -189,17 +189,15 @@ nav{position:sticky;top:0;z-index:200;background:var(--bg);border-bottom:1px sol
 .game-btn:active{background:var(--bg2)}
 .game-btn>div,.game-text{display:flex;flex-direction:column;gap:2px;margin-top:auto}
 .game-icon{width:34px;height:34px;border-radius:8px;border:1px solid transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text2);font-size:18px;overflow:hidden}
-.game-icon svg{width:32px;height:32px}
 .game-label{font-size:15.5px;font-weight:700;letter-spacing:-.02em;line-height:1.35}
 .game-sub{font-size:13px;color:var(--text3);line-height:1.45}
 
 .page-inner{max-width:var(--wrap);margin:0 auto;padding:36px 20px 64px}
 .page-hero{display:flex;align-items:center;gap:12px;margin-bottom:28px}
 .page-icon{width:34px;height:34px;border-radius:8px;border:1px solid transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text);font-size:20px;overflow:hidden}
-.page-icon svg{width:32px;height:32px}
 .game-icon img,.page-icon img{display:block;width:32px;height:32px}
-.row-ico{display:block;width:32px;height:32px;flex-shrink:0}
-.quick-links img{display:block;width:16px;height:16px}
+.game-icon:empty,.page-icon:empty{display:none}
+#rsIcon{display:contents}
 .page-title{font-size:26px;font-weight:800;letter-spacing:-.035em}
 
 .section,.rules-card{margin-bottom:34px;counter-reset:mp}
@@ -336,7 +334,6 @@ body.admin-preview .site-footer{display:none!important}
 .rs-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:10px auto 0}
 .rs-head{display:flex;align-items:center;gap:10px;padding:10px 14px 14px 22px}
 .rs-head .page-icon{width:34px;height:34px}
-.rs-head .page-icon svg{width:32px;height:32px}
 .rs-title{flex:1;min-width:0;font-size:19px;font-weight:800;letter-spacing:-.035em}
 .rs-close{width:36px;height:36px;flex-shrink:0;border:0;border-radius:8px;background:var(--bg2);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s}
 .rs-close:hover{background:var(--bg3);color:var(--text)}
@@ -471,7 +468,7 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
   .home-notice{margin-bottom:30px}
   .home-section{margin-bottom:34px}
   .game-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-  .game-btn{min-height:112px;padding:14px}
+  .game-btn{padding:16px 14px}
   .page-inner{padding:26px 20px 52px}
   .hv-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 10px}
   .rs-head{padding:8px 12px 12px 18px}
@@ -571,12 +568,10 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
       <h2 class="home-section-label">규칙</h2>
       <div class="nav-grid">
         <button type="button" class="nav-btn" id="navChat" onclick="go('chat')">
-          <img class="row-ico" src="./icons/chat.svg" alt="" width="32" height="32">
           <span class="btn-text"><span class="btn-label">채팅 규칙</span><span class="btn-sub">채팅창 사용 규칙</span></span>
           <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
         </button>
         <button type="button" class="nav-btn" id="navPart" onclick="go('part')">
-          <img class="row-ico" src="./icons/shield.svg" alt="" width="32" height="32">
           <span class="btn-text"><span class="btn-label">참여 규칙</span><span class="btn-sub">게임 참여 시 필수 확인</span></span>
           <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
         </button>
@@ -586,7 +581,6 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
     <div class="home-section">
       <h2 class="home-section-label">참여 방법</h2>
       <button type="button" class="nav-btn primary" id="navHowto" onclick="go('howto')">
-        <img class="row-ico" src="./icons/map.svg" alt="" width="32" height="32">
         <span class="btn-text"><span class="btn-label">참여 안내서</span><span class="btn-sub">시참 방법 및 디스코드 안내</span></span>
         <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
       </button>
@@ -596,23 +590,23 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
       <h2 class="home-section-label">게임 룰</h2>
       <div class="game-grid">
         <button type="button" class="game-btn" onclick="go('battle')">
-          <span class="game-icon"><img src="./icons/sword.svg" alt="" width="32" height="32"></span>
+          <span class="game-icon"></span>
           <span class="game-text"><span class="game-label">야생 배틀로얄</span><span class="game-sub">최후의 1인 우승</span></span>
         </button>
         <button type="button" class="game-btn" onclick="go('school')">
-          <span class="game-icon"><img src="./icons/school.svg" alt="" width="32" height="32"></span>
+          <span class="game-icon"></span>
           <span class="game-text"><span class="game-label">학교 술래잡기</span><span class="game-sub">도망자 생존 or 술래 승리</span></span>
         </button>
         <button type="button" class="game-btn" onclick="go('city')">
-          <span class="game-icon"><img src="./icons/potion.svg" alt="" width="32" height="32"></span>
+          <span class="game-icon"></span>
           <span class="game-text"><span class="game-label">도시능력자</span><span class="game-sub">랜덤 능력 배틀</span></span>
         </button>
         <button type="button" class="game-btn" onclick="go('catch')">
-          <span class="game-icon"><img src="./icons/compass.svg" alt="" width="32" height="32"></span>
+          <span class="game-icon"></span>
           <span class="game-text"><span class="game-label">조밈을 잡아라!</span><span class="game-sub">조밈 추격전</span></span>
         </button>
         <button type="button" class="game-btn" onclick="go('mind')">
-          <span class="game-icon"><img src="./icons/bulb.svg" alt="" width="32" height="32"></span>
+          <span class="game-icon"></span>
           <span class="game-text"><span class="game-label">캐치마인드</span><span class="game-sub">건축으로 정답 맞추기</span></span>
         </button>
       </div>
@@ -703,7 +697,7 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
 <div class="page" id="pg-chat">
   <div class="page-inner">
     <div class="page-hero">
-      <span class="page-icon"><img src="./icons/chat.svg" alt="" width="32" height="32"></span>
+      <span class="page-icon"></span>
       <h1 class="page-title">채팅 규칙</h1>
     </div>
     <div class="section rules-card">
@@ -753,7 +747,7 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
 <div class="page" id="pg-part">
   <div class="page-inner">
     <div class="page-hero">
-      <span class="page-icon"><img src="./icons/shield.svg" alt="" width="32" height="32"></span>
+      <span class="page-icon"></span>
       <h1 class="page-title">참여 규칙</h1>
     </div>
     <div class="notice-box"><span>컨텐츠 참여 시, 방송 음성을 반드시 청취하시며 참여해 주셔야 합니다!</span></div>
@@ -781,7 +775,7 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
 <div class="page" id="pg-howto">
   <div class="page-inner">
     <div class="page-hero">
-      <span class="page-icon"><img src="./icons/map.svg" alt="" width="32" height="32"></span>
+      <span class="page-icon"></span>
       <h1 class="page-title">참여 안내서</h1>
     </div>
     <div class="section rules-card">
@@ -814,8 +808,8 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
     </div>
     <div class="notice-box"><span>규칙을 반드시 필독 후에 참여 해주세요!!</span></div>
     <div class="quick-links">
-      <button type="button" onclick="go('chat')"><img src="./icons/chat.svg" alt="" width="16" height="16">채팅 규칙</button>
-      <button type="button" onclick="go('part')"><img src="./icons/shield.svg" alt="" width="16" height="16">참여 규칙</button>
+      <button type="button" onclick="go('chat')">채팅 규칙</button>
+      <button type="button" onclick="go('part')">참여 규칙</button>
     </div>
   </div>
 </div>
@@ -823,7 +817,7 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
 <div class="page" id="pg-battle">
   <div class="page-inner">
     <div class="page-hero">
-      <span class="page-icon"><img src="./icons/sword.svg" alt="" width="32" height="32"></span>
+      <span class="page-icon"></span>
       <h1 class="page-title">야생 배틀로얄</h1>
     </div>
     <div class="section rules-card">
@@ -846,7 +840,7 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
 <div class="page" id="pg-school">
   <div class="page-inner">
     <div class="page-hero">
-      <span class="page-icon"><img src="./icons/school.svg" alt="" width="32" height="32"></span>
+      <span class="page-icon"></span>
       <h1 class="page-title">학교 술래잡기</h1>
     </div>
     <div class="section rules-card">
@@ -875,7 +869,7 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
 <div class="page" id="pg-city">
   <div class="page-inner">
     <div class="page-hero">
-      <span class="page-icon"><img src="./icons/potion.svg" alt="" width="32" height="32"></span>
+      <span class="page-icon"></span>
       <h1 class="page-title">도시능력자</h1>
     </div>
     <div class="section rules-card">
@@ -909,7 +903,7 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
 <div class="page" id="pg-catch">
   <div class="page-inner">
     <div class="page-hero">
-      <span class="page-icon"><img src="./icons/compass.svg" alt="" width="32" height="32"></span>
+      <span class="page-icon"></span>
       <h1 class="page-title">조밈을 잡아라!</h1>
     </div>
     <div class="section rules-card">
@@ -925,7 +919,7 @@ body:has(#tut.on) .fb-bubble{opacity:0!important}
 <div class="page" id="pg-mind">
   <div class="page-inner">
     <div class="page-hero">
-      <span class="page-icon"><img src="./icons/bulb.svg" alt="" width="32" height="32"></span>
+      <span class="page-icon"></span>
       <h1 class="page-title">캐치마인드</h1>
     </div>
     <div class="section rules-card">
@@ -1665,7 +1659,6 @@ function updateIcon(t) {
 (function(){
   var cfg={apiKey:"AIzaSyABvR4Qzqt8lJpy3oH52nuXMeAcOcwfkOY",authDomain:"jomeme-stream-guide.firebaseapp.com",databaseURL:"https://jomeme-stream-guide-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"jomeme-stream-guide",storageBucket:"jomeme-stream-guide.firebasestorage.app",messagingSenderId:"1045076939348",appId:"1:1045076939348:web:686b3c91921a55792793c1",measurementId:"G-PJXSJ581PH"};
   var adminPreview=new URLSearchParams(location.search).has('adminPreview'),adminDraft=false;
-  var PAD='<svg viewBox="0 0 16 16" width="32" height="32" shape-rendering="crispEdges"><g stroke="none"><path fill="#2b2118" d="M3 4h10v1h-10zM2 5h1v1h-1zM13 5h1v1h-1zM1 6h1v1h-1zM14 6h1v1h-1zM1 7h1v1h-1zM14 7h1v1h-1zM1 8h1v1h-1zM14 8h1v1h-1zM1 9h1v1h-1zM6 9h4v1h-4zM14 9h1v1h-1zM1 10h1v1h-1zM5 10h1v1h-1zM10 10h1v1h-1zM14 10h1v1h-1zM2 11h3v1h-3zM11 11h3v1h-3z"/><path fill="#5b6472" d="M3 5h10v1h-10zM2 6h2v1h-2zM5 6h9v1h-9zM2 7h1v1h-1zM6 7h4v1h-4zM11 7h1v1h-1zM13 7h1v1h-1zM2 8h2v1h-2zM5 8h9v1h-9zM2 9h4v1h-4zM10 9h4v1h-4zM2 10h3v1h-3zM11 10h3v1h-3z"/><path fill="#eef0f3" d="M4 6h1v1h-1zM3 7h3v1h-3zM4 8h1v1h-1z"/><path fill="#e0362b" d="M10 7h1v1h-1z"/><path fill="#3f74d8" d="M12 7h1v1h-1z"/></g></svg>';
   var gameIds=['battle','school','city','catch','mind'];
   function imageOK(v){return /^(https:\/\/|\.\/|\/|data:image\/(png|jpeg|webp|gif);base64,)/i.test(String(v||''))}
   function setImg(img,url){if(img&&imageOK(url))img.src=url}
@@ -1676,9 +1669,9 @@ function updateIcon(t) {
     document.querySelectorAll('nav .nav-title').forEach(function(e){e.textContent=String(b.navTitle||'조밈 시참 설명서')});document.querySelectorAll('.home-name').forEach(function(e){e.textContent=String(b.homeTitle||b.navTitle||'조밈 시참 설명서')});document.querySelectorAll('.home-handle').forEach(function(e){e.textContent=String(b.homeSubtitle||'')});document.querySelectorAll('.nav-avatar').forEach(function(e){setImg(e,b.navLogo)});document.querySelectorAll('.home-avatar').forEach(function(e){setImg(e,b.homeLogo)});
     gameIds.forEach(function(id,i){var g=games[id];if(!g)return;var card=document.querySelectorAll('.game-btn')[i],tab=document.getElementById('tab-'+id),page=document.getElementById('pg-'+id);if(card){var h=card.querySelector('.game-label'),sub=card.querySelector('.game-sub'),icon=card.querySelector('.game-icon');if(h)h.textContent=String(g.title||'');if(sub)sub.textContent=String(g.subtitle||'');if(icon)applyIcon(icon,g);}if(tab)tab.textContent=String(g.title||'');if(page){var pic=page.querySelector('.page-icon');if(pic)applyIcon(pic,g);var h1=page.querySelector('.page-title');if(h1)h1.textContent=String(g.title||'');var inner=page.querySelector('.page-inner');if(inner&&Array.isArray(g.sections)&&g.dirty){inner.querySelectorAll('.rules-card').forEach(function(e){e.remove()});g.sections.forEach(function(s){inner.append(makeSection(s))})}}});
     var pages=d.pages||{};Object.keys(pages).forEach(function(id){var g=pages[id],page=document.getElementById('pg-'+id);if(!page||!g.dirty)return;var title=page.querySelector('.page-title');if(title)title.textContent=String(g.title||'');var inner=page.querySelector('.page-inner');if(inner){inner.querySelectorAll('.rules-card').forEach(function(e){e.remove()});(Array.isArray(g.sections)?g.sections:[]).forEach(function(sec){inner.append(makeSection(sec))})}var warning=page.querySelector('.danger-box');if(warning&&g.warning!==undefined){warning.textContent=String(g.warning||'');warning.style.whiteSpace='pre-line'}var notice=page.querySelector('.notice-box span');if(notice&&g.notice!==undefined)notice.textContent=String(g.notice||'')});
-    Object.keys(games).forEach(function(id){if(gameIds.indexOf(id)>=0)return;var g=games[id],key='custom-'+id;var grid=document.querySelector('.game-grid');if(grid&&!document.querySelector('[data-game-id="'+CSS.escape(id)+'"]')){var item=document.createElement('div');item.className='game-btn';item.dataset.gameId=id;item.dataset.pageTarget=id;var icon=document.createElement('span');icon.className='game-icon ic-teal';icon.innerHTML=PAD;applyIcon(icon,g);var labels=document.createElement('div'),h=document.createElement('div'),sub=document.createElement('div');h.className='game-label';h.textContent=String(g.title||'새 게임');sub.className='game-sub';sub.textContent=String(g.subtitle||'');labels.append(h,sub);item.append(icon,labels);item.addEventListener('click',function(){go(id)});grid.append(item)}
-      var page=document.getElementById('pg-'+id);if(!page){page=document.createElement('div');page.className='page admin-custom-page';page.id='pg-'+id;var inner=document.createElement('div');inner.className='page-inner';var hero=document.createElement('div');hero.className='page-hero';var badge=document.createElement('span');badge.className='page-icon ic-teal';badge.innerHTML=PAD;var h1=document.createElement('h1');h1.className='page-title';h1.textContent=String(g.title||'새 게임');hero.append(badge,h1);inner.append(hero);(Array.isArray(g.sections)?g.sections:[]).forEach(function(s){inner.append(makeSection(s))});page.append(inner);document.getElementById('app').append(page)}else{var title=page.querySelector('.page-title');if(title)title.textContent=String(g.title||'새 게임');var pi=page.querySelector('.page-inner');if(pi){pi.querySelectorAll('.rules-card').forEach(function(e){e.remove()});(Array.isArray(g.sections)?g.sections:[]).forEach(function(s){pi.append(makeSection(s))})}}
-      var liveItem=grid&&grid.querySelector('[data-game-id="'+CSS.escape(id)+'"]');if(liveItem){var titleEl=liveItem.querySelector('.game-label'),subEl=liveItem.querySelector('.game-sub'),iconEl=liveItem.querySelector('.game-icon');if(titleEl)titleEl.textContent=String(g.title||'새 게임');if(subEl)subEl.textContent=String(g.subtitle||'');if(iconEl){if(!imageOK(g.image)&&!imageOK(g.imageDark)&&!iconEl.querySelector('svg'))iconEl.innerHTML=PAD;applyIcon(iconEl,g)}}
+    Object.keys(games).forEach(function(id){if(gameIds.indexOf(id)>=0)return;var g=games[id],key='custom-'+id;var grid=document.querySelector('.game-grid');if(grid&&!document.querySelector('[data-game-id="'+CSS.escape(id)+'"]')){var item=document.createElement('div');item.className='game-btn';item.dataset.gameId=id;item.dataset.pageTarget=id;var icon=document.createElement('span');icon.className='game-icon ic-teal';applyIcon(icon,g);var labels=document.createElement('div'),h=document.createElement('div'),sub=document.createElement('div');h.className='game-label';h.textContent=String(g.title||'새 게임');sub.className='game-sub';sub.textContent=String(g.subtitle||'');labels.append(h,sub);item.append(icon,labels);item.addEventListener('click',function(){go(id)});grid.append(item)}
+      var page=document.getElementById('pg-'+id);if(!page){page=document.createElement('div');page.className='page admin-custom-page';page.id='pg-'+id;var inner=document.createElement('div');inner.className='page-inner';var hero=document.createElement('div');hero.className='page-hero';var badge=document.createElement('span');badge.className='page-icon ic-teal';var h1=document.createElement('h1');h1.className='page-title';h1.textContent=String(g.title||'새 게임');hero.append(badge,h1);inner.append(hero);(Array.isArray(g.sections)?g.sections:[]).forEach(function(s){inner.append(makeSection(s))});page.append(inner);document.getElementById('app').append(page)}else{var title=page.querySelector('.page-title');if(title)title.textContent=String(g.title||'새 게임');var pi=page.querySelector('.page-inner');if(pi){pi.querySelectorAll('.rules-card').forEach(function(e){e.remove()});(Array.isArray(g.sections)?g.sections:[]).forEach(function(s){pi.append(makeSection(s))})}}
+      var liveItem=grid&&grid.querySelector('[data-game-id="'+CSS.escape(id)+'"]');if(liveItem){var titleEl=liveItem.querySelector('.game-label'),subEl=liveItem.querySelector('.game-sub'),iconEl=liveItem.querySelector('.game-icon');if(titleEl)titleEl.textContent=String(g.title||'새 게임');if(subEl)subEl.textContent=String(g.subtitle||'');if(iconEl){if(!imageOK(g.image)&&!imageOK(g.imageDark))iconEl.replaceChildren();applyIcon(iconEl,g)}}
 
     });
     document.querySelectorAll('.game-btn[data-game-id]').forEach(function(item){var id=item.dataset.gameId;if(!games[id])item.remove()});document.querySelectorAll('.admin-added-tab').forEach(function(tab){var id=tab.id.slice(4);if(!games[id])tab.remove()});document.querySelectorAll('.page.admin-custom-page').forEach(function(page){var id=page.id.slice(3);if(!games[id])page.remove()});
